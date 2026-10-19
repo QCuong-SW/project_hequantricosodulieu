@@ -1,0 +1,1020 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SmartDroneDelivery — Phân công nhiệm vụ & Gợi ý Commit (5 Tuần)</title>
+  <style>
+    :root {
+      --bg: #ffffff;
+      --card-bg: #ffffff;
+      --border: #e2e8f0;
+      --border-dark: #cbd5e1;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --primary: #0284c7;
+      --code-bg: #f8fafc;
+      --m1-color: #1d4ed8;
+      --m1-bg: #eff6ff;
+      --m2-color: #047857;
+      --m2-bg: #ecfdf5;
+      --m3-color: #6d28d9;
+      --m3-bg: #f5f3ff;
+      --m4-color: #b45309;
+      --m4-bg: #fffbeb;
+      --m5-color: #be185d;
+      --m5-bg: #fdf2f8;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: #f8fafc;
+      color: var(--text);
+      line-height: 1.6;
+      padding: 32px 20px;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    header {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 24px;
+      margin-bottom: 24px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
+    h1 {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+    .subtitle {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+    }
+    
+    .team-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .badge-member {
+      font-size: 12px;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-weight: 600;
+      display: inline-block;
+      border: 1px solid transparent;
+    }
+    .badge-m1 { background: var(--m1-bg); color: var(--m1-color); border-color: #bfdbfe; }
+    .badge-m2 { background: var(--m2-bg); color: var(--m2-color); border-color: #a7f3d0; }
+    .badge-m3 { background: var(--m3-bg); color: var(--m3-color); border-color: #ddd6fe; }
+    .badge-m4 { background: var(--m4-bg); color: var(--m4-color); border-color: #fde68a; }
+    .badge-m5 { background: var(--m5-bg); color: var(--m5-color); border-color: #fbcfe8; }
+
+    /* Tabs */
+    .tabs {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 20px;
+      border-bottom: 1px solid var(--border);
+    }
+    .tab-btn {
+      padding: 10px 18px;
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: all 0.15s;
+    }
+    .tab-btn:hover { color: var(--text); }
+    .tab-btn.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+      background: #ffffff;
+    }
+
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* Week Section */
+    .week-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 20px 24px;
+      margin-bottom: 20px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+    }
+    .week-header {
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 10px;
+      margin-bottom: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .week-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .week-sub {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .task-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .task-item {
+      padding: 14px 18px;
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      border-left: 3px solid var(--border-dark);
+    }
+    .task-item:hover {
+      border-color: #cbd5e1;
+      border-left-color: var(--primary);
+      background: #fafafa;
+    }
+    
+    .task-header-line {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 4px;
+    }
+    .task-owner {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+    .task-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+    }
+    .task-file {
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 12px;
+      color: #0369a1;
+      margin: 4px 0 6px 0;
+      background: var(--code-bg);
+      border: 1px solid #e2e8f0;
+      padding: 2px 8px;
+      border-radius: 4px;
+      display: inline-block;
+    }
+    .task-desc {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+
+    /* Commits Box */
+    .task-commits {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      padding: 8px 12px;
+      margin-top: 6px;
+    }
+    .commit-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: #64748b;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+    .commit-line {
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 12px;
+      color: #1e293b;
+      padding: 3px 0;
+      display: block;
+      word-break: break-all;
+    }
+
+    /* Tree View */
+    .tree-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 24px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+    }
+    .tree-title {
+      font-size: 15px;
+      font-weight: 700;
+      margin-bottom: 4px;
+      color: var(--text);
+    }
+    .tree-desc {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+    }
+    .tree-box {
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 13px;
+      line-height: 1.8;
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 18px 20px;
+      overflow-x: auto;
+      white-space: pre;
+      color: #334155;
+    }
+    .tree-root { color: #0f172a; font-weight: bold; }
+    .tree-dir { color: #0369a1; font-weight: bold; }
+    .tree-file { color: #475569; }
+    .tag-m1 { color: var(--m1-color); font-weight: bold; }
+    .tag-m2 { color: var(--m2-color); font-weight: bold; }
+    .tag-m3 { color: var(--m3-color); font-weight: bold; }
+    .tag-m4 { color: var(--m4-color); font-weight: bold; }
+    .tag-m5 { color: var(--m5-color); font-weight: bold; }
+    .tag-shared { color: #64748b; }
+
+    /* Guide Box */
+    .guide-box {
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      border-radius: 6px;
+      padding: 14px 18px;
+      margin-bottom: 20px;
+      font-size: 13px;
+      color: #166534;
+    }
+    .guide-title { font-weight: 700; margin-bottom: 4px; }
+
+    @media print {
+      body { background: #fff; padding: 0; }
+      header, .week-card, .tree-card { border: none; box-shadow: none; padding: 0; margin-bottom: 16px; }
+      .tabs { display: none; }
+      .tab-content { display: block !important; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>SmartDroneDelivery — Phân công nhiệm vụ & Gợi ý Commit (5 Tuần)</h1>
+    <p class="subtitle">Đồ án Hệ Quản Trị Cơ Sở Dữ Liệu | SQL Server 2022 | ASP.NET Core 9 | ReactJS | Flutter</p>
+    
+    <div class="team-badges">
+      <span class="badge-member badge-m1">M1: Vũ Trí Thành — DB Architecture, Identity, Auth & EF Core</span>
+      <span class="badge-member badge-m2">M2: Lê Thanh Nhị — Customers, Addresses & Order Form</span>
+      <span class="badge-member badge-m3">M3: Cường Quang — Khởi tạo khung dự án, Orders & Packages</span>
+      <span class="badge-member badge-m4">M4: Tấn Tài — Stations, Handoff QR & SignalR</span>
+      <span class="badge-member badge-m5">M5: Nguyễn Thành Nhân — Analytics, SQL Reports & AI Fallback</span>
+    </div>
+  </header>
+
+  <!-- Navigation Tabs -->
+  <div class="tabs">
+    <button class="tab-btn active" onclick="showTab('tasks')">1. Danh sách công việc theo tuần (Tuần 1 - Tuần 5)</button>
+    <button class="tab-btn" onclick="showTab('tree')">2. Cây thư mục dự án & Phân chia code</button>
+    <button class="tab-btn" onclick="showTab('commits')">3. Toàn bộ 79 mẫu Commit tuần tự (w1-01 -> w5-13)</button>
+  </div>
+
+  <!-- TAB 1: LIST TASKS WITH COMMITS -->
+  <div id="tab-tasks" class="tab-content active">
+
+    <div class="guide-box">
+      <div class="guide-title">1. Quy chuẩn Nhánh Git: feat/w{tuần}-m{thành_viên}-{nội_dung}</div>
+      <div style="margin-bottom:8px;">Tuyệt đối <strong>không push thẳng lên main</strong>. Từng bạn tạo nhánh riêng theo format: <code>feat/w1-m1-identity</code>, <code>feat/w1-m2-customers</code>, <code>feat/w1-m3-orders</code>... Sau đó tạo Pull Request để Cường review trước khi merge vào main.</div>
+      <div class="guide-title">2. Quy chuẩn Commit tuần tự: git commit -m "w{tuần}-{số_thứ_tự}: loai(pham_vi): mo_ta_ngan"</div>
+      <div>Các công việc trong từng tuần đã được <strong>sắp xếp chính xác theo đúng thứ tự phụ thuộc (Workflow Pipeline)</strong>. Số commit tăng dần liên tục (ví dụ: <code>w1-01</code>, <code>w1-02</code>... đến <code>w1-15</code>) giúp lịch sử Git chạy tuần tự, rõ ràng và chuẩn mực!</div>
+    </div>
+
+    <!-- WEEK 1 -->
+    <div class="week-card">
+      <div class="week-header">
+        <span class="week-title">Tuần 1: Khởi tạo Hạ tầng, Dựng khung & Thiết kế CSDL (Đủ 5 thành viên)</span>
+        <span class="week-sub">Thứ tự thực hiện: Hạ tầng -> Identity -> Trạm -> Khách hàng -> Đơn hàng & Drone -> Tracking & Seed</span>
+      </div>
+      <ul class="task-list">
+        <!-- 1. CƯỜNG (BƯỚC 1: HẠ TẦNG & CSDL GỐC) -->
+        <li class="task-item">
+          <div class="task-header-line">
+            <span class="task-owner badge-m3">Bước 1 | Cường Quang (M3)</span>
+            <span class="task-title">Dựng khung Solution .NET 9, Docker Compose & Script tạo Database gốc</span>
+          </div>
+          <span class="task-file">backend/SmartDroneDelivery.sln, docker-compose.yml & database/00_init_database.sql</span>
+          <div class="task-desc">Khởi tạo Solution Clean Architecture 4 project; cấu hình Docker SQL Server 2022 và MinIO; viết script tạo Database SmartDroneDeliveryDb để các thành viên có database làm việc.</div>
+          <div class="task-commits">
+            <div class="commit-label">Commit khởi tạo dự án:</div>
+            <div class="commit-line"><code>git commit -m "w1-01: feat(init): init project"</code></div>
+          </div>
+        </li>
+
+        <!-- 2. THÀNH (BƯỚC 2: IDENTITY & RBAC) -->
+        <li class="task-item">
+          <div class="task-header-line">
+            <span class="task-owner badge-m1">Bước 2 | Vũ Trí Thành (M1)</span>
+            <span class="task-title">Thiết kế DDL SQL Server Module 1: Users, Roles, Tokens & AuditLogs</span>
+          </div>
+          <span class="task-file">database/modules/01_identity_security/01_create_tables.sql</span>
+          <div class="task-desc">Tạo bảng gốc users, roles, user_roles, refresh_tokens, audit_logs bằng T-SQL (tất cả các module sau đều có Foreign Key trỏ về bảng users).</div>
+          <div class="task-commits">
+            <div class="commit-label">Các commit cần thực hiện (w1-02 -> w1-04):</div>
+            <div class="commit-line"><code>git commit -m "w1-02: feat(db): create users and roles tables with unique constraints"</code></div>
+            <div class="commit-line"><code>git commit -m "w1-03: feat(db): add user_roles mapping and refresh_tokens table"</code></div>
+            <div class="commit-line"><code>git commit -m "w1-04: feat(db): add audit_logs table and index for user email"</code></div>
+          </div>
+        </li>
+
+        <!-- 3. TÀI (BƯỚC 3: TRẠM TIẾP ĐẤT) -->
+        <li class="task-item">
+          <div class="task-header-line">
+            <span class="task-owner badge-m4">Bước 3 | Tấn Tài (M4)</span>
+            <span class="task-title">Thiết kế DDL SQL Server Module 4: Landing Stations, Slots & Handoffs</span>
+          </div>
+          <span class="task-file">database/modules/04_stations_handoffs/04_create_tables.sql</span>
+          <div class="task-desc">Tạo bảng landing_stations, station_slots (khóa duy nhất trạm + số slot), package_handoffs ghi nhận biên bản quét barcode bưu kiện (cần có trạm trước khi tạo lịch bay và gán đơn).</div>
+          <div class="task-commits">
+            <div class="commit-label">Các commit cần thực hiện (w1-05 -> w1-07):</div>
+            <div class="commit-line"><code>git commit -m "w1-05: feat(db): create landing_stations table with status check"</code></div>
+            <div class="commit-line"><code>git commit -m "w1-06: feat(db): create station_slots with unique slot constraint"</code></div>
+            <div class="commit-line"><code>git commit -m "w1-07: feat(db): add package_handoffs table for station handoffs"</code></div>
+          </div>
+        </li>
+
+        <!-- 4. NHỊ (BƯỚC 4: KHÁCH HÀNG & ĐỊA CHỈ) -->
+        <li class="task-item">
+          <div class="task-header-line">
+            <span class="task-owner badge-m2">Bước 4 | Lê Thanh Nhị (M2)</span>
+            <span class="task-title">Thiết kế DDL SQL Server Module 2 (Phần 1): Customer Profiles & Addresses</span>
+          </div>
+          <span class="task-file">database/modules/02_customers_orders/02_create_tables.sql</span>
+          <div class="task-desc">Tạo bảng customer_profiles, delivery_addresses kèm ràng buộc kiểm tra tọa độ vĩ độ (-90 đến 90) và kinh độ (-180 đến 180), FK trỏ về users.</div>
+          <div class="task-commits">
+            <div class="commit-label">Các commit cần thực hiện (w1-08 -> w1-10):</div>
+            <div class="commit-line"><code>git commit -m "w1-08: feat(db): create customer_profiles table linked to users"</code></div>
+            <div class="commit-line"><code>git commit -m "w1-09: feat(db): create delivery_addresses with latitude longitude check"</code></div>
+            <div class="commit-line"><code>git commit -m "w1-10: feat(db): add foreign keys and index for customer addresses"</code></div>
+          </div>
+        </li>
+
+        <!-- 5. CƯỜNG (BƯỚC 5: ĐƠN HÀNG, KIỆN HÀNG & ĐỘI DRONE) -->
+        <li class="task-item">
+          <div class="task-header-line">
+            <span class="task-owner badge-m3">Bước 5 | Cường Quang (M3)</span>
+            <span class="task-title">Thiết kế DDL SQL Server Module 2 (Phần 2) & Module 3: Orders, Packages & Drones</span>
+          </div>
+          <span class="task-file">database/modules/02_customers_orders/ & database/modules/03_drones_scheduling/</span>
+          <div class="task-desc">Tạo bảng delivery_orders, order_address_snapshots, packages (FK trỏ về customer_profiles và delivery_addresses); tạo bảng drones và flight_schedules (FK trỏ về landing_stations).</div>
+          <div class="task-commits">
+            <div class="commit-label">Các commit cần thực hiện (w1-11 -> w1-12):</div>
+            <div class="commit-line"><code>git commit -m "w1-11: feat(db): create delivery_orders and packages tables"</code></div>
+            <div class="commit-line"><code>git commit -m "w1-12: feat(db): create drones and flight_schedules tables"</code></div>
+          </div>
+        </li>
+
+        <!-- 6. NHÂN (BƯỚC 6: TRACKING, OTP & SEED DATA) -->
+        <li class="task-item">
+          <div class="task-header-line">
+            <span class="task-owner badge-m5">Bước 6 | Nguyễn Thành Nhân (M5)</span>
+            <span class="task-title">Thiết kế DDL Module 5 (Tracking, OTP) & Nạp Seed Data 5 Vai trò</span>
+          </div>
+          <span class="task-file">database/modules/05_tracking_confirmations/ & database/seed/seed_data_template.sql</span>
+          <div class="task-desc">Tạo bảng tracking_events append-only (FK trỏ về orders), delivery_confirmations lưu hash OTP; hoàn thiện script seed dữ liệu mẫu 5 vai trò, 3 trạm và 3 drone.</div>
+          <div class="task-commits">
+            <div class="commit-label">Các commit cần thực hiện (w1-13 -> w1-15):</div>
+            <div class="commit-line"><code>git commit -m "w1-13: feat(db): create tracking_events append-only table"</code></div>
+            <div class="commit-line"><code>git commit -m "w1-14: feat(db): create delivery_confirmations table with otp hash"</code></div>
+            <div class="commit-line"><code>git commit -m "w1-15: feat(seed): add initial seed data for 5 default roles"</code></div>
+          </div>
+        </li>
+      </ul>
+    </div>
+
+    <!-- WEEK 2 -->
+    <div class="week-card">
+      <div class="week-header">
+        <span class="week-title">Tuần 2: Database Nền tảng & Backend Core API (Đủ 5 thành viên)</span>
+        <span class="week-sub">Thứ tự thực hiện: Test CSDL SSMS -> EF Core & Auth API -> Địa chỉ -> Trạm -> Đơn hàng & React Layout</span>
+      </div>
+      <ul class="task-list">
+        <!-- 1. NHÂN (BƯỚC 1: TEST CSDL TRONG SSMS) -->
+        <li class="task-item">
+          <div class="task-header-line">
+            <span class="task-owner badge-m5">Bước 1 | Nguyễn Thành Nhân (M5)</span>
+            <span class="task-title">Kiểm thử Toàn vẹn Khóa ngoại & Execution Plan trong SSMS</span>
+          </div>
+          <span class="task-file">database/tests/ (Chạy trong SQL Server Management Studio)</span>
+          <div class="task-desc">Chạy kịch bản test vi phạm khóa ngoại, kiểm tra Execution Plan các câu lệnh query chính để bổ sung index thiếu trước khi team viết backend.</div>
+          <div class="task-commits">
+            <div class="commit-label">Các commit cần thực hiện (w2-01 -> w2-03):</div>
+            <div class="commit-line"><code>git commit -m "w2-01: test(db): add sql test scripts for foreign key integrity check"</code></div>
+            <div class="commit-line"><code>git commit -m "w2-02: perf(db): verify execution plans and add missing indexes"</code></div>
+            <div class="commit-line"><code>git commit -m "w2-03: test(seed): verify seed data integrity and role permissions"</code></div>
+          </div>
+        </li>
+
+        <!-- 2. THÀNH (BƯỚC 2: DBCONTEXT & AUTH API) -->
+        <li class="task-item">
+          <div class="task-header-line">
+            <span class="task-owner badge-m1">Bước 2 | Vũ Trí Thành (M1)</span>
+            <span class="task-title">Cấu hình EF Core DbContext & Viết Backend Auth API</span>
+          </div>
+          <span class="task-file">backend/src/SmartDroneDelivery.Infrastructure/Persistence/ & Controllers/AuthController.cs</span>
+          <div class="task-desc">Cấu hình DbContext kết nối SQL Server 2022 qua chuỗi kết nối; viết API Login/Register cấp JWT token kèm Role claims làm nền tảng xác thực cho toàn nhóm.</div>
+          <div class="task-commits">
+            <div class="commit-label">Các commit cần thực hiện (w2-04 -> w2-07):</div>
+            <div class="commit-line"><code>git commit -m "w2-04: feat(infra): configure smartdrone db context and sql connection"</code></div>
+            <div class="commit-line"><code>git commit -m "w2-05: feat(auth): add password hasher service using bcrypt"</code></div>
+            <div class="commit-line"><code>git commit -m "w2-06: feat(auth): implement jwt token provider with claims"</code></div>
+            <div class="commit-line"><code>git commit -m "w2-07: feat(api): add auth controller for login and refresh token"</code></div>
+          </div>
+        </li>
+
+        <!-- 3. NHỊ (BƯỚC 3: ĐỊA CHỈ KHÁCH HÀNG) -->
+        <li class="task-item">
+          <div class="task-header-line">
+            <span class="task-owner badge-m2">Bước 3 | Lê Thanh Nhị (M2)</span>
+            <span class="task-title">Viết Backend CRUD Sổ địa chỉ & Hồ sơ khách hàng</span>
+          </div>
+          <span class="task-file">backend/src/SmartDroneDelivery.Application/Features/Customers/ & AddressesController.cs</span>
+          <div class="task-desc">Viết DTO, FluentValidation và endpoint GET/POST /api/v1/addresses (khách chỉ xem và thêm địa chỉ của chính mình để sẵn sàng tạo đơn).</div>
+          <div class="task-commits">
+            <div class="commit-label">Các commit cần thực hiện (w2-08 -> w2-10):</div>
+            <div class="commit-line"><code>git commit -m "w2-08: feat(customer): add address request dtos and validation rules"</code></div>
+            <div class="commit-line"><code>git commit -m "w2-09: feat(customer): implement address service with customer isolation"</code></div>
+            <div class="commit-line"><code>git commit -m "w2-10: feat(api): add get and post endpoints in addresses controller"</code></div>
+          </div>
+        </li>
+
+        <!-- 4. TÀI (BƯỚC 4: QUẢN LÝ TRẠM & SLOTS) -->
+        <li class="task-item">
+          <div class="task-header-line">
+            <span class="task-owner badge-m4">Bước 4 | Tấn Tài (M4)</span>
+            <span class="task-title">Viết Backend Quản lý Trạm & Danh sách Slot bãi đỗ khả dụng</span>
+          </div>
+          <span class="task-file">backend/src/SmartDroneDelivery.Application/Features/Stations/ & StationsController.cs</span>
+          <div class="task-desc">API GET /api/v1/landing-stations trả về danh sách trạm và số slot trống bãi đỗ/dock sạc cho điều phối viên.</div>
+          <div class="task-commits">
+            <div class="commit-label">Các commit cần thực hiện (w2-11 -> w2-13):</div>
+            <div class="commit-line"><code>git commit -m "w2-11: feat(station): add station and slot response dtos"</code></div>
+            <div class="commit-line"><code>git commit -m "w2-12: feat(station): implement query to get stations with available slots"</code></div>
+            <div class="commit-line"><code>git commit -m "w2-13: feat(api): add landing stations controller with get endpoints"</code></div>
+          </div>
+        </li>
+
+        <!-- 5. CƯỜNG (BƯỚC 5: TẠO ĐƠN HÀNG & REACT LAYOUT) -->
+        <li class="task-item">
+          <div class="task-header-line">
+            <span class="task-owner badge-m3">Bước 5 | Cường Quang (M3)</span>
+            <span class="task-title">Viết Backend Tạo Đơn Hàng & Dựng Khung ReactJS Web Layout</span>
+          </div>
+          <span class="task-file">backend/src/.../Features/Orders/ & web/src/layouts/</span>
+          <div class="task-desc">API POST /api/v1/delivery-orders tạo đơn PENDING_APPROVAL, sinh mã tracking và đóng băng snapshot địa chỉ; dựng MainLayout React cho toàn nhóm ghép tính năng.</div>
+          <div class="task-commits">
+            <div class="commit-label">Các commit cần thực hiện (w2-14 -> w2-17):</div>
+            <div class="commit-line"><code>git commit -m "w2-14: feat(order): add create order request dto and validators"</code></div>
+            <div class="commit-line"><code>git commit -m "w2-15: feat(order): implement order creation service with address snapshot"</code></div>
+            <div class="commit-line"><code>git commit -m "w2-16: feat(api): add post create delivery order endpoint"</code></div>
+            <div class="commit-line"><code>git commit -m "w2-17: feat(web): setup react app layout and navigation structure"</code></div>
+          </div>
+        </li>
+      </ul>
+    </div>
+
+    <!-- WEEK 3 -->
+    <div class="week-card">
+      <div class="week-header">
+        <span class="week-title">Tuần 3: Điều phối, Trạm tiếp đất & Giao diện Web (Đủ 5 thành viên)</span>
+        <span class="week-sub">Thứ tự thực hiện: RBAC Web -> Form Tạo đơn -> Dispatcher Portal -> Operator QR -> Analytics Views</span>
+      </div>
+      <ul class="task-list">
+        <!-- 1. THÀNH (BƯỚC 1: RBAC & LOGIN WEB) -->
+        <li class="task-item">
+          <div class="task-header-line">
+            <span class="task-owner badge-m1">Bước 1 | Vũ Trí Thành (M1)</span>
+            <span class="task-title">Middleware Phân quyền RBAC & Giao diện Đăng nhập Web</span>
+          </div>
+          <span class="task-file">backend/src/.../Middlewares/ & web/src/features/auth/LoginPage.jsx</span>
+          <div class="task-desc">Xây dựng Authorization Policy theo Role; màn hình Login ReactJS lưu token vào bộ nhớ và điều hướng đúng quyền từng vai trò.</div>
+          <div class="task-commits">
+            <div class="commit-label">Các commit cần thực hiện (w3-01 -> w3-03):</div>
+            <div class="commit-line"><code>git commit -m "w3-01: feat(auth): add authorization middleware and role permission guards"</code></div>
+            <div class="commit-line"><code>git commit -m "w3-02: feat(web): implement login page with token storage"</code></div>
+            <div class="commit-line"><code>git commit -m "w3-03: feat(web): add protected route guard for react router"</code></div>
+          </div>
+        </li>
+
+        <!-- 2. NHỊ (BƯỚC 2: FORM TẠO ĐƠN WEB) -->
+        <li class="task-item">
+          <div class="task-header-line">
+            <span class="task-owner badge-m2">Bước 2 | Lê Thanh Nhị (M2)</span>
+            <span class="task-title">Web Form Tạo đơn hàng cho Khách & Xem Lịch sử Đơn</span>
+          </div>
+          <span class="task-file">web/src/features/orders/CreateOrderPage.jsx, OrderListPage.jsx</span>
+          <div class="task-desc">Khách nhập thông số kiện hàng (kg, dài, rộng, cao), chọn địa chỉ người nhận, upload ảnh kiện hàng và xem danh sách đơn hàng đã đặt.</div>
+          <div class="task-commits">
+            <div class="commit-label">Các commit cần thực hiện (w3-04 -> w3-06):</div>
+            <div class="commit-line"><code>git commit -m "w3-04: feat(web): build customer order creation form with package inputs"</code></div>
+            <div class="commit-line"><code>git commit -m "w3-05: feat(web): connect order form with address selector and minio upload"</code></div>
+            <div class="commit-line"><code>git commit -m "w3-06: feat(web): create order history list page with status badges"</code></div>
+          </div>
+        </li>
+
+        <!-- 3. CƯỜNG (BƯỚC 3: DUYỆT ĐƠN & DISPATCHER PORTAL) -->
+        <li class="task-item">
+          <div class="task-header-line">
+            <span class="task-owner badge-m3">Bước 3 | Cường Quang (M3)</span>
+            <span class="task-title">API Duyệt đơn, Gán lịch bay & Web Dispatcher Portal</span>
+          </div>
+          <span class="task-file">backend/src/.../Features/Scheduling/ & web/src/features/dispatch/</span>
+          <div class="task-desc">Dispatcher duyệt đơn, kiểm tra tải trọng drone <= 5kg, gán lịch SCHEDULED; giao diện bảng duyệt đơn và modal gán drone bay.</div>
+          <div class="task-commits">
+            <div class="commit-label">Các commit cần thực hiện (w3-07 -> w3-10):</div>
+            <div class="commit-line"><code>git commit -m "w3-07: feat(schedule): implement flight schedule assignment service"</code></div>
+            <div class="commit-line"><code>git commit -m "w3-08: feat(api): add approve order and schedule flight endpoints"</code></div>
+            <div class="commit-line"><code>git commit -m "w3-09: feat(web): create dispatcher dashboard component with pending table"</code></div>
+            <div class="commit-line"><code>git commit -m "w3-10: feat(web): add assign drone modal with station selection"</code></div>
+          </div>
+        </li>
+
+        <!-- 4. TÀI (BƯỚC 4: QUÉT MÃ QR HANDOFF & OPERATOR VIEW) -->
+        <li class="task-item">
+          <div class="task-header-line">
+            <span class="task-owner badge-m4">Bước 4 | Tấn Tài (M4)</span>
+            <span class="task-title">API Quét mã QR Handoff & Web Station Operator Screen</span>
+          </div>
+          <span class="task-file">backend/src/.../Features/Stations/HandoffController.cs & web/src/features/station/</span>
+          <div class="task-desc">Quét mã bưu kiện xác nhận STATION_RECEIVED và LOADED_ON_DRONE; màn hình cho nhân viên trạm nhập barcode/quét QR kiểm hàng.</div>
+          <div class="task-commits">
+            <div class="commit-label">Các commit cần thực hiện (w3-11 -> w3-14):</div>
+            <div class="commit-line"><code>git commit -m "w3-11: feat(handoff): implement scan package barcode handoff service"</code></div>
+            <div class="commit-line"><code>git commit -m "w3-12: feat(api): add post scan handoff endpoint for station operator"</code></div>
+            <div class="commit-line"><code>git commit -m "w3-13: feat(web): build station operator ui for package checking"</code></div>
+            <div class="commit-line"><code>git commit -m "w3-14: feat(web): connect operator view with handoff api"</code></div>
+          </div>
+        </li>
+
+        <!-- 5. NHÂN (BƯỚC 5: SQL VIEWS & ANALYTICS) -->
+        <li class="task-item">
+          <div class="task-header-line">
+            <span class="task-owner badge-m5">Bước 5 | Nguyễn Thành Nhân (M5)</span>
+            <span class="task-title">Viết SQL Views báo cáo hiệu suất chuyến bay & Analytics API</span>
+          </div>
+          <span class="task-file">database/modules/05_tracking_confirmations/ & Controllers/AnalyticsController.cs</span>
+          <div class="task-desc">Viết View v_station_slot_utilization và v_flight_delivery_performance trong SQL Server; viết API Analytics cơ bản.</div>
+          <div class="task-commits">
+            <div class="commit-label">Các commit cần thực hiện (w3-15 -> w3-17):</div>
+            <div class="commit-line"><code>git commit -m "w3-15: feat(db): create view v_station_slot_utilization"</code></div>
+            <div class="commit-line"><code>git commit -m "w3-16: feat(db): create view v_flight_delivery_performance"</code></div>
+            <div class="commit-line"><code>git commit -m "w3-17: feat(api): add analytics controller for basic statistics"</code></div>
+          </div>
+        </li>
+      </ul>
+    </div>
+
+    <!-- WEEK 4 -->
+    <div class="week-card">
+      <div class="week-header">
+        <span class="week-title">Tuần 4: Realtime Drone Simulator, AI & Tích hợp End-to-End (Đủ 5 thành viên)</span>
+        <span class="week-sub">Thứ tự thực hiện: Audit Log -> SignalR Simulator -> Flutter Mobile -> AI Fallback -> Hủy đơn & E2E</span>
+      </div>
+      <ul class="task-list">
+        <!-- 1. THÀNH (BƯỚC 1: AUDIT LOG INTERCEPTOR) -->
+        <li class="task-item">
+          <div class="task-header-line">
+            <span class="task-owner badge-m1">Bước 1 | Vũ Trí Thành (M1)</span>
+            <span class="task-title">EF Core Audit Log Interceptor & Quản lý Người dùng Admin</span>
+          </div>
+          <span class="task-file">backend/src/.../Persistence/Interceptors/ & web/src/features/admin/</span>
+          <div class="task-desc">Tự động ghi vết kiểm toán vào bảng audit_logs mỗi khi có entity thay đổi; giao diện Admin xem danh sách user và gán vai trò.</div>
+          <div class="task-commits">
+            <div class="commit-label">Các commit cần thực hiện (w4-01 -> w4-03):</div>
+            <div class="commit-line"><code>git commit -m "w4-01: feat(infra): implement audit log interceptor in ef core"</code></div>
+            <div class="commit-line"><code>git commit -m "w4-02: feat(api): add global exception handling middleware and response wrapper"</code></div>
+            <div class="commit-line"><code>git commit -m "w4-03: feat(web): add user management table for system admin"</code></div>
+          </div>
+        </li>
+
+        <!-- 2. TÀI (BƯỚC 2: SIGNALR REALTIME & SIMULATOR) -->
+        <li class="task-item">
+          <div class="task-header-line">
+            <span class="task-owner badge-m4">Bước 2 | Tấn Tài (M4)</span>
+            <span class="task-title">SignalR TrackingHub, GPS Simulator Worker & Xác nhận OTP</span>
+          </div>
+          <span class="task-file">backend/src/.../SignalR/ & DeliveryConfirmationController.cs</span>
+          <div class="task-desc">BackgroundService nội suy GPS và bắn tọa độ mỗi 2s xuống Web/Mobile; khớp mã OTP 6 số chuyển đơn sang DELIVERED.</div>
+          <div class="task-commits">
+            <div class="commit-label">Các commit cần thực hiện (w4-04 -> w4-07):</div>
+            <div class="commit-line"><code>git commit -m "w4-04: feat(realtime): create signalr tracking hub with order group"</code></div>
+            <div class="commit-line"><code>git commit -m "w4-05: feat(sim): implement drone flight simulator background worker"</code></div>
+            <div class="commit-line"><code>git commit -m "w4-06: feat(pod): implement otp generator and sha256 verification service"</code></div>
+            <div class="commit-line"><code>git commit -m "w4-07: feat(web): display live drone position marker on map view"</code></div>
+          </div>
+        </li>
+
+        <!-- 3. NHỊ (BƯỚC 3: FLUTTER MOBILE APP) -->
+        <li class="task-item">
+          <div class="task-header-line">
+            <span class="task-owner badge-m2">Bước 3 | Lê Thanh Nhị (M2)</span>
+            <span class="task-title">Dựng Ứng dụng Mobile Flutter cho Khách hàng</span>
+          </div>
+          <span class="task-file">mobile/lib/features/auth/ & mobile/lib/features/tracking/</span>
+          <div class="task-desc">Khởi tạo app Flutter, màn hình Login lưu session token, màn hình theo dõi đơn hàng và nhập mã OTP xác nhận nhận hàng.</div>
+          <div class="task-commits">
+            <div class="commit-label">Các commit cần thực hiện (w4-08 -> w4-10):</div>
+            <div class="commit-line"><code>git commit -m "w4-08: feat(mobile): setup flutter customer app structure and theme"</code></div>
+            <div class="commit-line"><code>git commit -m "w4-09: feat(mobile): build customer login and token persistence in flutter"</code></div>
+            <div class="commit-line"><code>git commit -m "w4-10: feat(mobile): build customer order tracking screen in flutter"</code></div>
+          </div>
+        </li>
+
+        <!-- 4. NHÂN (BƯỚC 4: AI ETA FALLBACK & KPI DASHBOARD) -->
+        <li class="task-item">
+          <div class="task-header-line">
+            <span class="task-owner badge-m5">Bước 4 | Nguyễn Thành Nhân (M5)</span>
+            <span class="task-title">Tích hợp AI Dự đoán ETA + Fallback & Web Dashboard KPI</span>
+          </div>
+          <span class="task-file">backend/src/.../Infrastructure/Ai/ & web/src/features/dashboard/</span>
+          <div class="task-desc">Gọi LLM API tính ETA (nếu lỗi mạng tự fallback công thức vật lý); màn hình Web Dashboard vẽ biểu đồ KPI cho Manager.</div>
+          <div class="task-commits">
+            <div class="commit-label">Các commit cần thực hiện (w4-11 -> w4-14):</div>
+            <div class="commit-line"><code>git commit -m "w4-11: feat(ai): add external llm service client for eta prediction"</code></div>
+            <div class="commit-line"><code>git commit -m "w4-12: feat(ai): add fallback rule based service using distance formula"</code></div>
+            <div class="commit-line"><code>git commit -m "w4-13: feat(web): create logistics manager analytics dashboard page"</code></div>
+            <div class="commit-line"><code>git commit -m "w4-14: feat(web): add kpi summary cards and flight metrics chart"</code></div>
+          </div>
+        </li>
+
+        <!-- 5. CƯỜNG (BƯỚC 5: HỦY ĐƠN & TEST END-TO-END) -->
+        <li class="task-item">
+          <div class="task-header-line">
+            <span class="task-owner badge-m3">Bước 5 | Cường Quang (M3)</span>
+            <span class="task-title">Nghiệp vụ Hủy đơn & Test Thông luồng Xuyên suốt Toàn hệ thống</span>
+          </div>
+          <span class="task-file">backend/src/.../Features/Orders/ & Toàn bộ Web / API</span>
+          <div class="task-desc">Xử lý hủy đơn và hoàn trả slot; chạy thử luồng nghiệp vụ hoàn chỉnh từ tài khoản Khách sang Dispatcher sang Trạm.</div>
+          <div class="task-commits">
+            <div class="commit-label">Các commit cần thực hiện (w4-15 -> w4-17):</div>
+            <div class="commit-line"><code>git commit -m "w4-15: feat(order): implement order cancellation and rejection business rules"</code></div>
+            <div class="commit-line"><code>git commit -m "w4-16: test(e2e): verify end-to-end delivery lifecycle workflow"</code></div>
+            <div class="commit-line"><code>git commit -m "w4-17: fix(order): sync order status transition across all modules"</code></div>
+          </div>
+        </li>
+      </ul>
+    </div>
+
+    <!-- WEEK 5 -->
+    <div class="week-card">
+      <div class="week-header">
+        <span class="week-title">Tuần 5: Đóng băng tính năng, Sửa lỗi & Diễn tập Demo (Đủ 5 thành viên)</span>
+        <span class="week-sub">Thứ tự thực hiện: Test Client -> Test Realtime -> Health & Docker -> Báo cáo & BAK -> Kịch bản Demo</span>
+      </div>
+      <ul class="task-list">
+        <!-- 1. NHỊ (BƯỚC 1: TEST CLIENT & MOBILE) -->
+        <li class="task-item">
+          <div class="task-header-line">
+            <span class="task-owner badge-m2">Bước 1 | Lê Thanh Nhị (M2)</span>
+            <span class="task-title">Kiểm thử Giao diện Khách hàng & Tinh chỉnh Mobile</span>
+          </div>
+          <span class="task-file">web/src/features/orders/ & mobile/</span>
+          <div class="task-desc">Kiểm tra form đặt hàng khi mạng yếu hoặc nhập sai dữ liệu; căn chỉnh giao diện mượt mà trên mobile và desktop.</div>
+          <div class="task-commits">
+            <div class="commit-label">Các commit cần thực hiện (w5-01 -> w5-02):</div>
+            <div class="commit-line"><code>git commit -m "w5-01: test(customer): verify address validation edge cases and empty states"</code></div>
+            <div class="commit-line"><code>git commit -m "w5-02: fix(ui): polish customer order form responsive layout on mobile web"</code></div>
+          </div>
+        </li>
+
+        <!-- 2. TÀI (BƯỚC 2: TEST REALTIME & BARCODE) -->
+        <li class="task-item">
+          <div class="task-header-line">
+            <span class="task-owner badge-m4">Bước 2 | Tấn Tài (M4)</span>
+            <span class="task-title">Kiểm thử Ổn định SignalR & Tinh chỉnh Quét Barcode Trạm</span>
+          </div>
+          <span class="task-file">web/src/features/station/ & backend/.../SignalR/</span>
+          <div class="task-desc">Thử nghiệm mất kết nối mạng và tự kết nối lại SignalR; tối ưu tốc độ xử lý khi nhân viên quét bưu kiện liên tục.</div>
+          <div class="task-commits">
+            <div class="commit-label">Các commit cần thực hiện (w5-03 -> w5-04):</div>
+            <div class="commit-line"><code>git commit -m "w5-03: test(realtime): verify signalr reconnection and fallback polling"</code></div>
+            <div class="commit-line"><code>git commit -m "w5-04: fix(operator): optimize barcode scanner input response time"</code></div>
+          </div>
+        </li>
+
+        <!-- 3. THÀNH (BƯỚC 3: RBAC & DOCKER COMPOSE) -->
+        <li class="task-item">
+          <div class="task-header-line">
+            <span class="task-owner badge-m1">Bước 3 | Vũ Trí Thành (M1)</span>
+            <span class="task-title">Kiểm tra Phân quyền RBAC, Sửa lỗi & Đóng gói Docker</span>
+          </div>
+          <span class="task-file">infrastructure/docker/docker-compose.yml</span>
+          <div class="task-desc">Kiểm thử quyền các Actor, rà soát xử lý token hết hạn; đóng gói Docker khởi động sạch trên máy mới.</div>
+          <div class="task-commits">
+            <div class="commit-label">Các commit cần thực hiện (w5-05 -> w5-07):</div>
+            <div class="commit-line"><code>git commit -m "w5-05: test(security): verify rbac role permissions and token expiry"</code></div>
+            <div class="commit-line"><code>git commit -m "w5-06: chore(docker): finalize compose configuration for clean deploy"</code></div>
+            <div class="commit-line"><code>git commit -m "w5-07: chore(infra): configure health check endpoints for sql server and minio"</code></div>
+          </div>
+        </li>
+
+        <!-- 4. NHÂN (BƯỚC 4: BÁO CÁO & XUẤT .BAK CSDL) -->
+        <li class="task-item">
+          <div class="task-header-line">
+            <span class="task-owner badge-m5">Bước 4 | Nguyễn Thành Nhân (M5)</span>
+            <span class="task-title">Hoàn thiện Báo cáo Đồ án, Slide & Sao lưu CSDL .BAK</span>
+          </div>
+          <span class="task-file">docs/report/, slide thuyết trình & backup CSDL</span>
+          <div class="task-desc">Tổng hợp ERD, kiến trúc, kiểm thử và thống kê commit từ Git; xuất file backup CSDL .bak đề phòng sự cố trước giờ bảo vệ.</div>
+          <div class="task-commits">
+            <div class="commit-label">Các commit cần thực hiện (w5-08 -> w5-10):</div>
+            <div class="commit-line"><code>git commit -m "w5-08: docs(report): compile final project documentation and erd diagram"</code></div>
+            <div class="commit-line"><code>git commit -m "w5-09: docs(slide): finalize presentation slides and team contribution summary"</code></div>
+            <div class="commit-line"><code>git commit -m "w5-10: chore(db): export clean backup bak file for presentation day"</code></div>
+          </div>
+        </li>
+
+        <!-- 5. CƯỜNG (BƯỚC 5: KỊCH BẢN DEMO & CHỐT RELEASE) -->
+        <li class="task-item">
+          <div class="task-header-line">
+            <span class="task-owner badge-m3">Bước 5 | Cường Quang (M3)</span>
+            <span class="task-title">Soạn Kịch bản Demo 10 phút, Diễn tập & Chốt Bản Release</span>
+          </div>
+          <span class="task-file">docs/demo/live-demo-script.md & SmartDroneDelivery Live</span>
+          <div class="task-desc">Kịch bản chi tiết ai bấm nút nào, đơn hàng nào bay trước hội đồng; tổng duyệt 3 lần không vấp lỗi.</div>
+          <div class="task-commits">
+            <div class="commit-label">Các commit cần thực hiện (w5-11 -> w5-13):</div>
+            <div class="commit-line"><code>git commit -m "w5-11: docs(demo): add step-by-step 10-minute presentation scenario"</code></div>
+            <div class="commit-line"><code>git commit -m "w5-12: test(demo): verify live demo test accounts and sample orders"</code></div>
+            <div class="commit-line"><code>git commit -m "w5-13: chore(release): finalize version 1.0 release ready for demo"</code></div>
+          </div>
+        </li>
+      </ul>
+    </div>
+
+  </div>
+
+  <!-- TAB 2: REPOSITORY TREE -->
+  <div id="tab-tree" class="tab-content">
+    <div class="tree-card">
+      <div class="tree-title">Cây thư mục dự án (Repository Tree) & Phân định rõ ai code file/folder nào</div>
+      <div class="tree-desc">
+        Nhìn vào cây này, từng bạn sẽ biết chính xác thư mục mình sở hữu, không lo bị giẫm chân hoặc xung đột code khi làm việc nhóm.
+      </div>
+
+      <div class="tree-box">
+<span class="tree-root">project_hequantricosodulieu/</span>
+|
+|-- <span class="tree-file">timeline_project_.html</span>              -- <span class="tag-shared">[Dùng chung] File phân công nhiệm vụ đang mở</span>
+|
+|-- <span class="tree-dir">database/</span>                              -- <span class="tag-shared">[SQL Server 2022 Script]</span>
+|   |-- <span class="tree-file">00_init_database.sql</span>               -- <span class="tag-m3">[Cường Quang - M3]</span> Script tạo DB chung
+|   |-- <span class="tree-dir">modules/</span>
+|   |   |-- <span class="tree-dir">01_identity_security/</span>          -- <span class="tag-m1">[Vũ Trí Thành - M1]</span> Bảng Users, Roles, AuditLogs
+|   |   |-- <span class="tree-dir">02_customers_orders/</span>           -- <span class="tag-m2">[Lê Thanh Nhị - M2]</span> (Khách) & <span class="tag-m3">[Cường Quang - M3]</span> (Đơn)
+|   |   |-- <span class="tree-dir">03_drones_scheduling/</span>          -- <span class="tag-m3">[Cường Quang - M3]</span> Bảng Drones, FlightSchedules
+|   |   |-- <span class="tree-dir">04_stations_handoffs/</span>          -- <span class="tag-m4">[Tấn Tài - M4]</span> Bảng LandingStations, Slots, Handoffs
+|   |   `-- <span class="tree-dir">05_tracking_confirmations/</span>     -- <span class="tag-m5">[Nguyễn Thành Nhân - M5]</span> Bảng Tracking & OTP Confirm
+|   `-- <span class="tree-dir">seed/</span>
+|       `-- <span class="tree-file">seed_data_template.sql</span>         -- <span class="tag-m5">[Nguyễn Thành Nhân - M5]</span> Script nạp dữ liệu mẫu
+|
+|-- <span class="tree-dir">backend/</span>                               -- <span class="tag-shared">[ASP.NET Core 9 Web API]</span>
+|   |-- <span class="tree-file">SmartDroneDelivery.sln</span>             -- <span class="tag-m3">[Cường Quang - M3]</span> Solution Clean Architecture
+|   `-- <span class="tree-dir">src/</span>
+|       |-- <span class="tree-dir">SmartDroneDelivery.Domain/</span>         -- <span class="tag-shared">Entities & Enums (Từng bạn tạo entity bảng mình)</span>
+|       |   `-- <span class="tree-dir">Entities/</span>
+|       |       |-- <span class="tree-dir">Identity/</span>              -- <span class="tag-m1">[Vũ Trí Thành - M1]</span> User.cs, Role.cs, AuditLog.cs
+|       |       |-- <span class="tree-dir">Customers/</span>             -- <span class="tag-m2">[Lê Thanh Nhị - M2]</span> CustomerProfile.cs, Address.cs
+|       |       |-- <span class="tree-dir">Orders/</span>                -- <span class="tag-m3">[Cường Quang - M3]</span> DeliveryOrder.cs, Package.cs
+|       |       |-- <span class="tree-dir">Drones/</span>                -- <span class="tag-m3">[Cường Quang - M3]</span> Drone.cs, FlightSchedule.cs
+|       |       |-- <span class="tree-dir">Stations/</span>              -- <span class="tag-m4">[Tấn Tài - M4]</span> LandingStation.cs, StationSlot.cs
+|       |       `-- <span class="tree-dir">Tracking/</span>              -- <span class="tag-m5">[Nguyễn Thành Nhân - M5]</span> TrackingEvent.cs, Confirmation.cs
+|       |
+|       |-- <span class="tree-dir">SmartDroneDelivery.Application/</span>    -- <span class="tag-shared">Logic UseCases & DTOs</span>
+|       |   `-- <span class="tree-dir">Features/</span>
+|       |       |-- <span class="tree-dir">Identity/</span>              -- <span class="tag-m1">[Vũ Trí Thành - M1]</span> Login, Register, RefreshToken DTOs
+|       |       |-- <span class="tree-dir">Customers/</span>             -- <span class="tag-m2">[Lê Thanh Nhị - M2]</span> CRUD Address DTOs, Profile DTOs
+|       |       |-- <span class="tree-dir">Orders/</span>                -- <span class="tag-m3">[Cường Quang - M3]</span> CreateOrder, ApproveOrder DTOs
+|       |       |-- <span class="tree-dir">Stations/</span>              -- <span class="tag-m4">[Tấn Tài - M4]</span> GetStations, ScanHandoff DTOs
+|       |       |-- <span class="tree-dir">Tracking/</span>              -- <span class="tag-m4">[Tấn Tài - M4]</span> VerifyOtp DTOs, Telemetry DTOs
+|       |       `-- <span class="tree-dir">AiServices/</span>            -- <span class="tag-m5">[Nguyễn Thành Nhân - M5]</span> PredictEta, Summarize DTOs
+|       |
+|       |-- <span class="tree-dir">SmartDroneDelivery.Infrastructure/</span> -- <span class="tag-shared">Hạ tầng & Kết nối ngoài</span>
+|       |   |-- <span class="tree-dir">Persistence/</span>               -- <span class="tag-m1">[Vũ Trí Thành - M1]</span> SmartDroneDbContext (EF Core SQL Server)
+|       |   |-- <span class="tree-dir">SignalR/</span>                   -- <span class="tag-m4">[Tấn Tài - M4]</span> TrackingHub.cs & DroneSimulatorWorker.cs
+|       |   `-- <span class="tree-dir">Ai/</span>                        -- <span class="tag-m5">[Nguyễn Thành Nhân - M5]</span> LlmClient.cs & FallbackRuleBasedService.cs
+|       |
+|       `-- <span class="tree-dir">SmartDroneDelivery.Api/</span>            -- <span class="tag-shared">Controllers (Từng bạn viết endpoint của mình)</span>
+|           `-- <span class="tree-dir">Controllers/</span>
+|               |-- <span class="tree-file">AuthController.cs</span>          -- <span class="tag-m1">[Vũ Trí Thành - M1]</span>
+|               |-- <span class="tree-file">AddressesController.cs</span>     -- <span class="tag-m2">[Lê Thanh Nhị - M2]</span>
+|               |-- <span class="tree-file">OrdersController.cs</span>        -- <span class="tag-m3">[Cường Quang - M3]</span>
+|               |-- <span class="tree-file">SchedulingController.cs</span>    -- <span class="tag-m3">[Cường Quang - M3]</span>
+|               |-- <span class="tree-file">StationsController.cs</span>      -- <span class="tag-m4">[Tấn Tài - M4]</span>
+|               |-- <span class="tree-file">HandoffController.cs</span>       -- <span class="tag-m4">[Tấn Tài - M4]</span>
+|               `-- <span class="tree-file">AnalyticsController.cs</span>     -- <span class="tag-m5">[Nguyễn Thành Nhân - M5]</span>
+|
+|-- <span class="tree-dir">web/</span>                                   -- <span class="tag-shared">[ReactJS Frontend (Vite)]</span>
+|   `-- <span class="tree-dir">src/</span>
+|       |-- <span class="tree-dir">layouts/</span>                       -- <span class="tag-m3">[Cường Quang - M3]</span> MainLayout.jsx & Route Shell
+|       `-- <span class="tree-dir">features/</span>
+|           |-- <span class="tree-dir">auth/</span>                      -- <span class="tag-m1">[Vũ Trí Thành - M1]</span> LoginPage.jsx
+|           |-- <span class="tree-dir">orders/</span>                    -- <span class="tag-m2">[Lê Thanh Nhị - M2]</span> CreateOrderPage.jsx, OrderListPage.jsx
+|           |-- <span class="tree-dir">dispatch/</span>                  -- <span class="tag-m3">[Cường Quang - M3]</span> DispatcherDashboard.jsx
+|           |-- <span class="tree-dir">station/</span>                   -- <span class="tag-m4">[Tấn Tài - M4]</span> StationOperatorView.jsx
+|           `-- <span class="tree-dir">dashboard/</span>                 -- <span class="tag-m5">[Nguyễn Thành Nhân - M5]</span> LogisticsDashboard.jsx (Biểu đồ KPI)
+|
+|-- <span class="tree-dir">mobile/</span>                                -- <span class="tag-shared">[Flutter Mobile cho Khách hàng]</span>
+|   `-- <span class="tree-dir">lib/features/</span>
+|       |-- <span class="tree-dir">auth/</span>                          -- <span class="tag-m2">[Lê Thanh Nhị - M2]</span> Đăng nhập Khách hàng
+|       `-- <span class="tree-dir">tracking/</span>                      -- <span class="tag-m2">[Lê Thanh Nhị - M2]</span> & <span class="tag-m4">[Tấn Tài - M4]</span> Xem Drone bay & nhập OTP
+|
+`-- <span class="tree-dir">infrastructure/docker/</span>
+    `-- <span class="tree-file">docker-compose.yml</span>                 -- <span class="tag-m3">[Cường Quang - M3]</span> SQL Server 2022 + MinIO
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 3: ALL COMMITS LOOKUP -->
+  <div id="tab-commits" class="tab-content">
+    <div class="tree-card">
+      <div class="tree-title">Bảng tra cứu toàn bộ 79 mẫu Commit TUẦN TỰ theo quy trình làm việc (Copy-Paste)</div>
+      <div class="tree-desc">Lệnh git commit đã được chuẩn hóa theo đúng form w{tuần}-{số_thứ_tự}: type(scope): mô_tả, tăng dần liên tục theo tiến độ thực tế</div>
+
+      <div class="tree-box">
+<span class="tree-root">DANH SÁCH 79 COMMIT TUẦN TỰ THEO TIẾN ĐỘ THỰC TẾ (TUẦN 1 -> TUẦN 5)</span>
+
+<span class="tag-m3">=== TUẦN 1 (w1-01 -> w1-15): HẠ TẦNG & THIẾT KẾ CSDL ===</span>
+<span class="tag-m3"># Bước 1: Cường Quang (M3) - Khởi tạo toàn bộ Project & CSDL Gốc</span>
+git commit -m "w1-01: feat(init): init project"
+
+<span class="tag-m1"># Bước 2: Vũ Trí Thành (M1) - Module 1: Identity & RBAC</span>
+git commit -m "w1-02: feat(db): create users and roles tables with unique constraints"
+git commit -m "w1-03: feat(db): add user_roles mapping and refresh_tokens table"
+git commit -m "w1-04: feat(db): add audit_logs table and index for user email"
+
+<span class="tag-m4"># Bước 3: Tấn Tài (M4) - Module 4: Trạm tiếp đất Landing Stations</span>
+git commit -m "w1-05: feat(db): create landing_stations table with status check"
+git commit -m "w1-06: feat(db): create station_slots with unique slot constraint"
+git commit -m "w1-07: feat(db): add package_handoffs table for station handoffs"
+
+<span class="tag-m2"># Bước 4: Lê Thanh Nhị (M2) - Module 2 (Phần 1): Khách hàng & Sổ địa chỉ</span>
+git commit -m "w1-08: feat(db): create customer_profiles table linked to users"
+git commit -m "w1-09: feat(db): create delivery_addresses with latitude longitude check"
+git commit -m "w1-10: feat(db): add foreign keys and index for customer addresses"
+
+<span class="tag-m3"># Bước 5: Cường Quang (M3) - Module 2 (Phần 2) & Module 3: Đơn hàng, Kiện hàng & Drone</span>
+git commit -m "w1-11: feat(db): create delivery_orders and packages tables"
+git commit -m "w1-12: feat(db): create drones and flight_schedules tables"
+
+<span class="tag-m5"># Bước 6: Nguyễn Thành Nhân (M5) - Module 5: Tracking Events, OTP & Nạp Seed Data</span>
+git commit -m "w1-13: feat(db): create tracking_events append-only table"
+git commit -m "w1-14: feat(db): create delivery_confirmations table with otp hash"
+git commit -m "w1-15: feat(seed): add initial seed data for 5 default roles"
+
+
+<span class="tag-m1">=== TUẦN 2 (w2-01 -> w2-17): THỰC THI DATABASE & BACKEND NỀN TẢNG ===</span>
+<span class="tag-m5"># Bước 1: Nguyễn Thành Nhân (M5) - Test toàn vẹn CSDL trong SSMS</span>
+git commit -m "w2-01: test(db): add sql test scripts for foreign key integrity check"
+git commit -m "w2-02: perf(db): verify execution plans and add missing indexes"
+git commit -m "w2-03: test(seed): verify seed data integrity and role permissions"
+
+<span class="tag-m1"># Bước 2: Vũ Trí Thành (M1) - EF Core DbContext & Auth API</span>
+git commit -m "w2-04: feat(infra): configure smartdrone db context and sql connection"
+git commit -m "w2-05: feat(auth): add password hasher service using bcrypt"
+git commit -m "w2-06: feat(auth): implement jwt token provider with claims"
+git commit -m "w2-07: feat(api): add auth controller for login and refresh token"
+
+<span class="tag-m2"># Bước 3: Lê Thanh Nhị (M2) - CRUD Địa chỉ khách hàng</span>
+git commit -m "w2-08: feat(customer): add address request dtos and validation rules"
+git commit -m "w2-09: feat(customer): implement address service with customer isolation"
+git commit -m "w2-10: feat(api): add get and post endpoints in addresses controller"
+
+<span class="tag-m4"># Bước 4: Tấn Tài (M4) - API Trạm & Slot khả dụng</span>
+git commit -m "w2-11: feat(station): add station and slot response dtos"
+git commit -m "w2-12: feat(station): implement query to get stations with available slots"
+git commit -m "w2-13: feat(api): add landing stations controller with get endpoints"
+
+<span class="tag-m3"># Bước 5: Cường Quang (M3) - API Đơn hàng & Dựng Layout React Web</span>
+git commit -m "w2-14: feat(order): add create order request dto and validators"
+git commit -m "w2-15: feat(order): implement order creation service with address snapshot"
+git commit -m "w2-16: feat(api): add post create delivery order endpoint"
+git commit -m "w2-17: feat(web): setup react app layout and navigation structure"
+
+
+<span class="tag-m2">=== TUẦN 3 (w3-01 -> w3-17): ĐIỀU PHỐI, TRẠM TIẾP ĐẤT & GIAO DIỆN WEB ===</span>
+<span class="tag-m1"># Bước 1: Vũ Trí Thành (M1) - RBAC Middleware & Login Page Web</span>
+git commit -m "w3-01: feat(auth): add authorization middleware and role permission guards"
+git commit -m "w3-02: feat(web): implement login page with token storage"
+git commit -m "w3-03: feat(web): add protected route guard for react router"
+
+<span class="tag-m2"># Bước 2: Lê Thanh Nhị (M2) - Form Đặt hàng Web & Danh sách Đơn</span>
+git commit -m "w3-04: feat(web): build customer order creation form with package inputs"
+git commit -m "w3-05: feat(web): connect order form with address selector and minio upload"
+git commit -m "w3-06: feat(web): create order history list page with status badges"
+
+<span class="tag-m3"># Bước 3: Cường Quang (M3) - Phê duyệt đơn, Lập lịch bay & Web Dispatcher Portal</span>
+git commit -m "w3-07: feat(schedule): implement flight schedule assignment service"
+git commit -m "w3-08: feat(api): add approve order and schedule flight endpoints"
+git commit -m "w3-09: feat(web): create dispatcher dashboard component with pending table"
+git commit -m "w3-10: feat(web): add assign drone modal with station selection"
+
+<span class="tag-m4"># Bước 4: Tấn Tài (M4) - Quét mã QR Handoff & Web Station Operator</span>
+git commit -m "w3-11: feat(handoff): implement scan package barcode handoff service"
+git commit -m "w3-12: feat(api): add post scan handoff endpoint for station operator"
+git commit -m "w3-13: feat(web): build station operator ui for package checking"
+git commit -m "w3-14: feat(web): connect operator view with handoff api"
+
+<span class="tag-m5"># Bước 5: Nguyễn Thành Nhân (M5) - SQL Views Báo cáo & API Analytics</span>
+git commit -m "w3-15: feat(db): create view v_station_slot_utilization"
+git commit -m "w3-16: feat(db): create view v_flight_delivery_performance"
+git commit -m "w3-17: feat(api): add analytics controller for basic statistics"
+
+
+<span class="tag-m4">=== TUẦN 4 (w4-01 -> w4-17): REALTIME SIMULATOR, AI & TÍCH HỢP END-TO-END ===</span>
+<span class="tag-m1"># Bước 1: Vũ Trí Thành (M1) - Audit Log Interceptor & Web Admin</span>
+git commit -m "w4-01: feat(infra): implement audit log interceptor in ef core"
+git commit -m "w4-02: feat(api): add global exception handling middleware and response wrapper"
+git commit -m "w4-03: feat(web): add user management table for system admin"
+
+<span class="tag-m4"># Bước 2: Tấn Tài (M4) - SignalR TrackingHub, Flight Simulator & OTP POD</span>
+git commit -m "w4-04: feat(realtime): create signalr tracking hub with order group"
+git commit -m "w4-05: feat(sim): implement drone flight simulator background worker"
+git commit -m "w4-06: feat(pod): implement otp generator and sha256 verification service"
+git commit -m "w4-07: feat(web): display live drone position marker on map view"
+
+<span class="tag-m2"># Bước 3: Lê Thanh Nhị (M2) - Khởi tạo App Flutter Mobile Khách hàng</span>
+git commit -m "w4-08: feat(mobile): setup flutter customer app structure and theme"
+git commit -m "w4-09: feat(mobile): build customer login and token persistence in flutter"
+git commit -m "w4-10: feat(mobile): build customer order tracking screen in flutter"
+
+<span class="tag-m5"># Bước 4: Nguyễn Thành Nhân (M5) - AI ETA Fallback & Web Dashboard KPI</span>
+git commit -m "w4-11: feat(ai): add external llm service client for eta prediction"
+git commit -m "w4-12: feat(ai): add fallback rule based service using distance formula"
+git commit -m "w4-13: feat(web): create logistics manager analytics dashboard page"
+git commit -m "w4-14: feat(web): add kpi summary cards and flight metrics chart"
+
+<span class="tag-m3"># Bước 5: Cường Quang (M3) - Nghiệp vụ Hủy đơn & Test End-to-End Toàn hệ thống</span>
+git commit -m "w4-15: feat(order): implement order cancellation and rejection business rules"
+git commit -m "w4-16: test(e2e): verify end-to-end delivery lifecycle workflow"
+git commit -m "w4-17: fix(order): sync order status transition across all modules"
+
+
+<span class="tag-m5">=== TUẦN 5 (w5-01 -> w5-13): ĐÓNG BĂNG TÍNH NĂNG, SỬA LỖI & DIỄN TẬP DEMO ===</span>
+<span class="tag-m2"># Bước 1: Lê Thanh Nhị (M2) - Test Web Form & Polish Mobile Flutter</span>
+git commit -m "w5-01: test(customer): verify address validation edge cases and empty states"
+git commit -m "w5-02: fix(ui): polish customer order form responsive layout on mobile web"
+
+<span class="tag-m4"># Bước 2: Tấn Tài (M4) - Test SignalR Reconnect & Tối ưu Barcode Scanner</span>
+git commit -m "w5-03: test(realtime): verify signalr reconnection and fallback polling"
+git commit -m "w5-04: fix(operator): optimize barcode scanner input response time"
+
+<span class="tag-m1"># Bước 3: Vũ Trí Thành (M1) - Kiểm tra RBAC, Health Checks & Docker Deploy</span>
+git commit -m "w5-05: test(security): verify rbac role permissions and token expiry"
+git commit -m "w5-06: chore(docker): finalize compose configuration for clean deploy"
+git commit -m "w5-07: chore(infra): configure health check endpoints for sql server and minio"
+
+<span class="tag-m5"># Bước 4: Nguyễn Thành Nhân (M5) - Báo cáo Đồ án, Slide & Backup CSDL .BAK</span>
+git commit -m "w5-08: docs(report): compile final project documentation and erd diagram"
+git commit -m "w5-09: docs(slide): finalize presentation slides and team contribution summary"
+git commit -m "w5-10: chore(db): export clean backup bak file for presentation day"
+
+<span class="tag-m3"># Bước 5: Cường Quang (M3) - Kịch bản Demo 10 phút, Diễn tập & Chốt Release</span>
+git commit -m "w5-11: docs(demo): add step-by-step 10-minute presentation scenario"
+git commit -m "w5-12: test(demo): verify live demo test accounts and sample orders"
+git commit -m "w5-13: chore(release): finalize version 1.0 release ready for demo"
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function showTab(tabName) {
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+      
+      if (tabName === 'tasks') {
+        document.querySelector('.tab-btn:nth-child(1)').classList.add('active');
+        document.getElementById('tab-tasks').classList.add('active');
+      } else if (tabName === 'tree') {
+        document.querySelector('.tab-btn:nth-child(2)').classList.add('active');
+        document.getElementById('tab-tree').classList.add('active');
+      } else {
+        document.querySelector('.tab-btn:nth-child(3)').classList.add('active');
+        document.getElementById('tab-commits').classList.add('active');
+      }
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,59 @@
+services:
+
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: smartdrone_sqlserver
+    restart: unless-stopped
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "YourStrong@Password2026!"
+      MSSQL_PID: "Developer"
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserver_data:/var/opt/mssql
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P 'YourStrong@Password2026!' -C -Q 'SELECT 1' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  minio:
+    image: minio/minio:RELEASE.2024-05-10T01-41-38Z
+    container_name: smartdrone_minio
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadminsecret
+    ports:
+      - "9000:9000"   # S3 API
+      - "9001:9001"   # Web Console Dashboard
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+
+  # Khởi tạo tự động S3 bucket trên MinIO
+  createbuckets:
+    image: minio/mc:RELEASE.2024-05-09T17-04-24Z
+    container_name: smartdrone_minio_init
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: >
+      /bin/sh -c "
+      /usr/bin/mc alias set myminio http://minio:9000 minioadmin minioadminsecret;
+      /usr/bin/mc mb myminio/smartdrone-packages --ignore-existing;
+      /usr/bin/mc mb myminio/smartdrone-proofs --ignore-existing;
+      /usr/bin/mc anonymous set download myminio/smartdrone-packages;
+      /usr/bin/mc anonymous set download myminio/smartdrone-proofs;
+      exit 0;
+      "
+
+volumes:
+  sqlserver_data:
+  minio_data:
