@@ -45,3 +45,38 @@ BEGIN
         WHERE is_deleted = 0;
 END
 GO
+
+-- 2. BẢNG STATION_SLOTS (Commit w1-06)
+IF OBJECT_ID('dbo.station_slots', 'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.station_slots (
+        id              UNIQUEIDENTIFIER NOT NULL 
+                        CONSTRAINT DF_station_slots_id DEFAULT NEWID(),
+        station_id      UNIQUEIDENTIFIER NOT NULL,
+        slot_number     INT              NOT NULL,
+        slot_type       VARCHAR(30)      NOT NULL,
+        status          VARCHAR(30)      NOT NULL 
+                        CONSTRAINT DF_station_slots_status DEFAULT 'AVAILABLE',
+        updated_at      DATETIME2(7)     NOT NULL 
+                        CONSTRAINT DF_station_slots_updated_at DEFAULT SYSDATETIME(),
+
+        CONSTRAINT PK_station_slots PRIMARY KEY (id),
+        CONSTRAINT UQ_station_slots_station_id_slot_number 
+            UNIQUE (station_id, slot_number),
+        CONSTRAINT FK_station_slots_landing_stations_station_id 
+            FOREIGN KEY (station_id) 
+            REFERENCES dbo.landing_stations(id) 
+            ON DELETE CASCADE 
+            ON UPDATE CASCADE,
+        CONSTRAINT CK_station_slots_slot_number 
+            CHECK (slot_number > 0),
+        CONSTRAINT CK_station_slots_slot_type 
+            CHECK (slot_type IN ('LANDING_PAD', 'CHARGING_DOCK', 'STORAGE_LOCKER')),
+        CONSTRAINT CK_station_slots_status 
+            CHECK (status IN ('AVAILABLE', 'OCCUPIED', 'RESERVED', 'MAINTENANCE'))
+    );
+
+    CREATE NONCLUSTERED INDEX IX_station_slots_station_id 
+        ON dbo.station_slots(station_id, status);
+END
+GO
