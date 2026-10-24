@@ -80,3 +80,73 @@ BEGIN
         ON dbo.station_slots(station_id, status);
 END
 GO
+
+-- 3. BẢNG PACKAGE_HANDOFFS (Commit w1-07)
+IF OBJECT_ID('dbo.package_handoffs', 'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.package_handoffs (
+        id                  UNIQUEIDENTIFIER NOT NULL 
+                            CONSTRAINT DF_package_handoffs_id DEFAULT NEWID(),
+        package_id          UNIQUEIDENTIFIER NOT NULL,
+        station_id          UNIQUEIDENTIFIER NOT NULL,
+        operator_id         UNIQUEIDENTIFIER NOT NULL,
+        handoff_type        VARCHAR(50)      NOT NULL,
+        verification_code   VARCHAR(100)     NULL,
+        proof_photo_url     VARCHAR(500)     NULL,
+        notes               NVARCHAR(500)    NULL,
+        handoff_time        DATETIME2(7)     NOT NULL 
+                            CONSTRAINT DF_package_handoffs_handoff_time DEFAULT SYSDATETIME(),
+
+        CONSTRAINT PK_package_handoffs PRIMARY KEY (id),
+        CONSTRAINT FK_package_handoffs_landing_stations_station_id 
+            FOREIGN KEY (station_id) 
+            REFERENCES dbo.landing_stations(id) 
+            ON DELETE NO ACTION 
+            ON UPDATE CASCADE,
+        CONSTRAINT CK_package_handoffs_handoff_type 
+            CHECK (handoff_type IN (
+                'INBOUND_CUSTOMER_TO_STATION',
+                'OUTBOUND_STATION_TO_DRONE',
+                'INBOUND_DRONE_TO_STATION',
+                'OUTBOUND_STATION_TO_CUSTOMER',
+                'STATION_RECEIVED',
+                'LOADED_ON_DRONE'
+            ))
+    );
+
+    CREATE NONCLUSTERED INDEX IX_package_handoffs_package_id 
+        ON dbo.package_handoffs(package_id, handoff_time DESC);
+
+    CREATE NONCLUSTERED INDEX IX_package_handoffs_station_id 
+        ON dbo.package_handoffs(station_id, handoff_time DESC);
+
+    CREATE NONCLUSTERED INDEX IX_package_handoffs_operator_id 
+        ON dbo.package_handoffs(operator_id);
+END
+GO
+
+-- Khóa ngoại liên kết sang bảng users của Module 1
+IF OBJECT_ID('dbo.users', 'U') IS NOT NULL 
+   AND NOT EXISTS (SELECT 1 FROM sys.foreign_keys WHERE name = 'FK_package_handoffs_users_operator_id')
+BEGIN
+    ALTER TABLE dbo.package_handoffs
+    ADD CONSTRAINT FK_package_handoffs_users_operator_id 
+        FOREIGN KEY (operator_id) 
+        REFERENCES dbo.users(id) 
+        ON DELETE NO ACTION 
+        ON UPDATE CASCADE;
+END
+GO
+
+-- Khóa ngoại liên kết sang bảng packages của Module 3
+IF OBJECT_ID('dbo.packages', 'U') IS NOT NULL 
+   AND NOT EXISTS (SELECT 1 FROM sys.foreign_keys WHERE name = 'FK_package_handoffs_packages_package_id')
+BEGIN
+    ALTER TABLE dbo.package_handoffs
+    ADD CONSTRAINT FK_package_handoffs_packages_package_id 
+        FOREIGN KEY (package_id) 
+        REFERENCES dbo.packages(id) 
+        ON DELETE NO ACTION 
+        ON UPDATE CASCADE;
+END
+GO
