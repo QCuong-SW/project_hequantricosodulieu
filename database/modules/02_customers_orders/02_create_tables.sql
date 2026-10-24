@@ -29,7 +29,7 @@ GO
 -- Nhánh Git: feat/w1-m3-delivery-orders-and-drones | Commit: w1-11
 -- ------------------------------------------------------------------------------
 
--- 1. Bảng Đơn hàng giao nhận (delivery_orders)
+-- 1. Bảng delivery_orders
 IF OBJECT_ID(N'dbo.delivery_orders', N'U') IS NULL
 BEGIN
     CREATE TABLE dbo.delivery_orders (
@@ -68,7 +68,6 @@ BEGIN
 END;
 GO
 
--- Khóa ngoại delivery_orders trỏ về customer_profiles
 IF OBJECT_ID(N'dbo.customer_profiles', N'U') IS NOT NULL
    AND NOT EXISTS (
        SELECT 1 FROM sys.foreign_keys 
@@ -84,8 +83,7 @@ BEGIN
 END;
 GO
 
-
--- 2. Bảng Bản sao địa chỉ đóng băng (order_address_snapshots)
+-- 2. Bảng order_address_snapshots
 IF OBJECT_ID(N'dbo.order_address_snapshots', N'U') IS NULL
 BEGIN
     CREATE TABLE dbo.order_address_snapshots (
@@ -117,8 +115,7 @@ BEGIN
 END;
 GO
 
-
--- 3. Bảng Kiện hàng vật lý (packages)
+-- 3. Bảng packages
 IF OBJECT_ID(N'dbo.packages', N'U') IS NULL
 BEGIN
     CREATE TABLE dbo.packages (
@@ -149,8 +146,7 @@ BEGIN
 END;
 GO
 
-
--- 4. Chỉ mục hiệu năng (Indexes)
+-- 4. Indexes
 IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_delivery_orders_customer' AND object_id = OBJECT_ID(N'dbo.delivery_orders'))
 BEGIN
     CREATE NONCLUSTERED INDEX IX_delivery_orders_customer
