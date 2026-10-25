@@ -14,15 +14,94 @@ GO
 
 -- TODO (Lê Thanh Nhị - M2): Viết lệnh CREATE TABLE dbo.customer_profiles
 -- Gợi ý: FK trỏ sang dbo.users(id), UQ_customer_code, contact_phone, default_address_id
+CREATE TABLE dbo.customer_profiles (
+    id UNIQUEIDENTIFIER NOT NULL
+        CONSTRAINT PK_customer_profiles
+        PRIMARY KEY DEFAULT NEWID(),
 
+    user_id UNIQUEIDENTIFIER NOT NULL,
 
+    customer_code VARCHAR(50) NOT NULL,
+
+    company_name NVARCHAR(150) NULL,
+
+    total_orders INT NOT NULL
+        CONSTRAINT DF_customer_profiles_total_orders
+        DEFAULT 0,
+
+    is_deleted BIT NOT NULL
+        CONSTRAINT DF_customer_profiles_is_deleted
+        DEFAULT 0,
+
+    created_at DATETIME2(7) NOT NULL
+        CONSTRAINT DF_customer_profiles_created_at
+        DEFAULT SYSDATETIME(),
+
+    updated_at DATETIME2(7) NULL,
+
+    CONSTRAINT UQ_customer_profiles_user_id
+        UNIQUE (user_id),
+
+    CONSTRAINT UQ_customer_profiles_customer_code
+        UNIQUE (customer_code)
+);
+GO
+
+    
 -- TODO (Lê Thanh Nhị - M2): Viết lệnh CREATE TABLE dbo.delivery_addresses
--- Gợi ý: FK trỏ sang dbo.customer_profiles(id), ràng buộc CHECK latitude (-90 đến 90), longitude (-180 đến 180)
+-- Gợi ý: FK trỏ sang dbo.customer_profiles(id), ràng buộc CHECK latitude (-90 đến 90), longitude 
+CREATE TABLE dbo.delivery_addresses (
+    id UNIQUEIDENTIFIER NOT NULL
+        CONSTRAINT PK_delivery_addresses
+        PRIMARY KEY DEFAULT NEWID(),
 
+    customer_id UNIQUEIDENTIFIER NOT NULL,
+
+    address_line NVARCHAR(255) NOT NULL,
+    ward NVARCHAR(100) NULL,
+    district NVARCHAR(100) NULL,
+    city NVARCHAR(100) NOT NULL,
+
+    latitude DECIMAL(9,6) NULL,
+    longitude DECIMAL(9,6) NULL,
+
+    is_default BIT NOT NULL
+        CONSTRAINT DF_delivery_addresses_is_default
+        DEFAULT 0,
+
+    is_deleted BIT NOT NULL
+        CONSTRAINT DF_delivery_addresses_is_deleted
+        DEFAULT 0,
+
+    created_at DATETIME2(7) NOT NULL
+        CONSTRAINT DF_delivery_addresses_created_at
+        DEFAULT SYSDATETIME(),
+
+    CONSTRAINT CK_delivery_addresses_latitude
+        CHECK (
+            latitude IS NULL
+            OR latitude BETWEEN -90 AND 90
+        ),
+
+    CONSTRAINT CK_delivery_addresses_longitude
+        CHECK (
+            longitude IS NULL
+            OR longitude BETWEEN -180 AND 180
+        ),
+
+    CONSTRAINT FK_delivery_addresses_customer_profiles_customer_id
+        FOREIGN KEY (customer_id)
+        REFERENCES dbo.customer_profiles(id)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE
+);
+GO
 
 -- TODO (Lê Thanh Nhị - M2): Viết chỉ mục hiệu năng (Indexes)
--- CREATE NONCLUSTERED INDEX IX_delivery_addresses_customer ON dbo.delivery_addresses(customer_id);
-
+-- CREATE NONCLUSTERED INDEX IX_delivery_addresses_customer ON dbo.delivery_addresses(customer_id)
+CREATE INDEX IX_delivery_addresses_customer_id
+ON dbo.delivery_addresses(customer_id);
+GO
 
 -- ------------------------------------------------------------------------------
 -- PHẦN 2: ĐƠN HÀNG, SNAPSHOT & KIỆN HÀNG - Phụ trách: Cường Quang (M3)
@@ -168,6 +247,7 @@ BEGIN
 END;
 GO
 
+
 IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_packages_order_id' AND object_id = OBJECT_ID(N'dbo.packages'))
 BEGIN
     CREATE NONCLUSTERED INDEX IX_packages_order_id
@@ -181,3 +261,5 @@ BEGIN
         ON dbo.packages(package_code);
 END;
 GO
+
+
