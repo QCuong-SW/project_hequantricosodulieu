@@ -47,6 +47,22 @@ CREATE TABLE dbo.customer_profiles (
 );
 GO
 
+-- Khóa ngoại customer_profiles trỏ về users
+IF OBJECT_ID(N'dbo.users', N'U') IS NOT NULL
+   AND NOT EXISTS (
+       SELECT 1 FROM sys.foreign_keys 
+       WHERE name = N'FK_customer_profiles_users' 
+         AND parent_object_id = OBJECT_ID(N'dbo.customer_profiles')
+   )
+BEGIN
+    ALTER TABLE dbo.customer_profiles
+    ADD CONSTRAINT FK_customer_profiles_users
+        FOREIGN KEY (user_id) REFERENCES dbo.users(id)
+        ON DELETE NO ACTION
+        ON UPDATE CASCADE;
+END;
+GO
+
     
 -- TODO (Lê Thanh Nhị - M2): Viết lệnh CREATE TABLE dbo.delivery_addresses
 -- Gợi ý: FK trỏ sang dbo.customer_profiles(id), ràng buộc CHECK latitude (-90 đến 90), longitude 
