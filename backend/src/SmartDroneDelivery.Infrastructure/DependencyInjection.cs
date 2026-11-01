@@ -33,3 +33,5 @@ public static class DependencyInjection
         return services;
     }
 }
+// Đăng ký các service liên quan đến Customer Address của bạn ở đây
+services.AddScoped<ICustomerAddressRepository, CustomerAddressRepository>();
