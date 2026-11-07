@@ -1,5 +1,6 @@
 using SmartDroneDelivery.Application;
 using SmartDroneDelivery.Infrastructure;
+using SmartDroneDelivery.Api.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -23,6 +24,8 @@ if (string.IsNullOrWhiteSpace(connectionString))
 }
 
 builder.Services.AddInfrastructureServices(connectionString);
+  builder.Services.AddJwtAuthentication(builder.Configuration);
+  builder.Services.AddRoleAuthorization();
 
 var app = builder.Build();
 
@@ -32,6 +35,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+  app.UseAuthentication();
+  app.UseAuthorization();
 
 // Kích hoạt Controllers
 app.MapControllers();
