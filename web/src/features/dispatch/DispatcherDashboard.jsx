@@ -2,14 +2,18 @@ import { useState } from 'react'
 import {
   INITIAL_PENDING_ORDERS,
   INITIAL_DRONES,
+  INITIAL_STATIONS,
   reviewOrderApprovalApi,
+  assignFlightScheduleApi,
 } from './dispatchService'
+import { AssignDroneModal } from './AssignDroneModal'
 import './dispatch.css'
 
-export function DispatcherDashboard({ onOpenAssignModal }) {
+export function DispatcherDashboard() {
   const [orders, setOrders] = useState(INITIAL_PENDING_ORDERS)
-  const [drones] = useState(INITIAL_DRONES)
+  const [drones, setDrones] = useState(INITIAL_DRONES)
   const [statusFilter, setStatusFilter] = useState('ALL')
+  const [selectedOrderForModal, setSelectedOrderForModal] = useState(null)
   const [actionMessage, setActionMessage] = useState('')
 
   const filteredOrders = orders.filter((order) =>
@@ -29,8 +33,35 @@ export function DispatcherDashboard({ onOpenAssignModal }) {
     setOrders((prev) =>
       prev.map((item) => (item.id === orderId ? { ...item, status: newStatus } : item))
     )
+    setActionMessage(`Order ${orderId.slice(-4)} updated to ${newStatus}.`)
+  }
+
+  const handleConfirmAssignDrone = async (schedulePayload) => {
+    await assignFlightScheduleApi(schedulePayload)
+
+    const assignedDrone = drones.find((d) => d.id === schedulePayload.droneId)
+
+    setOrders((prev) =>
+      prev.map((item) =>
+        item.id === schedulePayload.orderId
+          ? {
+              ...item,
+              status: 'SCHEDULED',
+              assignedDroneCode: assignedDrone?.droneCode || 'DRN',
+            }
+          : item
+      )
+    )
+
+    setDrones((prev) =>
+      prev.map((d) =>
+        d.id === schedulePayload.droneId ? { ...d, status: 'ASSIGNED' } : d
+      )
+    )
+
+    setSelectedOrderForModal(null)
     setActionMessage(
-      `Order ${orderId.slice(-4)} updated to ${newStatus}.`
+      `Flight scheduled with drone ${assignedDrone?.droneCode || ''} for order ${schedulePayload.orderId.slice(-4)}.`
     )
   }
 
@@ -47,7 +78,7 @@ export function DispatcherDashboard({ onOpenAssignModal }) {
           <strong className="dispatch-kpi-value">{pendingCount}</strong>
         </div>
         <div className="dispatch-kpi-card">
-          <span className="dispatch-kpi-label">Approved & Ready</span>
+          <span className="dispatch-kpi-label">Approved &amp; Ready</span>
           <strong className="dispatch-kpi-value">{approvedCount}</strong>
         </div>
         <div className="dispatch-kpi-card">
@@ -65,7 +96,7 @@ export function DispatcherDashboard({ onOpenAssignModal }) {
       <section className="dispatch-panel">
         <div className="dispatch-panel-header">
           <div>
-            <h2>Delivery Order Approval & Flight Dispatch Queue</h2>
+            <h2>Delivery Order Approval &amp; Flight Dispatch Queue</h2>
             <p>Verify package payload (&lt;= 5.00 kg) before approving and scheduling drone flights.</p>
           </div>
           <div className="dispatch-filter-group">
@@ -149,14 +180,16 @@ export function DispatcherDashboard({ onOpenAssignModal }) {
                         <button
                           type="button"
                           className="btn-assign"
-                          onClick={() => onOpenAssignModal && onOpenAssignModal(order)}
+                          onClick={() => setSelectedOrderForModal(order)}
                         >
                           Assign Drone
                         </button>
                       )}
 
                       {order.status === 'SCHEDULED' && (
-                        <span className="dispatch-subtext">Flight Assigned</span>
+                        <span className="dispatch-subtext">
+                          Assigned ({order.assignedDroneCode || 'Drone'})
+                        </span>
                       )}
                     </div>
                   </td>
@@ -208,6 +241,16 @@ export function DispatcherDashboard({ onOpenAssignModal }) {
           </table>
         </div>
       </section>
+
+      {selectedOrderForModal && (
+        <AssignDroneModal
+          order={selectedOrderForModal}
+          drones={drones}
+          stations={INITIAL_STATIONS}
+          onClose={() => setSelectedOrderForModal(null)}
+          onConfirmAssign={handleConfirmAssignDrone}
+        />
+      )}
     </div>
   )
 }
