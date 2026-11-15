@@ -5,8 +5,8 @@ using SmartDroneDelivery.Application.Common.Interfaces;
 using SmartDroneDelivery.Application.Features.Identity;
 using SmartDroneDelivery.Infrastructure.Auth;
 using SmartDroneDelivery.Infrastructure.Persistence;
-using <namespace của ICustomerAddressRepository>;
-using <namespace của CustomerAddressRepository>;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using SmartDroneDelivery.Infrastructure.Persistence.Interceptors;
 
 namespace SmartDroneDelivery.Infrastructure;
 
@@ -18,9 +18,13 @@ public static class DependencyInjection
         var connectionString = configuration.GetConnectionString("DefaultConnection")
             ?? throw new InvalidOperationException("Thiếu ConnectionStrings:DefaultConnection trong cấu hình.");
 
-        services.AddDbContext<SmartDroneDbContext>(options =>
-            options.UseSqlServer(connectionString)
-                   .UseSnakeCaseNamingConvention());
+        services.AddScoped<AuditSaveChangesInterceptor>();
+services.TryAddScoped<ICurrentUser, AnonymousCurrentUser>();
+
+services.AddDbContext<SmartDroneDbContext>((serviceProvider, options) =>
+    options.UseSqlServer(connectionString)
+           .UseSnakeCaseNamingConvention()
+           .AddInterceptors(serviceProvider.GetRequiredService<AuditSaveChangesInterceptor>())); 
 
         // ===== [w2-05] Băm mật khẩu bằng BCrypt =====
         services.AddSingleton<IPasswordHasher, BcryptPasswordHasher>();
@@ -33,7 +37,8 @@ public static class DependencyInjection
         services.AddScoped<IAuthService, AuthService>();
 
         // ===== [w2-09] Customer Address (M2) =====
-        services.AddScoped<ICustomerAddressRepository, CustomerAddressRepository>();
+        // TODO(M2): bật lại dòng dưới sau khi thêm `using` đúng cho hai kiểu này
+        // services.AddScoped<ICustomerAddressRepository, CustomerAddressRepository>();
 
         return services;
     }

@@ -1,6 +1,8 @@
 using SmartDroneDelivery.Application;
 using SmartDroneDelivery.Infrastructure;
 using SmartDroneDelivery.Api.Extensions;
+using SmartDroneDelivery.Api.Services;
+using SmartDroneDelivery.Application.Common.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -23,7 +25,9 @@ if (string.IsNullOrWhiteSpace(connectionString))
         "Database connection string is missing.");
 }
 
-builder.Services.AddInfrastructureServices(connectionString);
+builder.Services.AddInfrastructure(builder.Configuration);
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<ICurrentUser, HttpCurrentUser>();
   builder.Services.AddJwtAuthentication(builder.Configuration);
   builder.Services.AddRoleAuthorization();
 
