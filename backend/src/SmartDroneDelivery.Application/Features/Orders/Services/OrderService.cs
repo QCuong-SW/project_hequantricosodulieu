@@ -71,7 +71,7 @@ public class OrderService : IOrderService
             Id = orderId,
             TrackingNumber = GenerateTrackingNumber(now),
             CustomerId = request.CustomerId,
-            Status = "PENDING_APPROVAL",
+            Status = OrderStatusStateMachine.PendingApproval,
             TotalWeightKg = totalWeightKg,
             ShippingFee = shippingFee,
             PaymentStatus = "PENDING",
@@ -104,6 +104,81 @@ public class OrderService : IOrderService
     {
         var orders = await _orderRepository.GetByCustomerIdAsync(customerId, cancellationToken);
         return orders.Select(MapToResponseDto).ToList();
+    }
+
+    public async Task<(OrderStatusTransitionResponseDto? Result, List<string> Errors)> TransitionOrderStatusAsync(
+        TransitionOrderStatusRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        var errors = new List<string>();
+
+        if (request.OrderId == Guid.Empty)
+            errors.Add("OrderId is required.");
+
+        if (!OrderStatusStateMachine.IsValidStatus(request.TargetStatus))
+            errors.Add($"TargetStatus '{request.TargetStatus}' is not a valid delivery order status.");
+
+        if (errors.Count > 0)
+            return (null, errors);
+
+        var order = await _orderRepository.GetByIdAsync(request.OrderId, cancellationToken);
+        if (order is null)
+        {
+            errors.Add($"Delivery order '{request.OrderId}' was not found.");
+            return (null, errors);
+        }
+
+        if (request.ExpectedConcurrencyVersion.HasValue &&
+            request.ExpectedConcurrencyVersion.Value > 0 &&
+            order.ConcurrencyVersion != request.ExpectedConcurrencyVersion.Value)
+        {
+            errors.Add(
+                $"Concurrency conflict: expected version {request.ExpectedConcurrencyVersion.Value}, actual is {order.ConcurrencyVersion}.");
+            return (null, errors);
+        }
+
+        var normalizedTarget = request.TargetStatus.Trim().ToUpperInvariant();
+        if (!OrderStatusStateMachine.CanTransition(order.Status, normalizedTarget))
+        {
+            var allowed = string.Join(", ", OrderStatusStateMachine.GetAllowedNextStatuses(order.Status));
+            errors.Add(
+                $"Invalid status transition from '{order.Status}' to '{normalizedTarget}'. Allowed next statuses: [{allowed}].");
+            return (null, errors);
+        }
+
+        var previousStatus = order.Status;
+        var now = DateTime.UtcNow;
+
+        order.Status = normalizedTarget;
+        order.ConcurrencyVersion += 1;
+        order.UpdatedAt = now;
+
+        if (normalizedTarget == OrderStatusStateMachine.Delivered)
+        {
+            order.ActualDeliveryTime = now;
+            if (order.PaymentStatus == "PENDING")
+                order.PaymentStatus = "PAID";
+        }
+        else if ((normalizedTarget == OrderStatusStateMachine.Cancelled ||
+                  normalizedTarget == OrderStatusStateMachine.Rejected) &&
+                 !string.IsNullOrWhiteSpace(request.Reason))
+        {
+            order.CancellationReason = request.Reason.Trim();
+        }
+
+        await _orderRepository.AddAsync(order, cancellationToken);
+
+        return (new OrderStatusTransitionResponseDto
+        {
+            OrderId = order.Id,
+            TrackingNumber = order.TrackingNumber,
+            PreviousStatus = previousStatus,
+            CurrentStatus = order.Status,
+            ConcurrencyVersion = order.ConcurrencyVersion,
+            ActualDeliveryTime = order.ActualDeliveryTime,
+            UpdatedAt = order.UpdatedAt,
+            AllowedNextStatuses = OrderStatusStateMachine.GetAllowedNextStatuses(order.Status)
+        }, errors);
     }
 
     private static decimal CalculateShippingFee(decimal totalWeightKg, bool hasFragilePackage)

@@ -81,6 +81,32 @@ public class OrdersController : ControllerBase
         });
     }
 
+    [HttpPatch("{id:guid}/status")]
+    public async Task<IActionResult> TransitionOrderStatus(
+        Guid id,
+        [FromBody] TransitionOrderStatusRequest request,
+        CancellationToken cancellationToken)
+    {
+        request.OrderId = id;
+        var (result, errors) = await _orderService.TransitionOrderStatusAsync(request, cancellationToken);
+        if (errors.Count > 0 || result is null)
+        {
+            return BadRequest(new
+            {
+                success = false,
+                message = "Order status transition failed.",
+                errors
+            });
+        }
+
+        return Ok(new
+        {
+            success = true,
+            message = $"Order status transitioned from '{result.PreviousStatus}' to '{result.CurrentStatus}'.",
+            data = result
+        });
+    }
+
     [HttpPost("{id:guid}/cancel")]
     public async Task<IActionResult> CancelOrder(
         Guid id,
