@@ -2,6 +2,8 @@
 import { useState } from 'react';
 import { useAnalyticsData } from './useAnalyticsData.js';
 import StationUtilizationTable from './StationUtilizationTable.jsx';
+import KpiCards from './KpiCards.jsx';
+import FlightMetricsChart from './FlightMetricsChart.jsx';
 import './LogisticsDashboard.css';
 
 const PRESETS = [
@@ -79,6 +81,12 @@ export default function LogisticsDashboard() {
 
       {data && (
         <>
+          <KpiCards summary={data.summary} orders={data.orders} />
+
+          <section className="ld-card">
+            <h2>Chuyến bay theo ngày</h2>
+            <FlightMetricsChart daily={data.daily} />
+          </section>
 
           <section className="ld-card">
             <h2>Mức sử dụng slot theo trạm</h2>
