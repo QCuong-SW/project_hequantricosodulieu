@@ -5,6 +5,8 @@ using SmartDroneDelivery.Application.Common.Interfaces;
 using SmartDroneDelivery.Application.Features.Identity;
 using SmartDroneDelivery.Infrastructure.Auth;
 using SmartDroneDelivery.Infrastructure.Persistence;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using SmartDroneDelivery.Infrastructure.Persistence.Interceptors;
 
 namespace SmartDroneDelivery.Infrastructure;
 
@@ -16,9 +18,13 @@ public static class DependencyInjection
         var connectionString = configuration.GetConnectionString("DefaultConnection")
             ?? throw new InvalidOperationException("Thiếu ConnectionStrings:DefaultConnection trong cấu hình.");
 
-        services.AddDbContext<SmartDroneDbContext>(options =>
-            options.UseSqlServer(connectionString)
-                   .UseSnakeCaseNamingConvention());
+        services.AddScoped<AuditSaveChangesInterceptor>();
+services.TryAddScoped<ICurrentUser, AnonymousCurrentUser>();
+
+services.AddDbContext<SmartDroneDbContext>((serviceProvider, options) =>
+    options.UseSqlServer(connectionString)
+           .UseSnakeCaseNamingConvention()
+           .AddInterceptors(serviceProvider.GetRequiredService<AuditSaveChangesInterceptor>())); 
 
         // ===== [w2-05] Băm mật khẩu bằng BCrypt =====
         services.AddSingleton<IPasswordHasher, BcryptPasswordHasher>();
