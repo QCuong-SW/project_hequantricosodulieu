@@ -10,6 +10,7 @@ public static class OrderModuleExtensions
     {
         services.AddSingleton<IOrderRepository, InMemoryOrderRepository>();
         services.AddScoped<IOrderService, OrderService>();
+        services.AddScoped<IOrderCancellationService, OrderCancellationService>();
         return services;
     }
 }

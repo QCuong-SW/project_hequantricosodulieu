@@ -15,4 +15,8 @@ public interface IOrderService
     Task<IReadOnlyList<OrderResponseDto>> GetCustomerOrdersAsync(
         Guid customerId,
         CancellationToken cancellationToken = default);
+
+    Task<(OrderStatusTransitionResponseDto? Result, List<string> Errors)> TransitionOrderStatusAsync(
+        TransitionOrderStatusRequest request,
+        CancellationToken cancellationToken = default);
 }
