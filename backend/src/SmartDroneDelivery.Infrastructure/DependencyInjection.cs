@@ -5,8 +5,6 @@ using SmartDroneDelivery.Application.Common.Interfaces;
 using SmartDroneDelivery.Application.Features.Identity;
 using SmartDroneDelivery.Infrastructure.Auth;
 using SmartDroneDelivery.Infrastructure.Persistence;
-using <namespace của ICustomerAddressRepository>;
-using <namespace của CustomerAddressRepository>;
 
 namespace SmartDroneDelivery.Infrastructure;
 
@@ -33,7 +31,8 @@ public static class DependencyInjection
         services.AddScoped<IAuthService, AuthService>();
 
         // ===== [w2-09] Customer Address (M2) =====
-        services.AddScoped<ICustomerAddressRepository, CustomerAddressRepository>();
+        // TODO(M2): bật lại dòng dưới sau khi thêm `using` đúng cho hai kiểu này
+        // services.AddScoped<ICustomerAddressRepository, CustomerAddressRepository>();
 
         return services;
     }

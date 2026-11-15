@@ -23,7 +23,7 @@ if (string.IsNullOrWhiteSpace(connectionString))
         "Database connection string is missing.");
 }
 
-builder.Services.AddInfrastructureServices(connectionString);
+builder.Services.AddInfrastructure(builder.Configuration);
   builder.Services.AddJwtAuthentication(builder.Configuration);
   builder.Services.AddRoleAuthorization();
 
