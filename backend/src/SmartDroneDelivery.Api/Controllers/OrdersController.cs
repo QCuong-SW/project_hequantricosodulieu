@@ -9,10 +9,14 @@ namespace SmartDroneDelivery.Api.Controllers;
 public class OrdersController : ControllerBase
 {
     private readonly IOrderService _orderService;
+    private readonly IOrderCancellationService _orderCancellationService;
 
-    public OrdersController(IOrderService orderService)
+    public OrdersController(
+        IOrderService orderService,
+        IOrderCancellationService orderCancellationService)
     {
         _orderService = orderService;
+        _orderCancellationService = orderCancellationService;
     }
 
     [HttpPost]
@@ -74,6 +78,58 @@ public class OrdersController : ControllerBase
         {
             success = true,
             data = orders
+        });
+    }
+
+    [HttpPost("{id:guid}/cancel")]
+    public async Task<IActionResult> CancelOrder(
+        Guid id,
+        [FromBody] CancelOrderRequest request,
+        CancellationToken cancellationToken)
+    {
+        request.OrderId = id;
+        var (result, errors) = await _orderCancellationService.CancelOrderAsync(request, cancellationToken);
+        if (errors.Count > 0 || result is null)
+        {
+            return BadRequest(new
+            {
+                success = false,
+                message = "Order cancellation failed.",
+                errors
+            });
+        }
+
+        return Ok(new
+        {
+            success = true,
+            message = "Order cancelled successfully.",
+            data = result
+        });
+    }
+
+    [HttpPost("{id:guid}/reject")]
+    public async Task<IActionResult> RejectOrder(
+        Guid id,
+        [FromBody] RejectOrderRequest request,
+        CancellationToken cancellationToken)
+    {
+        request.OrderId = id;
+        var (result, errors) = await _orderCancellationService.RejectOrderAsync(request, cancellationToken);
+        if (errors.Count > 0 || result is null)
+        {
+            return BadRequest(new
+            {
+                success = false,
+                message = "Order rejection failed.",
+                errors
+            });
+        }
+
+        return Ok(new
+        {
+            success = true,
+            message = "Order rejected successfully.",
+            data = result
         });
     }
 }
