@@ -8,6 +8,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Đăng ký Controllers
 builder.Services.AddControllers();
+builder.Services.AddApiResponseWrapping();      // thêm dòng này ngay dưới AddControllers
 
 // Đăng ký OpenAPI
 builder.Services.AddOpenApi();
@@ -32,6 +33,7 @@ builder.Services.AddScoped<ICurrentUser, HttpCurrentUser>();
   builder.Services.AddRoleAuthorization();
 
 var app = builder.Build();
+app.UseApiResponseHandling();    
 
 if (app.Environment.IsDevelopment())
 {
