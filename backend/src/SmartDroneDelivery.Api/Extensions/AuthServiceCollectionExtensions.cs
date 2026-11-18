@@ -26,6 +26,23 @@ public static class AuthServiceCollectionExtensions
                 // Giữ nguyên tên claim trong token ("sub", "email", "role"), không đổi sang URI của Microsoft
                 options.MapInboundClaims = false;
 
+                // SignalR/WebSocket trên trình duyệt không gửi được header Authorization,
+                // nên token đi theo ?access_token=... và chỉ được chấp nhận cho đường dẫn /hubs
+                options.Events = new JwtBearerEvents
+                {
+                    OnMessageReceived = context =>
+                    {
+                        var accessToken = context.Request.Query["access_token"];
+                        if (!string.IsNullOrEmpty(accessToken) &&
+                            context.HttpContext.Request.Path.StartsWithSegments("/hubs"))
+                        {
+                            context.Token = accessToken;
+                        }
+
+                        return Task.CompletedTask;
+                    }
+                };
+
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
                     ValidateIssuer = true,
