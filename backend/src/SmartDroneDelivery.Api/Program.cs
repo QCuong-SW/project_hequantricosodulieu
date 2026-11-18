@@ -9,7 +9,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Đăng ký Controllers
 builder.Services.AddControllers();
 builder.Services.AddApiResponseWrapping();      // thêm dòng này ngay dưới AddControllers
-
+builder.Services.AddWebClientCors(builder.Configuration);   // thêm gần dòng AddApiResponseWrapping
 // Đăng ký OpenAPI
 builder.Services.AddOpenApi();
 
@@ -39,6 +39,7 @@ if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 }
+app.UseCors(CorsExtensions.PolicyName);     
 app.UseApiResponseHandling();  
 app.UseHttpsRedirection();
 app.UseAuthentication();
