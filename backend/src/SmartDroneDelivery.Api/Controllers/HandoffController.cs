@@ -1,20 +1,23 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SmartDroneDelivery.Api.Authorization;
 using SmartDroneDelivery.Application.Features.Stations;
 
 namespace SmartDroneDelivery.Api.Controllers;
 
 [ApiController]
+[Authorize(Policy = AuthorizationPolicies.StationAccess)]
 [Route("api/v1/handoffs")]
 public class HandoffController : ControllerBase
 {
     private readonly IPackageHandoffService _handoffService;
 
-    public HandoffController(IPackageHandoffService? handoffService = null)
+    public HandoffController(IPackageHandoffService handoffService)
     {
-        _handoffService = handoffService ?? new PackageHandoffService();
+        _handoffService = handoffService;
     }
 
     [HttpPost("scan")]
@@ -24,7 +27,10 @@ public class HandoffController : ControllerBase
     {
         try
         {
-            var result = await _handoffService.ScanPackageBarcodeAsync(request, cancellationToken);
+            var result = await _handoffService.ScanPackageBarcodeAsync(
+                request,
+                cancellationToken);
+
             return Ok(result);
         }
         catch (ArgumentException ex)
@@ -38,7 +44,10 @@ public class HandoffController : ControllerBase
         Guid stationId,
         CancellationToken cancellationToken = default)
     {
-        var history = await _handoffService.GetStationHandoffHistoryAsync(stationId, cancellationToken);
+        var history = await _handoffService.GetStationHandoffHistoryAsync(
+            stationId,
+            cancellationToken);
+
         return Ok(history);
     }
 }

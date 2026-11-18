@@ -3,11 +3,6 @@ using SmartDroneDelivery.Domain.Entities.Identity;
 
 namespace SmartDroneDelivery.Api.Authorization;
 
-/// <summary>
-/// Các policy phân quyền theo role. Dùng trong controller:
-///   [Authorize(Policy = AuthorizationPolicies.DispatcherAccess)]
-/// SystemAdmin luôn được phép vào các khu vực nghiệp vụ để hỗ trợ và kiểm tra.
-/// </summary>
 public static class AuthorizationPolicies
 {
     public const string CustomerOnly = "CustomerOnly";
@@ -19,24 +14,35 @@ public static class AuthorizationPolicies
 
     public static void Configure(AuthorizationOptions options)
     {
-        options.AddPolicy(CustomerOnly, p => p.RequireRole(RoleNames.Customer));
+        options.AddPolicy(CustomerOnly, p =>
+            p.RequireRole(RoleNames.Customer));
 
         options.AddPolicy(DispatcherAccess, p =>
-            p.RequireRole(RoleNames.Dispatcher, RoleNames.SystemAdmin));
+            p.RequireRole(
+                RoleNames.Dispatcher,
+                RoleNames.SystemAdmin));
 
+        // Nhận đúng role trong database seed và hỗ trợ tên role cũ.
         options.AddPolicy(StationAccess, p =>
-            p.RequireRole(RoleNames.StationOperator, RoleNames.SystemAdmin));
+            p.RequireRole(
+                "STATION_OPERATOR",
+                "ADMIN",
+                RoleNames.StationOperator,
+                RoleNames.SystemAdmin));
 
         options.AddPolicy(AnalyticsAccess, p =>
-            p.RequireRole(RoleNames.LogisticsManager, RoleNames.SystemAdmin));
+            p.RequireRole(
+                RoleNames.LogisticsManager,
+                RoleNames.SystemAdmin));
 
-        options.AddPolicy(AdminOnly, p => p.RequireRole(RoleNames.SystemAdmin));
+        options.AddPolicy(AdminOnly, p =>
+            p.RequireRole(RoleNames.SystemAdmin));
 
-        // Mọi nhân sự nội bộ (không gồm khách hàng)
-        options.AddPolicy(StaffAccess, p => p.RequireRole(
-            RoleNames.Dispatcher,
-            RoleNames.StationOperator,
-            RoleNames.LogisticsManager,
-            RoleNames.SystemAdmin));
+        options.AddPolicy(StaffAccess, p =>
+            p.RequireRole(
+                RoleNames.Dispatcher,
+                RoleNames.StationOperator,
+                RoleNames.LogisticsManager,
+                RoleNames.SystemAdmin));
     }
 }

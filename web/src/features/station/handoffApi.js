@@ -1,37 +1,14 @@
-import { API_V1_URL } from "../../config/apiConfig";
-import { getAccessToken } from "../dashboard/authBridge";
+import { apiClient } from "../../lib/apiClient.js";
 
-function authHeaders() {
-  const token = getAccessToken();
-  return {
-    "Content-Type": "application/json",
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
-  };
-}
-
-export async function scanPackageHandoff(payload) {
-  const response = await fetch(`${API_V1_URL}/handoffs/scan`, {
+export function scanPackageHandoff(payload) {
+  return apiClient("/api/v1/handoffs/scan", {
     method: "POST",
-    headers: authHeaders(),
-    body: JSON.stringify(payload),
+    body: payload,
   });
-
-  const data = await response.json().catch(() => ({}));
-  if (!response.ok) {
-    throw new Error(data.message || data.Message || "Không thể xác nhận quét mã bàn giao.");
-  }
-
-  return data;
 }
 
-export async function fetchStationHandoffs(stationId) {
-  try {
-    const response = await fetch(`${API_V1_URL}/handoffs/station/${stationId}`, {
-      headers: authHeaders(),
-    });
-    if (!response.ok) return [];
-    return await response.json();
-  } catch {
-    return [];
-  }
+export function fetchStationHandoffs(stationId) {
+  return apiClient(
+    `/api/v1/handoffs/station/${encodeURIComponent(stationId)}`
+  );
 }

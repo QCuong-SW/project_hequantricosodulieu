@@ -1,40 +1,29 @@
+using SmartDroneDelivery.Application.Features.Stations;
+using SmartDroneDelivery.Infrastructure.SignalR;
 using SmartDroneDelivery.Application;
 using SmartDroneDelivery.Infrastructure;
-using SmartDroneDelivery.Infrastructure.Ai;
-using SmartDroneDelivery.Infrastructure.SignalR;
 using SmartDroneDelivery.Api.Extensions;
 using SmartDroneDelivery.Api.Services;
 using SmartDroneDelivery.Application.Common.Interfaces;
-using SmartDroneDelivery.Application.Features.Stations;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Đăng ký Controllers
 builder.Services.AddControllers();
 
+// M4: SignalR, simulator và các service trạm/bàn giao
+builder.Services.AddSignalR();
+builder.Services.AddHostedService<DroneSimulatorWorker>();
+builder.Services.AddScoped<IStationQueryService, StationQueryService>();
+builder.Services.AddScoped<IPackageHandoffService, PackageHandoffService>();
+
 // Đăng ký OpenAPI
 builder.Services.AddOpenApi();
 
-// Đăng ký CORS cho Web (Vite) và Mobile (Flutter)
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowAllClients", policy =>
-    {
-        policy.SetIsOriginAllowed(_ => true)
-              .AllowAnyHeader()
-              .AllowAnyMethod()
-              .AllowCredentials();
-    });
-});
-
-// Đăng ký Application & Các Module Nghiệp vụ
+// Đăng ký Application
 builder.Services.AddApplicationServices();
-builder.Services.AddOrderModule();
-builder.Services.AddSchedulingModule();
-builder.Services.AddSingleton<IStationQueryService, StationQueryService>();
-builder.Services.AddSingleton<IPackageHandoffService, PackageHandoffService>();
 
-// Đăng ký kết nối Database & Infrastructure
+// Kiểm tra cấu hình Database
 var connectionString = builder.Configuration
     .GetConnectionString("DefaultConnection");
 
@@ -44,16 +33,14 @@ if (string.IsNullOrWhiteSpace(connectionString))
         "Database connection string is missing.");
 }
 
+// Đăng ký Infrastructure và thông tin người dùng hiện tại
 builder.Services.AddInfrastructure(builder.Configuration);
-builder.Services.AddAiServices(builder.Configuration);
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentUser, HttpCurrentUser>();
+
+// Authentication và Authorization
 builder.Services.AddJwtAuthentication(builder.Configuration);
 builder.Services.AddRoleAuthorization();
-
-// Đăng ký SignalR & Background Drone Simulator Worker
-builder.Services.AddSignalR();
-builder.Services.AddHostedService<DroneSimulatorWorker>();
 
 var app = builder.Build();
 
@@ -62,11 +49,11 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
-app.UseCors("AllowAllClients");
+app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 
-// Kích hoạt Controllers & SignalR Hubs
+// Kích hoạt Controllers và SignalR Hub
 app.MapControllers();
 app.MapHub<TrackingHub>("/hubs/tracking");
 
