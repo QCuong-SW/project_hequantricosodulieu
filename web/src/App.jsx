@@ -150,7 +150,7 @@ function SavedAddressesPage() {
                   <td><strong>{a.addressLine}</strong></td>
                   <td>{[a.ward, a.district, a.city].filter(Boolean).join(', ')}</td>
                   <td>{a.latitude}, {a.longitude}</td>
-                  <td>{a.isDefault ? '✅ Mặc định' : '—'}</td>
+                  <td>{a.isDefault ? 'Mặc định' : '—'}</td>
                 </tr>
               ))}
             </tbody>
@@ -208,7 +208,7 @@ function AdminUsersPage({ currentUser, onSwitchAccount }) {
           </button>
         </form>
         <p style={{ marginTop: '12px', fontSize: '13px', color: '#475569' }}>
-          Trạng thái Token hiện tại: <strong>{hasToken ? '🟢 Đã cấp JWT Bearer Token' : '⚪ Chưa có Token'}</strong>
+          Trạng thái Token hiện tại: <strong>{hasToken ? 'Đã cấp JWT Bearer Token' : 'Chưa có Token'}</strong>
           {currentUser?.email ? ` — Đang hoạt động với: ${currentUser.email}` : ''}
         </p>
       </div>

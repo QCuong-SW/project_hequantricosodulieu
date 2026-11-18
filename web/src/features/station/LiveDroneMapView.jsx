@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { API_ORIGIN } from "../../config/apiConfig";
 
-const START_POINT = { lat: 10.7769, lng: 106.7009, label: "Trạm Cát Lái (ST-01)" };
-const END_POINT = { lat: 10.8015, lng: 106.7145, label: "Điểm Giao Hàng (Khách)" };
+const START_POINT = { lat: 10.7769, lng: 106.7009, label: "Trạm Quận 1 (STN-Q1)" };
+const END_POINT = { lat: 10.8015, lng: 106.7145, label: "Trạm Thủ Đức (STN-TD)" };
 const TOTAL_STEPS = 30;
 const API_BASE_URL = API_ORIGIN;
 
@@ -26,7 +26,13 @@ export default function LiveDroneMapView({ initialOrderId = "ORD-2026-0001" }) {
       ws = new WebSocket(`${wsBaseUrl}/hubs/tracking`);
       ws.onopen = () => {
         ws.send(JSON.stringify({ protocol: "json", version: 1 }) + "\x1e");
-        ws.send(JSON.stringify({ type: 1, target: "JoinOrderTrackingGroup", arguments: [orderId] }) + "\x1e");
+        ws.send(
+          JSON.stringify({
+            type: 1,
+            target: "JoinOrderTrackingGroup",
+            arguments: [orderId],
+          }) + "\x1e"
+        );
         setSignalrConnected(true);
       };
       ws.onmessage = (event) => {
@@ -75,7 +81,8 @@ export default function LiveDroneMapView({ initialOrderId = "ORD-2026-0001" }) {
   const altitude =
     orderStatus === "DELIVERED"
       ? 0
-      : serverTelemetry?.altitudeMeters ?? (progress > 0.1 && progress < 0.9 ? 65 : progress >= 1 ? 5 : 20);
+      : serverTelemetry?.altitudeMeters ??
+        (progress > 0.1 && progress < 0.9 ? 65 : progress >= 1 ? 5 : 20);
 
   const speed =
     orderStatus === "DELIVERED" || progress >= 1
@@ -95,13 +102,15 @@ export default function LiveDroneMapView({ initialOrderId = "ORD-2026-0001" }) {
       if (res.ok) {
         const data = await res.json();
         setGeneratedOtp(data.demoOtp);
-        setOtpMessage(`Mã OTP đã tạo (SHA-256): ${data.demoOtp}`);
+        setOtpInput(data.demoOtp);
+        setOtpMessage(`Đã sinh mã OTP 6 số (băm SHA-256 trên Server): ${data.demoOtp}`);
         return;
       }
     } catch {}
 
     const fallbackOtp = Math.floor(100000 + Math.random() * 900000).toString();
     setGeneratedOtp(fallbackOtp);
+    setOtpInput(fallbackOtp);
     setOtpMessage(`Mã OTP 6 số (Demo): ${fallbackOtp}`);
   };
 
@@ -131,96 +140,191 @@ export default function LiveDroneMapView({ initialOrderId = "ORD-2026-0001" }) {
     }
   };
 
-  const markerX = 80 + progress * 540;
-  const markerY = 260 - progress * 180;
+  const markerX = 90 + progress * 520;
+  const markerY = 250 - progress * 165;
 
   return (
-    <div style={{ padding: "24px", maxWidth: "1000px", margin: "0 auto", fontFamily: "sans-serif" }}>
-      <h2 style={{ marginBottom: "8px", color: "#0f172a" }}>
-        Giám Sát Hành Trình Drone Trực Tuyến (SignalR 2s Telemetry & OTP)
-      </h2>
-      <p style={{ color: "#64748b", marginBottom: "20px", display: "flex", justifyContent: "space-between" }}>
-        <span>
-          Mã đơn đang theo dõi: <strong>{orderId}</strong> | Trạng thái:{" "}
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-wrap items-end justify-between gap-4 pb-5 border-b border-slate-200">
+        <div>
+          <p className="text-[11px] font-extrabold uppercase tracking-widest text-blue-600 mb-1.5">
+            REALTIME TELEMETRY / SIGNALR & PROOF OF DELIVERY
+          </p>
+          <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-slate-900">
+            Radar Giám Sát Hành Trình Drone Trực Tuyến
+          </h1>
+          <p className="text-sm text-slate-500 mt-1">
+            Cập nhật tọa độ GPS chu kỳ 2s/lần qua WebSocket SignalR (`/hubs/tracking`) và xác nhận giao hàng bằng OTP 6 số.
+          </p>
+        </div>
+
+        <div className="flex items-center gap-3 flex-wrap">
+          <div className="flex items-center gap-2 bg-white px-3.5 py-2 rounded-xl border border-slate-200 shadow-2xs">
+            <span className="text-xs text-slate-500 font-medium">Mã vận đơn:</span>
+            <input
+              type="text"
+              value={orderId}
+              onChange={(e) => setOrderId(e.target.value)}
+              className="font-mono text-xs font-bold text-slate-900 bg-slate-100 px-2.5 py-1 rounded-md border border-slate-200 focus:outline-none focus:border-blue-500 w-44"
+            />
+          </div>
+
           <span
-            style={{
-              padding: "4px 10px",
-              borderRadius: "6px",
-              fontWeight: "bold",
-              background: orderStatus === "DELIVERED" ? "#dcfce7" : "#fef3c7",
-              color: orderStatus === "DELIVERED" ? "#166534" : "#b45309",
-            }}
+            className={`px-3 py-2 rounded-xl text-xs font-extrabold border ${
+              orderStatus === "DELIVERED"
+                ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                : "bg-amber-50 text-amber-800 border-amber-200"
+            }`}
           >
             {orderStatus}
           </span>
-        </span>
-        <span style={{ fontSize: "12px", color: signalrConnected ? "#15803d" : "#0284c7", fontWeight: "bold" }}>
-          {signalrConnected ? "🟢 Live: Đang nhận GPS từ SignalR Server" : "🔵 Simulator: Chu kỳ GPS 2s/lần"}
-        </span>
-      </p>
 
-      <div
-        style={{
-          background: "#0f172a",
-          borderRadius: "12px",
-          padding: "16px",
-          marginBottom: "20px",
-          color: "#f8fafc",
-        }}
-      >
-        <svg viewBox="0 0 700 320" style={{ width: "100%", height: "300px", background: "#1e293b", borderRadius: "8px" }}>
-          <line x1="80" y1="260" x2="620" y2="80" stroke="#38bdf8" strokeWidth="3" strokeDasharray="8 6" />
+          <span
+            className={`px-3 py-2 rounded-xl text-xs font-bold border ${
+              signalrConnected
+                ? "bg-emerald-950 text-emerald-400 border-emerald-800"
+                : "bg-slate-900 text-sky-400 border-slate-800"
+            }`}
+          >
+            {signalrConnected
+              ? "SignalR Connected (2s Live)"
+              : "Simulator Active (2s GPS)"}
+          </span>
+        </div>
+      </div>
 
-          <circle cx="80" cy="260" r="10" fill="#22c55e" />
-          <text x="50" y="290" fill="#cbd5e1" fontSize="13" fontWeight="bold">
-            {START_POINT.label}
-          </text>
+      {/* Radar Map & Telemetry Panel */}
+      <div className="bg-slate-950 border border-slate-800 rounded-2xl p-6 text-slate-100 shadow-xl space-y-5">
+        <div className="relative rounded-xl overflow-hidden border border-slate-800 bg-slate-900">
+          <svg viewBox="0 0 700 320" className="w-full h-80 block">
+            <defs>
+              <pattern id="radarGrid" width="35" height="35" patternUnits="userSpaceOnUse">
+                <path
+                  d="M 35 0 L 0 0 0 35"
+                  fill="none"
+                  stroke="rgba(148, 163, 184, 0.08)"
+                  strokeWidth="1"
+                />
+              </pattern>
+            </defs>
+            <rect width="700" height="320" fill="url(#radarGrid)" />
 
-          <circle cx="620" cy="80" r="10" fill="#ef4444" />
-          <text x="520" y="55" fill="#cbd5e1" fontSize="13" fontWeight="bold">
-            {END_POINT.label}
-          </text>
+            {/* Route Line */}
+            <line
+              x1="90"
+              y1="250"
+              x2="610"
+              y2="85"
+              stroke="#334155"
+              strokeWidth="4"
+            />
+            <line
+              x1="90"
+              y1="250"
+              x2={markerX}
+              y2={markerY}
+              stroke="#38bdf8"
+              strokeWidth="4"
+            />
+            <line
+              x1={markerX}
+              y1={markerY}
+              x2="610"
+              y2="85"
+              stroke="#38bdf8"
+              strokeWidth="2.5"
+              strokeDasharray="8 6"
+            />
 
-          <g transform={`translate(${markerX}, ${markerY})`}>
-            <circle cx="0" cy="0" r="16" fill="rgba(56, 189, 248, 0.25)" />
-            <circle cx="0" cy="0" r="8" fill="#38bdf8" stroke="#ffffff" strokeWidth="2" />
-            <text x="-45" y="-20" fill="#38bdf8" fontSize="12" fontWeight="bold">
-              DRN-VN-04 ({Math.round(progress * 100)}%)
+            {/* Origin Station */}
+            <circle cx="90" cy="250" r="14" fill="rgba(34, 197, 94, 0.2)" />
+            <circle cx="90" cy="250" r="7" fill="#22c55e" stroke="#ffffff" strokeWidth="2" />
+            <text x="45" y="282" fill="#e2e8f0" fontSize="12" fontWeight="bold">
+              {START_POINT.label}
             </text>
-          </g>
-        </svg>
 
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "12px", marginTop: "14px" }}>
-          <div style={{ background: "#334155", padding: "10px", borderRadius: "8px" }}>
-            <div style={{ fontSize: "12px", color: "#94a3b8" }}>Tọa độ GPS (Lat, Lng)</div>
-            <div style={{ fontWeight: "bold", fontSize: "15px" }}>
+            {/* Destination Station */}
+            <circle cx="610" cy="85" r="14" fill="rgba(239, 68, 68, 0.2)" />
+            <circle cx="610" cy="85" r="7" fill="#ef4444" stroke="#ffffff" strokeWidth="2" />
+            <text x="495" y="55" fill="#e2e8f0" fontSize="12" fontWeight="bold">
+              {END_POINT.label}
+            </text>
+
+            {/* Live Drone Marker */}
+            <g transform={`translate(${markerX}, ${markerY})`}>
+              <circle cx="0" cy="0" r="22" fill="rgba(56, 189, 248, 0.18)" />
+              <circle cx="0" cy="0" r="9" fill="#38bdf8" stroke="#ffffff" strokeWidth="2.5" />
+              <rect
+                x="-62"
+                y="-42"
+                width="124"
+                height="24"
+                rx="6"
+                fill="#0f172a"
+                stroke="#38bdf8"
+                strokeWidth="1.2"
+              />
+              <text
+                x="0"
+                y="-26"
+                textAnchor="middle"
+                fill="#38bdf8"
+                fontSize="11"
+                fontWeight="bold"
+                fontFamily="JetBrains Mono, monospace"
+              >
+                DRN-VN-04 • {Math.round(progress * 100)}%
+              </text>
+            </g>
+          </svg>
+        </div>
+
+        {/* 4 Telemetry Readout Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="bg-slate-900/90 border border-slate-800 rounded-xl p-4">
+            <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+              Tọa độ GPS (Lat, Lng)
+            </div>
+            <div className="mt-1.5 font-mono text-base font-bold text-white tabular-nums">
               {currentLat}, {currentLng}
             </div>
           </div>
-          <div style={{ background: "#334155", padding: "10px", borderRadius: "8px" }}>
-            <div style={{ fontSize: "12px", color: "#94a3b8" }}>Độ cao / Tốc độ</div>
-            <div style={{ fontWeight: "bold", fontSize: "15px" }}>
-              {altitude}m | {speed} km/h
+
+          <div className="bg-slate-900/90 border border-slate-800 rounded-xl p-4">
+            <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+              Độ cao / Tốc độ bay
+            </div>
+            <div className="mt-1.5 font-mono text-base font-bold text-sky-400 tabular-nums">
+              {altitude} m <span className="text-slate-600">|</span> {speed} km/h
             </div>
           </div>
-          <div style={{ background: "#334155", padding: "10px", borderRadius: "8px" }}>
-            <div style={{ fontSize: "12px", color: "#94a3b8" }}>Dung lượng Pin</div>
-            <div style={{ fontWeight: "bold", fontSize: "15px", color: "#4ade80" }}>{battery}%</div>
+
+          <div className="bg-slate-900/90 border border-slate-800 rounded-xl p-4">
+            <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+              Dung lượng Pin Drone
+            </div>
+            <div className="mt-1.5 font-mono text-base font-bold text-emerald-400 tabular-nums">
+              {battery}%
+            </div>
           </div>
-          <div style={{ background: "#334155", padding: "10px", borderRadius: "8px", display: "flex", alignItems: "center", gap: "8px" }}>
+
+          <div className="bg-slate-900/90 border border-slate-800 rounded-xl p-4 flex items-center justify-between gap-2">
             <button
+              type="button"
               onClick={() => setIsSimulating(!isSimulating)}
-              style={{ padding: "6px 12px", borderRadius: "6px", border: "none", cursor: "pointer", background: "#0284c7", color: "#fff" }}
+              className="flex-1 py-2 px-3 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold transition cursor-pointer"
             >
               {isSimulating ? "Tạm dừng" : "Tiếp tục"}
             </button>
             <button
+              type="button"
               onClick={() => {
                 setStep(0);
                 setOrderStatus("IN_TRANSIT");
                 setServerTelemetry(null);
               }}
-              style={{ padding: "6px 12px", borderRadius: "6px", border: "none", cursor: "pointer", background: "#475569", color: "#fff" }}
+              className="flex-1 py-2 px-3 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold border border-slate-700 transition cursor-pointer"
             >
               Bay lại
             </button>
@@ -228,36 +332,54 @@ export default function LiveDroneMapView({ initialOrderId = "ORD-2026-0001" }) {
         </div>
       </div>
 
-      <div style={{ border: "1px solid #cbd5e1", borderRadius: "10px", padding: "18px", background: "#f8fafc" }}>
-        <h3 style={{ marginBottom: "10px", color: "#0f172a" }}>Xác Nhận Giao Hàng Bằng OTP 6 Số (SHA-256)</h3>
-        <div style={{ display: "flex", gap: "12px", alignItems: "center", flexWrap: "wrap" }}>
-          <button
-            type="button"
-            onClick={handleGenerateOtp}
-            style={{ padding: "8px 14px", background: "#0369a1", color: "#fff", border: "none", borderRadius: "6px", cursor: "pointer" }}
-          >
-            1. Phát hành mã OTP
-          </button>
+      {/* OTP Proof of Delivery Card */}
+      <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <h3 className="text-base font-bold text-slate-900">
+              Xác Nhận Giao Hàng Bằng Mã OTP 6 Số (SHA-256)
+            </h3>
+            <p className="text-xs text-slate-500 mt-1">
+              Phát hành mã OTP cho đơn <strong>{orderId}</strong> và xác thực chữ ký băm SHA-256 để hoàn tất giao hàng (`DELIVERED`).
+            </p>
+          </div>
 
-          <form onSubmit={handleVerifyOtp} style={{ display: "flex", gap: "8px" }}>
-            <input
-              type="text"
-              maxLength={6}
-              placeholder="Nhập mã OTP 6 số..."
-              value={otpInput}
-              onChange={(e) => setOtpInput(e.target.value)}
-              style={{ padding: "8px 12px", borderRadius: "6px", border: "1px solid #94a3b8", width: "180px" }}
-            />
+          <div className="flex items-center gap-3 flex-wrap">
             <button
-              type="submit"
-              style={{ padding: "8px 16px", background: "#16a34a", color: "#fff", border: "none", borderRadius: "6px", cursor: "pointer" }}
+              type="button"
+              onClick={handleGenerateOtp}
+              className="px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition cursor-pointer shadow-xs"
             >
-              2. Xác nhận nhận hàng
+              1. Phát hành mã OTP
             </button>
-          </form>
+
+            <form onSubmit={handleVerifyOtp} className="flex items-center gap-2">
+              <input
+                type="text"
+                maxLength={6}
+                placeholder="Nhập OTP 6 số..."
+                value={otpInput}
+                onChange={(e) => setOtpInput(e.target.value)}
+                className="w-40 px-3.5 py-2 rounded-xl border border-slate-300 bg-slate-50 focus:bg-white font-mono text-sm font-bold tracking-widest text-center text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600"
+              />
+              <button
+                type="submit"
+                className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white text-xs font-bold shadow-sm transition cursor-pointer"
+              >
+                2. Xác nhận nhận hàng
+              </button>
+            </form>
+          </div>
         </div>
+
         {otpMessage && (
-          <div style={{ marginTop: "12px", fontWeight: "600", color: orderStatus === "DELIVERED" ? "#15803d" : "#0369a1" }}>
+          <div
+            className={`mt-4 p-3.5 rounded-xl border text-xs font-bold ${
+              orderStatus === "DELIVERED"
+                ? "bg-emerald-50 border-emerald-200 text-emerald-800"
+                : "bg-blue-50 border-blue-200 text-blue-800"
+            }`}
+          >
             {otpMessage}
           </div>
         )}

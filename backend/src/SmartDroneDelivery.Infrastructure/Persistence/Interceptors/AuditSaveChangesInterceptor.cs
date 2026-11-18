@@ -206,3 +206,5 @@ public sealed class AuditSaveChangesInterceptor : SaveChangesInterceptor
 
     private sealed record PendingAudit(EntityEntry Entry, string Action, string? EntityId, object? Detail);
 }
+
+
