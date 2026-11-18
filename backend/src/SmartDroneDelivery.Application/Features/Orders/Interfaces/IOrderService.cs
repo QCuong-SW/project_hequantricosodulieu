@@ -12,8 +12,16 @@ public interface IOrderService
         Guid orderId,
         CancellationToken cancellationToken = default);
 
+    Task<OrderResponseDto?> GetOrderByTrackingNumberAsync(
+        string trackingNumber,
+        CancellationToken cancellationToken = default);
+
     Task<IReadOnlyList<OrderResponseDto>> GetCustomerOrdersAsync(
         Guid customerId,
+        CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<OrderResponseDto>> GetAllOrdersAsync(
+        string? status = null,
         CancellationToken cancellationToken = default);
 
     Task<(OrderStatusTransitionResponseDto? Result, List<string> Errors)> TransitionOrderStatusAsync(

@@ -6,8 +6,11 @@ import 'package:http/http.dart' as http;
 import '../../core/session_manager.dart';
 
 class AuthService {
-  // Địa chỉ backend ASP.NET Core trên máy local.
-  static const String baseUrl = 'https://localhost:7178';
+  // Địa chỉ backend ASP.NET Core trên máy local (mặc định HTTP port 5028).
+  static const String baseUrl = String.fromEnvironment(
+    'API_BASE_URL',
+    defaultValue: 'http://localhost:5028',
+  );
 
   Future<Map<String, dynamic>> login({
     required String email,

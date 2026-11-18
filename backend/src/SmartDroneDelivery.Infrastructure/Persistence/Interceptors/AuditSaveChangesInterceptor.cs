@@ -145,7 +145,7 @@ public sealed class AuditSaveChangesInterceptor : SaveChangesInterceptor
                 UserEmail = _currentUser.Email,
                 Action = item.Action,
                 EntityName = item.Entry.Metadata.ClrType.Name,
-                EntityId = item.EntityId ?? GetEntityId(item.Entry),
+                EntityId = (item.EntityId ?? GetEntityId(item.Entry)) ?? "N/A",
                 Detail = JsonSerializer.Serialize(detail, JsonOptions),   // luôn là JSON hợp lệ
                 IpAddress = _currentUser.IpAddress,
                 CreatedAt = now

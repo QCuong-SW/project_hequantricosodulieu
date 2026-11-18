@@ -11,6 +11,7 @@ public static class OrderModuleExtensions
         services.AddSingleton<IOrderRepository, InMemoryOrderRepository>();
         services.AddScoped<IOrderService, OrderService>();
         services.AddScoped<IOrderCancellationService, OrderCancellationService>();
+        services.AddScoped<OrderLifecycleE2EVerifier>();
         return services;
     }
 }

@@ -76,15 +76,15 @@ GO
 /* ---------- 5) 5 tai khoan mac dinh (mat khau: P@ssword123!) ---------- */
 DECLARE @pwd VARCHAR(100) = '$2a$11$wE5U6xYVq5zUqBqG1h7aCO7X2C9NfXo2u4kS4wS6.3r6vM7ZkUvWC';
 
-INSERT INTO dbo.users (email, password_hash, full_name, phone_number, status, created_at, updated_at)
-SELECT v.email, @pwd, v.full_name, v.phone_number, 'ACTIVE', SYSDATETIME(), SYSDATETIME()
+INSERT INTO dbo.users (id, email, password_hash, full_name, phone_number, status, created_at, updated_at)
+SELECT v.id, v.email, @pwd, v.full_name, v.phone_number, 'ACTIVE', SYSDATETIME(), SYSDATETIME()
 FROM (VALUES
-    ('admin@smartdrone.vn',      N'Quản trị viên',        '0900000001'),
-    ('dispatcher@smartdrone.vn', N'Điều phối viên',       '0900000002'),
-    ('operator@smartdrone.vn',   N'Nhân viên trạm',       '0900000003'),
-    ('manager@smartdrone.vn',    N'Quản lý logistics',    '0900000004'),
-    ('customer@smartdrone.vn',   N'Khách hàng mẫu',       '0900000005')
-) AS v(email, full_name, phone_number)
+    ('11111111-1111-1111-1111-111111111001', 'admin@smartdrone.vn',      N'Quản trị viên',        '0900000001'),
+    ('11111111-1111-1111-1111-111111111002', 'dispatcher@smartdrone.vn', N'Điều phối viên',       '0900000002'),
+    ('11111111-1111-1111-1111-111111111003', 'operator@smartdrone.vn',   N'Nhân viên trạm',       '0900000003'),
+    ('11111111-1111-1111-1111-111111111004', 'manager@smartdrone.vn',    N'Quản lý logistics',    '0900000004'),
+    ('11111111-1111-1111-1111-111111111005', 'customer@smartdrone.vn',   N'Khách hàng mẫu',       '0900000005')
+) AS v(id, email, full_name, phone_number)
 WHERE NOT EXISTS (SELECT 1 FROM dbo.users u WHERE u.email = v.email);
 GO
 
@@ -101,6 +101,31 @@ JOIN dbo.users u ON u.email     = m.email
 JOIN dbo.roles r ON r.role_name = m.role_name
 WHERE NOT EXISTS (SELECT 1 FROM dbo.user_roles ur
                   WHERE ur.user_id = u.id AND ur.role_id = r.id);
+GO
+
+/* ---------- 6) Ho so khach hang & So dia chi mau ---------- */
+IF OBJECT_ID('dbo.customer_profiles', 'U') IS NOT NULL
+BEGIN
+    DECLARE @custUserId UNIQUEIDENTIFIER = (SELECT TOP 1 id FROM dbo.users WHERE email = 'customer@smartdrone.vn');
+    IF @custUserId IS NOT NULL AND NOT EXISTS (SELECT 1 FROM dbo.customer_profiles WHERE user_id = @custUserId)
+    BEGIN
+        INSERT INTO dbo.customer_profiles (id, user_id, customer_code, company_name, total_orders, is_deleted, created_at)
+        VALUES (@custUserId, @custUserId, 'CUST-2026-0001', N'Công ty Công nghệ SmartTech VN', 3, 0, SYSDATETIME());
+    END
+
+    DECLARE @custProfileId UNIQUEIDENTIFIER = (SELECT TOP 1 id FROM dbo.customer_profiles WHERE user_id = @custUserId);
+    IF @custProfileId IS NOT NULL AND OBJECT_ID('dbo.delivery_addresses', 'U') IS NOT NULL
+    BEGIN
+        INSERT INTO dbo.delivery_addresses (id, customer_id, address_line, ward, district, city, latitude, longitude, is_default, is_deleted, created_at)
+        SELECT v.id, @custProfileId, v.address_line, v.ward, v.district, v.city, v.latitude, v.longitude, v.is_default, 0, SYSDATETIME()
+        FROM (VALUES
+            ('44444444-4444-4444-4444-444444444001', N'Lô E2a-7, Đường D1, Khu Công Nghệ Cao', N'Long Thạnh Mỹ', N'TP. Thủ Đức', N'TP. Hồ Chí Minh', 10.841128, 106.809883, 1),
+            ('44444444-4444-4444-4444-444444444002', N'Số 2 Hải Triều, Tòa Bitexco Financial Tower', N'Bến Nghé', N'Quận 1', N'TP. Hồ Chí Minh', 10.771595, 106.704750, 0),
+            ('44444444-4444-4444-4444-444444444003', N'101 Tôn Dật Tiên, Khu đô thị Phú Mỹ Hưng', N'Tân Phú', N'Quận 7', N'TP. Hồ Chí Minh', 10.729560, 106.721750, 0)
+        ) AS v(id, address_line, ward, district, city, latitude, longitude, is_default)
+        WHERE NOT EXISTS (SELECT 1 FROM dbo.delivery_addresses a WHERE a.id = v.id);
+    END
+END
 GO
 
 /* ---------- Kiem tra nhanh (w2-03) ---------- */

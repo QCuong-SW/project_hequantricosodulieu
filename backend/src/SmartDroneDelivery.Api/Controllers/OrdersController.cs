@@ -46,6 +46,41 @@ public class OrdersController : ControllerBase
             });
     }
 
+    [HttpGet]
+    public async Task<IActionResult> GetAllOrders(
+        [FromQuery] string? status = null,
+        CancellationToken cancellationToken = default)
+    {
+        var orders = await _orderService.GetAllOrdersAsync(status, cancellationToken);
+        return Ok(new
+        {
+            success = true,
+            data = orders
+        });
+    }
+
+    [HttpGet("tracking/{trackingNumber}")]
+    public async Task<IActionResult> GetOrderByTrackingNumber(
+        string trackingNumber,
+        CancellationToken cancellationToken = default)
+    {
+        var order = await _orderService.GetOrderByTrackingNumberAsync(trackingNumber, cancellationToken);
+        if (order is null)
+        {
+            return NotFound(new
+            {
+                success = false,
+                message = $"Không tìm thấy đơn hàng với mã '{trackingNumber}'."
+            });
+        }
+
+        return Ok(new
+        {
+            success = true,
+            data = order
+        });
+    }
+
     [HttpGet("{id:guid}")]
     public async Task<IActionResult> GetOrderById(
         Guid id,

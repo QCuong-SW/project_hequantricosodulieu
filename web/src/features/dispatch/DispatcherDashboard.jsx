@@ -1,10 +1,13 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   INITIAL_PENDING_ORDERS,
   INITIAL_DRONES,
   INITIAL_STATIONS,
+  fetchAllOrdersApi,
+  fetchAvailableDronesApi,
   reviewOrderApprovalApi,
   assignFlightScheduleApi,
+  predictOrderEtaApi,
 } from './dispatchService'
 import { AssignDroneModal } from './AssignDroneModal'
 import './dispatch.css'
@@ -15,6 +18,32 @@ export function DispatcherDashboard() {
   const [statusFilter, setStatusFilter] = useState('ALL')
   const [selectedOrderForModal, setSelectedOrderForModal] = useState(null)
   const [actionMessage, setActionMessage] = useState('')
+  const [etaMap, setEtaMap] = useState({})
+
+  async function refreshData() {
+    const [latestOrders, latestDrones] = await Promise.all([
+      fetchAllOrdersApi(),
+      fetchAvailableDronesApi(),
+    ])
+    setOrders(latestOrders)
+    setDrones(latestDrones)
+  }
+
+  useEffect(() => {
+    refreshData()
+  }, [])
+
+  const handlePredictEta = async (orderId) => {
+    const eta = await predictOrderEtaApi(orderId, 12)
+    if (eta) {
+      setEtaMap((prev) => ({ ...prev, [orderId]: eta }))
+      setActionMessage(
+        `AI ETA [${eta.source}]: ~${eta.estimatedMinutes} phút (${eta.distanceKm} km) — ${eta.note || 'Dự báo thành công'}`
+      )
+    } else {
+      setActionMessage(`Ước tính ETA (Fallback): ~18 phút cho đơn ${orderId.slice(-6)}.`)
+    }
+  }
 
   const filteredOrders = orders.filter((order) =>
     statusFilter === 'ALL' ? true : order.status === statusFilter
@@ -191,6 +220,17 @@ export function DispatcherDashboard() {
                           Assigned ({order.assignedDroneCode || 'Drone'})
                         </span>
                       )}
+
+                      <button
+                        type="button"
+                        className="dispatch-filter-btn"
+                        onClick={() => handlePredictEta(order.id)}
+                        title="Dự đoán thời gian bay bằng AI / Fallback"
+                      >
+                        {etaMap[order.id]
+                          ? `ETA: ${etaMap[order.id].estimatedMinutes}p`
+                          : 'AI ETA'}
+                      </button>
                     </div>
                   </td>
                 </tr>

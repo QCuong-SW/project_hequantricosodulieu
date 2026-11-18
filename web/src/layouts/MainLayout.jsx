@@ -1,16 +1,26 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { ROLES, getNavigationByRole } from '../navigation/navigationConfig'
 import './MainLayout.css'
 
 export function MainLayout({
-  activePath = '/orders/create',
-  initialRole = ROLES.CUSTOMER,
+  activePath = '/dashboard',
+  initialRole = ROLES.ADMIN,
   onNavigate,
+  onRoleChange,
+  currentUser,
   children,
 }) {
   const [currentRole, setCurrentRole] = useState(initialRole)
   const [currentPath, setCurrentPath] = useState(activePath)
   const [isSidebarOpen, setIsSidebarOpen] = useState(true)
+
+  useEffect(() => {
+    setCurrentPath(activePath)
+  }, [activePath])
+
+  useEffect(() => {
+    setCurrentRole(initialRole)
+  }, [initialRole])
 
   const navItems = getNavigationByRole(currentRole)
 
@@ -18,6 +28,21 @@ export function MainLayout({
     setCurrentPath(path)
     if (onNavigate) {
       onNavigate(path)
+    }
+  }
+
+  const handleChangeRole = (newRole) => {
+    setCurrentRole(newRole)
+    if (onRoleChange) {
+      onRoleChange(newRole)
+    }
+    const allowedItems = getNavigationByRole(newRole)
+    if (allowedItems.length > 0 && !allowedItems.some((i) => i.path === currentPath)) {
+      const fallbackPath = allowedItems[0].path
+      setCurrentPath(fallbackPath)
+      if (onNavigate) {
+        onNavigate(fallbackPath)
+      }
     }
   }
 
@@ -69,12 +94,17 @@ export function MainLayout({
             <span className="sdd-route-indicator">{currentPath}</span>
           </div>
 
-          <div className="sdd-header-actions">
+          <div className="sdd-header-actions" style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+            {currentUser?.email && (
+              <span style={{ fontSize: '13px', color: '#475569' }}>
+                👤 <strong>{currentUser.fullName || currentUser.email}</strong> ({currentUser.email})
+              </span>
+            )}
             <label className="sdd-role-switcher">
               <span>Role:</span>
               <select
                 value={currentRole}
-                onChange={(e) => setCurrentRole(e.target.value)}
+                onChange={(e) => handleChangeRole(e.target.value)}
               >
                 {Object.values(ROLES).map((role) => (
                   <option key={role} value={role}>

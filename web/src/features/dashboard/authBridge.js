@@ -1,12 +1,43 @@
 // web/src/features/dashboard/authBridge.js
-//
-// >>> CHỈ CẦN SỬA FILE NÀY để Dashboard lấy được token đăng nhập. <<<
-// Token do Thành (M1) lưu trong LoginPage / auth store. Hãy mở code của Thành,
-// xem token được giữ ở đâu rồi trả về đúng giá trị (chuỗi JWT) trong hàm dưới đây.
-//
-// Ví dụ nếu Thành có file features/auth/authStore.js:
-//   import { getAccessToken as getToken } from '../auth/authStore.js';
-//   export const getAccessToken = () => getToken();
+import { AUTH_API_URL, ROLE_ACCOUNTS } from '../../config/apiConfig.js';
+
 export function getAccessToken() {
-  return window.__accessToken ?? null; // tạm thời: thay bằng cách lấy token thật
+  return window.__accessToken || localStorage.getItem('accessToken') || null;
 }
+
+export function setAuthSession(authData) {
+  if (!authData?.accessToken) return;
+  window.__accessToken = authData.accessToken;
+  localStorage.setItem('accessToken', authData.accessToken);
+  if (authData.refreshToken) {
+    localStorage.setItem('refreshToken', authData.refreshToken);
+  }
+  if (authData.user) {
+    localStorage.setItem('currentUser', JSON.stringify(authData.user));
+    if (authData.user.userId) {
+      localStorage.setItem('customerId', String(authData.user.userId));
+    }
+  }
+}
+
+export async function loginWithCredentials(email, password = 'P@ssword123!') {
+  try {
+    const res = await fetch(`${AUTH_API_URL}/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      body: JSON.stringify({ email, password }),
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    setAuthSession(data);
+    return data;
+  } catch {
+    return null;
+  }
+}
+
+export async function loginAsRole(role) {
+  const account = ROLE_ACCOUNTS[role] || ROLE_ACCOUNTS.CUSTOMER;
+  return loginWithCredentials(account.email, 'P@ssword123!');
+}
+

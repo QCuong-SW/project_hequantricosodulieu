@@ -8,4 +8,5 @@ public interface IOrderRepository
     Task<DeliveryOrder?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
     Task<DeliveryOrder?> GetByTrackingNumberAsync(string trackingNumber, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<DeliveryOrder>> GetByCustomerIdAsync(Guid customerId, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<DeliveryOrder>> GetAllAsync(string? status = null, CancellationToken cancellationToken = default);
 }

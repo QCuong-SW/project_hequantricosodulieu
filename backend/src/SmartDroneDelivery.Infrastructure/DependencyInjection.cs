@@ -3,7 +3,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using SmartDroneDelivery.Application.Common.Interfaces;
 using SmartDroneDelivery.Application.Features.Identity;
+using SmartDroneDelivery.Application.Interfaces;
 using SmartDroneDelivery.Infrastructure.Auth;
+using SmartDroneDelivery.Infrastructure.Data;
 using SmartDroneDelivery.Infrastructure.Persistence;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using SmartDroneDelivery.Infrastructure.Persistence.Interceptors;
@@ -19,12 +21,16 @@ public static class DependencyInjection
             ?? throw new InvalidOperationException("Thiếu ConnectionStrings:DefaultConnection trong cấu hình.");
 
         services.AddScoped<AuditSaveChangesInterceptor>();
-services.TryAddScoped<ICurrentUser, AnonymousCurrentUser>();
+        services.TryAddScoped<ICurrentUser, AnonymousCurrentUser>();
 
-services.AddDbContext<SmartDroneDbContext>((serviceProvider, options) =>
-    options.UseSqlServer(connectionString)
-           .UseSnakeCaseNamingConvention()
-           .AddInterceptors(serviceProvider.GetRequiredService<AuditSaveChangesInterceptor>())); 
+        services.AddDbContext<SmartDroneDbContext>((serviceProvider, options) =>
+            options.UseSqlServer(connectionString)
+                   .UseSnakeCaseNamingConvention()
+                   .AddInterceptors(serviceProvider.GetRequiredService<AuditSaveChangesInterceptor>()));
+
+        services.AddDbContext<AppDbContext>(options =>
+            options.UseSqlServer(connectionString));
+        services.AddScoped<IAppDbContext>(sp => sp.GetRequiredService<AppDbContext>());
 
         // ===== [w2-05] Băm mật khẩu bằng BCrypt =====
         services.AddSingleton<IPasswordHasher, BcryptPasswordHasher>();
@@ -35,10 +41,6 @@ services.AddDbContext<SmartDroneDbContext>((serviceProvider, options) =>
 
         // ===== [w2-07] Dịch vụ đăng nhập / refresh token =====
         services.AddScoped<IAuthService, AuthService>();
-
-        // ===== [w2-09] Customer Address (M2) =====
-        // TODO(M2): bật lại dòng dưới sau khi thêm `using` đúng cho hai kiểu này
-        // services.AddScoped<ICustomerAddressRepository, CustomerAddressRepository>();
 
         return services;
     }

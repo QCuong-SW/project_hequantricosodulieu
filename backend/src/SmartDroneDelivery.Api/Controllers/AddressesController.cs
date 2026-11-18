@@ -8,6 +8,7 @@ namespace SmartDroneDelivery.Api.Controllers;
 [Route("api/v1/addresses")]
 public class AddressesController : ControllerBase
 {
+    private static readonly Guid DefaultCustomerUserId = Guid.Parse("11111111-1111-1111-1111-111111111005");
     private readonly IAddressService _addressService;
 
     public AddressesController(IAddressService addressService)
@@ -19,13 +20,13 @@ public class AddressesController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetMyAddresses()
     {
-        // Tạm thời dùng UserId cố định để kiểm tra API.
-        // Sẽ thay bằng UserId từ đăng nhập/JWT khi tích hợp xác thực.
-        var userId = Guid.Empty;
-
+        var userId = ResolveCurrentUserId();
         var addresses = await _addressService.GetMyAddressesAsync(userId);
-
-        return Ok(addresses);
+        return Ok(new
+        {
+            success = true,
+            data = addresses
+        });
     }
 
     // POST: api/v1/addresses
@@ -33,8 +34,7 @@ public class AddressesController : ControllerBase
     public async Task<IActionResult> CreateAddress(
         [FromBody] CreateAddressRequest request)
     {
-        var userId = Guid.Empty;
-
+        var userId = ResolveCurrentUserId();
         var address = await _addressService.CreateAddressAsync(
             userId,
             request);
@@ -42,6 +42,16 @@ public class AddressesController : ControllerBase
         return CreatedAtAction(
             nameof(GetMyAddresses),
             new { id = address.Id },
-            address);
+            new
+            {
+                success = true,
+                data = address
+            });
+    }
+
+    private Guid ResolveCurrentUserId()
+    {
+        var sub = User.FindFirst("sub")?.Value;
+        return Guid.TryParse(sub, out var id) && id != Guid.Empty ? id : DefaultCustomerUserId;
     }
 }

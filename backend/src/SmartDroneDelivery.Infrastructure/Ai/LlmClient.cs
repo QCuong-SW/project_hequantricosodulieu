@@ -35,10 +35,8 @@ public class LlmClient : ILlmEtaClient
 
         var distanceKm = GeoMath.HaversineKm(request.FromLat, request.FromLng, request.ToLat, request.ToLng);
         var wind = request.WindSpeedKmh ?? 0;
-        var userPrompt = string.Create(CultureInfo.InvariantCulture,
-            $"Quãng đường bay thẳng: {distanceKm:F2} km. Tốc độ gió ngược: {wind:F0} km/h. " +
-            "Drone bay tối đa 60 km/h, mất khoảng 4 phút cất cánh và hạ cánh. " +
-            "Ước tính tổng thời gian giao hàng (phút).");
+        var userPrompt = FormattableString.Invariant(
+            $"Quãng đường bay thẳng: {distanceKm:F2} km. Tốc độ gió ngược: {wind:F0} km/h. Drone bay tối đa 60 km/h, mất khoảng 4 phút cất cánh và hạ cánh. Ước tính tổng thời gian giao hàng (phút).");
 
         var body = new
         {

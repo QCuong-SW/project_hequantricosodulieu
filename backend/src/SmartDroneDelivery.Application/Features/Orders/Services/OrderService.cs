@@ -98,11 +98,27 @@ public class OrderService : IOrderService
         return order is null ? null : MapToResponseDto(order);
     }
 
+    public async Task<OrderResponseDto?> GetOrderByTrackingNumberAsync(
+        string trackingNumber,
+        CancellationToken cancellationToken = default)
+    {
+        var order = await _orderRepository.GetByTrackingNumberAsync(trackingNumber, cancellationToken);
+        return order is null ? null : MapToResponseDto(order);
+    }
+
     public async Task<IReadOnlyList<OrderResponseDto>> GetCustomerOrdersAsync(
         Guid customerId,
         CancellationToken cancellationToken = default)
     {
         var orders = await _orderRepository.GetByCustomerIdAsync(customerId, cancellationToken);
+        return orders.Select(MapToResponseDto).ToList();
+    }
+
+    public async Task<IReadOnlyList<OrderResponseDto>> GetAllOrdersAsync(
+        string? status = null,
+        CancellationToken cancellationToken = default)
+    {
+        var orders = await _orderRepository.GetAllAsync(status, cancellationToken);
         return orders.Select(MapToResponseDto).ToList();
     }
 

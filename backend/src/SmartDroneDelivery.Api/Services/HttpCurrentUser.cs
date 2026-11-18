@@ -9,12 +9,12 @@ public sealed class HttpCurrentUser : ICurrentUser
 
     public HttpCurrentUser(IHttpContextAccessor accessor) => _accessor = accessor;
 
-    public int? UserId
+    public Guid? UserId
     {
         get
         {
             var value = _accessor.HttpContext?.User.FindFirst("sub")?.Value;
-            return int.TryParse(value, out var id) ? id : null;
+            return Guid.TryParse(value, out var id) ? id : null;
         }
     }
 

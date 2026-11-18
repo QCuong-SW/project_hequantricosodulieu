@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using SmartDroneDelivery.Application.Features.Orders.Interfaces;
 using SmartDroneDelivery.Application.Features.Scheduling.DTOs;
 using SmartDroneDelivery.Application.Features.Scheduling.Interfaces;
 using SmartDroneDelivery.Domain.Entities.Drones;
@@ -11,8 +12,15 @@ public class FlightScheduleService : IFlightScheduleService
     private const int MinimumDispatchBatteryPercent = 30;
 
     private static readonly ConcurrentDictionary<Guid, Drone> Drones = SeedDefaultDrones();
-    private static readonly ConcurrentDictionary<Guid, FlightSchedule> Schedules = new();
+    private static readonly ConcurrentDictionary<Guid, FlightSchedule> Schedules = SeedDefaultSchedules();
     private static readonly ConcurrentDictionary<Guid, string> OrderApprovalStates = new();
+
+    private readonly IOrderRepository? _orderRepository;
+
+    public FlightScheduleService(IOrderRepository? orderRepository = null)
+    {
+        _orderRepository = orderRepository;
+    }
 
     public Task<IReadOnlyList<DroneStatusDto>> GetAvailableDronesAsync(
         decimal? requiredPayloadKg = null,
@@ -36,7 +44,7 @@ public class FlightScheduleService : IFlightScheduleService
         return Task.FromResult(result);
     }
 
-    public Task<(bool Success, string Status, List<string> Errors)> ReviewOrderApprovalAsync(
+    public async Task<(bool Success, string Status, List<string> Errors)> ReviewOrderApprovalAsync(
         ApproveOrderRequest request,
         CancellationToken cancellationToken = default)
     {
@@ -49,21 +57,35 @@ public class FlightScheduleService : IFlightScheduleService
             errors.Add("RejectionReason is required when rejecting an order.");
 
         if (errors.Count > 0)
-            return Task.FromResult((false, string.Empty, errors));
+            return (false, string.Empty, errors);
 
         var newStatus = request.IsApproved ? "APPROVED" : "REJECTED";
         OrderApprovalStates[request.OrderId] = newStatus;
 
-        return Task.FromResult((true, newStatus, errors));
+        if (_orderRepository is not null)
+        {
+            var order = await _orderRepository.GetByIdAsync(request.OrderId, cancellationToken);
+            if (order is not null)
+            {
+                order.Status = newStatus;
+                order.ConcurrencyVersion += 1;
+                order.UpdatedAt = DateTime.UtcNow;
+                if (!request.IsApproved && !string.IsNullOrWhiteSpace(request.RejectionReason))
+                    order.CancellationReason = request.RejectionReason.Trim();
+                await _orderRepository.AddAsync(order, cancellationToken);
+            }
+        }
+
+        return (true, newStatus, errors);
     }
 
-    public Task<(FlightScheduleResponseDto? Schedule, List<string> Errors)> AssignFlightScheduleAsync(
+    public async Task<(FlightScheduleResponseDto? Schedule, List<string> Errors)> AssignFlightScheduleAsync(
         AssignFlightScheduleRequest request,
         CancellationToken cancellationToken = default)
     {
         var errors = ValidateAssignmentRequest(request, out var selectedDrone);
         if (errors.Count > 0 || selectedDrone is null)
-            return Task.FromResult<(FlightScheduleResponseDto?, List<string>)>((null, errors));
+            return (null, errors);
 
         var now = DateTime.UtcNow;
         var scheduleId = Guid.NewGuid();
@@ -106,8 +128,19 @@ public class FlightScheduleService : IFlightScheduleService
         Schedules[schedule.Id] = schedule;
         OrderApprovalStates[request.OrderId] = "SCHEDULED";
 
-        return Task.FromResult<(FlightScheduleResponseDto?, List<string>)>(
-            (MapScheduleDto(schedule, selectedDrone.DroneCode), new List<string>()));
+        if (_orderRepository is not null)
+        {
+            var order = await _orderRepository.GetByIdAsync(request.OrderId, cancellationToken);
+            if (order is not null)
+            {
+                order.Status = "SCHEDULED";
+                order.ConcurrencyVersion += 1;
+                order.UpdatedAt = now;
+                await _orderRepository.AddAsync(order, cancellationToken);
+            }
+        }
+
+        return (MapScheduleDto(schedule, selectedDrone.DroneCode), new List<string>());
     }
 
     public Task<IReadOnlyList<FlightScheduleResponseDto>> GetFlightSchedulesAsync(
@@ -252,6 +285,68 @@ public class FlightScheduleService : IFlightScheduleService
 
         foreach (var d in defaults)
             dict[d.Id] = d;
+
+        return dict;
+    }
+
+    private static ConcurrentDictionary<Guid, FlightSchedule> SeedDefaultSchedules()
+    {
+        var dict = new ConcurrentDictionary<Guid, FlightSchedule>();
+        var now = DateTime.UtcNow;
+
+        var sampleFlights = new[]
+        {
+            new FlightSchedule
+            {
+                Id = Guid.Parse("77777777-7777-7777-7777-777777777001"),
+                FlightCode = "FLT-20261116-101001",
+                OrderId = Guid.Parse("a1111111-1111-1111-1111-111111111001"),
+                DroneId = Guid.Parse("33333333-3333-3333-3333-333333333001"),
+                OriginStationId = Guid.Parse("22222222-2222-2222-2222-222222222001"),
+                DestinationStationId = Guid.Parse("22222222-2222-2222-2222-222222222002"),
+                ScheduledDeparture = now.AddDays(-2),
+                ActualDeparture = now.AddDays(-2).AddMinutes(2),
+                ScheduledArrival = now.AddDays(-2).AddMinutes(22),
+                ActualArrival = now.AddDays(-2).AddMinutes(24),
+                FlightDistanceKm = 12.50m,
+                Status = "COMPLETED",
+                CreatedAt = now.AddDays(-2).AddMinutes(-15)
+            },
+            new FlightSchedule
+            {
+                Id = Guid.Parse("77777777-7777-7777-7777-777777777002"),
+                FlightCode = "FLT-20261117-101002",
+                OrderId = Guid.Parse("a1111111-1111-1111-1111-111111111002"),
+                DroneId = Guid.Parse("33333333-3333-3333-3333-333333333002"),
+                OriginStationId = Guid.Parse("22222222-2222-2222-2222-222222222003"),
+                DestinationStationId = Guid.Parse("22222222-2222-2222-2222-222222222001"),
+                ScheduledDeparture = now.AddDays(-1),
+                ActualDeparture = now.AddDays(-1).AddMinutes(1),
+                ScheduledArrival = now.AddDays(-1).AddMinutes(18),
+                ActualArrival = now.AddDays(-1).AddMinutes(17),
+                FlightDistanceKm = 8.40m,
+                Status = "COMPLETED",
+                CreatedAt = now.AddDays(-1).AddMinutes(-20)
+            },
+            new FlightSchedule
+            {
+                Id = Guid.Parse("77777777-7777-7777-7777-777777777003"),
+                FlightCode = "FLT-20261118-101003",
+                OrderId = Guid.Parse("a1111111-1111-1111-1111-111111111003"),
+                DroneId = Guid.Parse("33333333-3333-3333-3333-333333333003"),
+                OriginStationId = Guid.Parse("22222222-2222-2222-2222-222222222002"),
+                DestinationStationId = Guid.Parse("22222222-2222-2222-2222-222222222003"),
+                ScheduledDeparture = now.AddMinutes(-10),
+                ActualDeparture = now.AddMinutes(-8),
+                ScheduledArrival = now.AddMinutes(15),
+                FlightDistanceKm = 14.20m,
+                Status = "IN_PROGRESS",
+                CreatedAt = now.AddMinutes(-25)
+            }
+        };
+
+        foreach (var f in sampleFlights)
+            dict[f.Id] = f;
 
         return dict;
     }

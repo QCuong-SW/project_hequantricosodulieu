@@ -1,4 +1,13 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api/v1'
+import { API_V1_URL } from '../../config/apiConfig'
+import { getAccessToken } from '../dashboard/authBridge'
+
+function authHeaders() {
+  const token = getAccessToken()
+  return {
+    'Content-Type': 'application/json',
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  }
+}
 
 export const INITIAL_PENDING_ORDERS = [
   {
@@ -108,11 +117,59 @@ export const INITIAL_STATIONS = [
   },
 ]
 
+function mapBackendOrder(o) {
+  const snapshot = o.addressSnapshot || {}
+  const pkgs = Array.isArray(o.packages) ? o.packages : []
+  return {
+    id: o.id,
+    trackingNumber: o.trackingNumber,
+    customerName: snapshot.senderName || 'Khách hàng',
+    senderAddress: snapshot.senderAddressText || '—',
+    recipientName: snapshot.recipientName || 'Người nhận',
+    recipientAddress: snapshot.recipientAddressText || '—',
+    totalWeightKg: Number(o.totalWeightKg || 0),
+    shippingFee: Number(o.shippingFee || 0),
+    pickupMethod: o.pickupMethod || 'STATION_DROP',
+    deliveryMethod: o.deliveryMethod || 'CUSTOMER_ADDRESS',
+    isFragile: pkgs.some((p) => p.isFragile),
+    status: o.status || 'PENDING_APPROVAL',
+    createdAt: o.createdAt ? new Date(o.createdAt).toLocaleString('vi-VN') : '',
+  }
+}
+
+export async function fetchAllOrdersApi() {
+  try {
+    const response = await fetch(`${API_V1_URL}/delivery-orders`, {
+      headers: authHeaders(),
+    })
+    if (!response.ok) return INITIAL_PENDING_ORDERS
+    const payload = await response.json()
+    const rawList = Array.isArray(payload) ? payload : payload?.data || []
+    return rawList.length > 0 ? rawList.map(mapBackendOrder) : INITIAL_PENDING_ORDERS
+  } catch {
+    return INITIAL_PENDING_ORDERS
+  }
+}
+
+export async function fetchAvailableDronesApi() {
+  try {
+    const response = await fetch(`${API_V1_URL}/flight-schedules/drones/available`, {
+      headers: authHeaders(),
+    })
+    if (!response.ok) return INITIAL_DRONES
+    const payload = await response.json()
+    const list = Array.isArray(payload) ? payload : payload?.data || []
+    return list.length > 0 ? list : INITIAL_DRONES
+  } catch {
+    return INITIAL_DRONES
+  }
+}
+
 export async function reviewOrderApprovalApi(payload) {
   try {
-    const response = await fetch(`${API_BASE_URL}/flight-schedules/orders/review`, {
+    const response = await fetch(`${API_V1_URL}/flight-schedules/orders/review`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: authHeaders(),
       body: JSON.stringify(payload),
     })
     if (!response.ok) return null
@@ -124,11 +181,24 @@ export async function reviewOrderApprovalApi(payload) {
 
 export async function assignFlightScheduleApi(payload) {
   try {
-    const response = await fetch(`${API_BASE_URL}/flight-schedules/assign`, {
+    const response = await fetch(`${API_V1_URL}/flight-schedules/assign`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: authHeaders(),
       body: JSON.stringify(payload),
     })
+    if (!response.ok) return null
+    return await response.json()
+  } catch {
+    return null
+  }
+}
+
+export async function predictOrderEtaApi(orderId, windSpeedKmh = 10) {
+  try {
+    const response = await fetch(
+      `${API_V1_URL}/ai/eta/${orderId}?windSpeedKmh=${windSpeedKmh}`,
+      { headers: authHeaders() }
+    )
     if (!response.ok) return null
     return await response.json()
   } catch {

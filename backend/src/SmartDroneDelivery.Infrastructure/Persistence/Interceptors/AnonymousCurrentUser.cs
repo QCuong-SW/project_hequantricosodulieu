@@ -4,7 +4,7 @@ namespace SmartDroneDelivery.Infrastructure.Persistence.Interceptors;
 
 internal sealed class AnonymousCurrentUser : ICurrentUser
 {
-    public int? UserId => null;
+    public Guid? UserId => null;
     public string? Email => null;
     public string? IpAddress => null;
 }

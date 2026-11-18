@@ -21,7 +21,8 @@ public class StationQueryService : IStationQueryService
     private readonly IEnumerable<LandingStationResponseDto> _stations;
     public StationQueryService(IEnumerable<LandingStationResponseDto>? stations = null)
     {
-        _stations = stations ?? Array.Empty<LandingStationResponseDto>();
+        var provided = stations?.ToList();
+        _stations = (provided is { Count: > 0 }) ? provided : SeedDefaultStations();
     }
 
     public Task<IReadOnlyList<LandingStationResponseDto>> GetStationsWithAvailableSlotsAsync(
@@ -53,5 +54,43 @@ public class StationQueryService : IStationQueryService
     public Task<LandingStationResponseDto?> GetStationByIdAsync(Guid stationId, CancellationToken cancellationToken = default)
     {
         return Task.FromResult(_stations.FirstOrDefault(s => s.Id == stationId));
+    }
+
+    private static IReadOnlyList<LandingStationResponseDto> SeedDefaultStations()
+    {
+        var now = DateTime.UtcNow;
+        var stnQ1Id = Guid.Parse("22222222-2222-2222-2222-222222222001");
+        var stnTdId = Guid.Parse("22222222-2222-2222-2222-222222222002");
+        var stnQ7Id = Guid.Parse("22222222-2222-2222-2222-222222222003");
+
+        return
+        [
+            BuildStation(stnQ1Id, "STN-Q1", "Trạm Trung Tâm Quận 1", "Khu vực Bến Thành, Quận 1, TP.HCM", 10.771595m, 106.704750m, 5.0m, now, occupiedSlots: 1),
+            BuildStation(stnTdId, "STN-TD", "Trạm Khu Công Nghệ Cao Thủ Đức", "Khu Công Nghệ Cao, TP. Thủ Đức, TP.HCM", 10.841128m, 106.809883m, 8.0m, now, occupiedSlots: 1),
+            BuildStation(stnQ7Id, "STN-Q7", "Trạm Khu Đô Thị Phú Mỹ Hưng Q7", "Khu vực Phú Mỹ Hưng, Quận 7, TP.HCM", 10.729560m, 106.721750m, 4.0m, now, occupiedSlots: 0)
+        ];
+    }
+
+    private static LandingStationResponseDto BuildStation(
+        Guid id, string code, string name, string address, decimal lat, decimal lng, decimal alt, DateTime now, int occupiedSlots)
+    {
+        var slots = new List<StationSlotResponseDto>
+        {
+            new(Guid.NewGuid(), id, 1, "LANDING_PAD", occupiedSlots >= 1 ? "OCCUPIED" : "AVAILABLE", now),
+            new(Guid.NewGuid(), id, 2, "LANDING_PAD", "AVAILABLE", now),
+            new(Guid.NewGuid(), id, 3, "CHARGING_DOCK", "AVAILABLE", now),
+            new(Guid.NewGuid(), id, 4, "STORAGE_LOCKER", "AVAILABLE", now),
+        };
+
+        var available = slots.Where(s => s.Status == "AVAILABLE").ToList();
+        return new LandingStationResponseDto(
+            id, code, name, address, lat, lng, alt,
+            TotalSlots: 4,
+            AvailableSlotsCount: available.Count,
+            AvailableLandingPadsCount: available.Count(s => s.SlotType == "LANDING_PAD"),
+            AvailableChargingDocksCount: available.Count(s => s.SlotType == "CHARGING_DOCK"),
+            Status: "ACTIVE",
+            AvailableSlots: slots
+        );
     }
 }

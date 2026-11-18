@@ -133,7 +133,7 @@ public class OrderLifecycleE2EVerifier
                 RequestedByUserId = createdOrder.CustomerId,
                 RequestedByRole = "CUSTOMER",
                 CancellationReason = "E2E verification test cancellation before takeoff.",
-                ExpectedConcurrencyVersion = 1
+                ExpectedConcurrencyVersion = 0
             },
             cancellationToken);
 

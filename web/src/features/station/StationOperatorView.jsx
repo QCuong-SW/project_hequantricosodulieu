@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { scanPackageHandoff, fetchStationHandoffs } from "./handoffApi";
-
-const DEFAULT_STATION_ID = "11111111-1111-1111-1111-111111111111";
-const DEFAULT_OPERATOR_ID = "22222222-2222-2222-2222-222222222222";
-const DEFAULT_DRONE_ID = "33333333-3333-3333-3333-333333333333";
+import {
+  DEFAULT_STATION_ID,
+  DEFAULT_OPERATOR_ID,
+  DEFAULT_DRONE_ID,
+} from "../../config/apiConfig";
 
 export default function StationOperatorView() {
   const [stationId, setStationId] = useState(DEFAULT_STATION_ID);

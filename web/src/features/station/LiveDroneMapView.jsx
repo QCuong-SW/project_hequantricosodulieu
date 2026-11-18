@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from "react";
+import { API_ORIGIN } from "../../config/apiConfig";
 
 const START_POINT = { lat: 10.7769, lng: 106.7009, label: "Trạm Cát Lái (ST-01)" };
 const END_POINT = { lat: 10.8015, lng: 106.7145, label: "Điểm Giao Hàng (Khách)" };
 const TOTAL_STEPS = 30;
-const API_BASE_URL = import.meta?.env?.VITE_API_BASE_URL || "http://localhost:5028";
+const API_BASE_URL = API_ORIGIN;
 
-export default function LiveDroneMapView() {
-  const [orderId, setOrderId] = useState("ORD-2026-0001");
+export default function LiveDroneMapView({ initialOrderId = "ORD-2026-0001" }) {
+  const [orderId, setOrderId] = useState(initialOrderId);
   const [step, setStep] = useState(0);
   const [isSimulating, setIsSimulating] = useState(true);
   const [orderStatus, setOrderStatus] = useState("IN_TRANSIT");

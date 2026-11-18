@@ -1,11 +1,18 @@
-const API_BASE_URL = import.meta?.env?.VITE_API_BASE_URL || "http://localhost:5028";
+import { API_V1_URL } from "../../config/apiConfig";
+import { getAccessToken } from "../dashboard/authBridge";
+
+function authHeaders() {
+  const token = getAccessToken();
+  return {
+    "Content-Type": "application/json",
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  };
+}
 
 export async function scanPackageHandoff(payload) {
-  const response = await fetch(`${API_BASE_URL}/api/v1/handoffs/scan`, {
+  const response = await fetch(`${API_V1_URL}/handoffs/scan`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: authHeaders(),
     body: JSON.stringify(payload),
   });
 
@@ -19,7 +26,9 @@ export async function scanPackageHandoff(payload) {
 
 export async function fetchStationHandoffs(stationId) {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/v1/handoffs/station/${stationId}`);
+    const response = await fetch(`${API_V1_URL}/handoffs/station/${stationId}`, {
+      headers: authHeaders(),
+    });
     if (!response.ok) return [];
     return await response.json();
   } catch {
