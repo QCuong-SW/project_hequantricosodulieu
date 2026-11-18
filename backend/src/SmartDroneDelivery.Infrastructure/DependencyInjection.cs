@@ -7,6 +7,8 @@ using SmartDroneDelivery.Infrastructure.Auth;
 using SmartDroneDelivery.Infrastructure.Persistence;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using SmartDroneDelivery.Infrastructure.Persistence.Interceptors;
+using SmartDroneDelivery.Application.Interfaces;
+using SmartDroneDelivery.Infrastructure.Data;
 
 namespace SmartDroneDelivery.Infrastructure;
 
@@ -19,12 +21,12 @@ public static class DependencyInjection
             ?? throw new InvalidOperationException("Thiếu ConnectionStrings:DefaultConnection trong cấu hình.");
 
         services.AddScoped<AuditSaveChangesInterceptor>();
-services.TryAddScoped<ICurrentUser, AnonymousCurrentUser>();
+        services.TryAddScoped<ICurrentUser, AnonymousCurrentUser>();
 
-services.AddDbContext<SmartDroneDbContext>((serviceProvider, options) =>
-    options.UseSqlServer(connectionString)
-           .UseSnakeCaseNamingConvention()
-           .AddInterceptors(serviceProvider.GetRequiredService<AuditSaveChangesInterceptor>())); 
+        services.AddDbContext<SmartDroneDbContext>((serviceProvider, options) =>
+            options.UseSqlServer(connectionString)
+                   .UseSnakeCaseNamingConvention()
+                   .AddInterceptors(serviceProvider.GetRequiredService<AuditSaveChangesInterceptor>())); 
 
         // ===== [w2-05] Băm mật khẩu bằng BCrypt =====
         services.AddSingleton<IPasswordHasher, BcryptPasswordHasher>();
@@ -35,8 +37,14 @@ services.AddDbContext<SmartDroneDbContext>((serviceProvider, options) =>
 
         // ===== [w2-07] Dịch vụ đăng nhập / refresh token =====
         services.AddScoped<IAuthService, AuthService>();
+        services.AddScoped<IUserAdminService, UserAdminService>();
 
-        // ===== [w2-09] Customer Address (M2) =====
+        // ===== [w2-09] DbContext của module Customer (M2) =====
+        services.AddDbContext<AppDbContext>(options => 
+            options.UseSqlServer(connectionString));
+        services.AddScoped<IAppDbContext>(provider => 
+            provider.GetRequiredService<AppDbContext>());
+
         // TODO(M2): bật lại dòng dưới sau khi thêm `using` đúng cho hai kiểu này
         // services.AddScoped<ICustomerAddressRepository, CustomerAddressRepository>();
 

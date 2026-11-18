@@ -33,16 +33,16 @@ builder.Services.AddScoped<ICurrentUser, HttpCurrentUser>();
   builder.Services.AddRoleAuthorization();
 
 var app = builder.Build();
-app.UseApiResponseHandling();    
+  
 
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 }
-
+app.UseApiResponseHandling();  
 app.UseHttpsRedirection();
-  app.UseAuthentication();
-  app.UseAuthorization();
+app.UseAuthentication();
+app.UseAuthorization();
 
 // Kích hoạt Controllers
 app.MapControllers();

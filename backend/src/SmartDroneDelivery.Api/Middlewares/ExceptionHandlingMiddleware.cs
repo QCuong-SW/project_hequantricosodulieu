@@ -26,6 +26,14 @@ public sealed class ExceptionHandlingMiddleware
 
     public async Task InvokeAsync(HttpContext context)
     {
+        // Bỏ qua các đường dẫn tài liệu Swagger / OpenAPI để giao diện UI hoạt động bình thường
+        var path = context.Request.Path;
+        if (path.StartsWithSegments("/swagger") || path.StartsWithSegments("/openapi"))
+        {
+            await _next(context);
+            return;
+        }
+
         try
         {
             await _next(context);
