@@ -1,26 +1,48 @@
-import React, { useState, useEffect } from "react";
-import { scanPackageHandoff, fetchStationHandoffs } from "./handoffApi";
+import React, { useState, useEffect, useMemo } from "react";
+import {
+  scanPackageHandoff,
+  fetchStationHandoffs,
+  fetchStationsWithSlots,
+  fetchActiveDrones,
+  fetchPendingOrdersForHandoff,
+} from "./handoffApi";
 import {
   DEFAULT_STATION_ID,
   DEFAULT_OPERATOR_ID,
   DEFAULT_DRONE_ID,
 } from "../../config/apiConfig";
 
-const STATIONS = [
-  { id: "22222222-2222-2222-2222-222222222001", code: "STN-Q1", name: "Trạm Trung Tâm Quận 1 (Bitexco)" },
-  { id: "22222222-2222-2222-2222-222222222002", code: "STN-TD", name: "Trạm Khu Công Nghệ Cao Thủ Đức" },
-  { id: "22222222-2222-2222-2222-222222222003", code: "STN-Q7", name: "Trạm Khu Đô Thị Phú Mỹ Hưng Q7" },
+const FALLBACK_STATIONS = [
+  {
+    id: "22222222-2222-2222-2222-222222222001",
+    stationCode: "STN-Q1",
+    name: "Trạm Trung Tâm Quận 1",
+    addressLine: "Khu vực Bến Thành, Quận 1, TP.HCM",
+    availableLandingPadsCount: 1,
+    availableChargingDocksCount: 1,
+  },
+  {
+    id: "22222222-2222-2222-2222-222222222002",
+    stationCode: "STN-TD",
+    name: "Trạm Khu Công Nghệ Cao Thủ Đức",
+    addressLine: "Khu Công Nghệ Cao, TP. Thủ Đức, TP.HCM",
+    availableLandingPadsCount: 1,
+    availableChargingDocksCount: 1,
+  },
+  {
+    id: "22222222-2222-2222-2222-222222222003",
+    stationCode: "STN-Q7",
+    name: "Trạm Khu Đô Thị Phú Mỹ Hưng Q7",
+    addressLine: "Khu vực Phú Mỹ Hưng, Quận 7, TP.HCM",
+    availableLandingPadsCount: 2,
+    availableChargingDocksCount: 1,
+  },
 ];
-
-const DRONES = [
-  { id: "33333333-3333-3333-3333-333333333001", code: "DRN-001", model: "DJI FlyCart 30 Lite (Max 5.0kg)" },
-  { id: "33333333-3333-3333-3333-333333333002", code: "DRN-002", model: "Matrice 350 Delivery (Max 3.5kg)" },
-  { id: "33333333-3333-3333-3333-333333333003", code: "DRN-003", model: "Wingcopter 198 Urban (Max 4.5kg)" },
-];
-
-const QUICK_BARCODES = ["PKG-2026-0001", "PKG-2026-0002", "PKG-2026-0003", "SDD-20261108-482910"];
 
 export default function StationOperatorView() {
+  const [stations, setStations] = useState(FALLBACK_STATIONS);
+  const [drones, setDrones] = useState([]);
+  const [orders, setOrders] = useState([]);
   const [stationId, setStationId] = useState(DEFAULT_STATION_ID);
   const [operatorId] = useState(DEFAULT_OPERATOR_ID);
   const [packageBarcode, setPackageBarcode] = useState("");
@@ -31,19 +53,68 @@ export default function StationOperatorView() {
   const [loading, setLoading] = useState(false);
   const [feedback, setFeedback] = useState(null);
 
+  // Load initial dynamic station, drone & orders data
   useEffect(() => {
-    loadHistory(stationId);
+    let active = true;
+    Promise.all([
+      fetchStationsWithSlots(),
+      fetchActiveDrones(),
+      fetchPendingOrdersForHandoff(),
+    ]).then(([liveStations, liveDrones, liveOrders]) => {
+      if (!active) return;
+      if (Array.isArray(liveStations) && liveStations.length > 0) {
+        setStations(liveStations);
+        setStationId(liveStations[0].id);
+      }
+      if (Array.isArray(liveDrones) && liveDrones.length > 0) {
+        setDrones(liveDrones);
+        setDroneId(liveDrones[0].id);
+      }
+      if (Array.isArray(liveOrders)) {
+        setOrders(liveOrders);
+      }
+    });
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  // Load handoff history when stationId changes
+  useEffect(() => {
+    if (stationId) {
+      loadHistory(stationId);
+    }
   }, [stationId]);
 
   async function loadHistory(targetStationId) {
     const records = await fetchStationHandoffs(targetStationId);
-    setHistory(records);
+    setHistory(Array.isArray(records) ? records : []);
   }
+
+  // Quick barcodes derived from real live orders
+  const quickBarcodes = useMemo(() => {
+    const barcodes = [];
+    orders.forEach((o) => {
+      if (o.trackingNumber) barcodes.push(o.trackingNumber);
+      if (Array.isArray(o.packages)) {
+        o.packages.forEach((pkg) => {
+          if (pkg.packageCode) barcodes.push(pkg.packageCode);
+        });
+      }
+    });
+    return barcodes.slice(0, 6);
+  }, [orders]);
+
+  const currentStation = stations.find((s) => s.id === stationId) || stations[0];
 
   async function handleScanSubmit(e) {
     e.preventDefault();
     if (!packageBarcode.trim()) {
-      setFeedback({ type: "error", message: "Vui lòng nhập hoặc quét mã Barcode/QR của kiện hàng." });
+      setFeedback({
+        type: "error",
+        message: "Vui lòng nhập hoặc quét mã Barcode/QR của kiện hàng.",
+      });
       return;
     }
 
@@ -64,7 +135,7 @@ export default function StationOperatorView() {
       setFeedback({
         type: "success",
         message: result.isIdempotentReplay
-          ? `Mã ${result.packageBarcode} đã được xác nhận ${result.handoffStatus} trước đó (chống trùng lặp Idempotency).`
+          ? `Mã ${result.packageBarcode} đã được ghi nhận ${result.handoffStatus} trước đó (chống trùng lặp Idempotency).`
           : `Xác nhận thành công kiện hàng ${result.packageBarcode} -> ${result.handoffStatus}`,
       });
 
@@ -82,32 +153,36 @@ export default function StationOperatorView() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-w-7xl mx-auto pb-16">
       {/* Header */}
       <div className="flex flex-wrap items-end justify-between gap-4 pb-5 border-b border-slate-200">
         <div>
-          <p className="text-[11px] font-extrabold uppercase tracking-widest text-blue-600 mb-1.5">
-            STATION OPERATOR / PACKAGE HANDOFF
-          </p>
-          <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-slate-900">
-            Trạm Tiếp Đất & Quét Mã QR Bàn Giao
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-blue-600"></span>
+            <p className="text-[11px] font-extrabold uppercase tracking-widest text-blue-600 font-mono">
+              STATION OPERATOR / PACKAGE HANDOFF CONSOLE
+            </p>
+          </div>
+          <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-slate-900 mt-1">
+            Trạm Tiếp Đất &amp; Bàn Giao Kiện Hàng Drone
           </h1>
           <p className="text-sm text-slate-500 mt-1">
-            Kiểm tra an toàn kiện hàng tại bãi đáp (STATION_RECEIVED) và xác nhận gắn ngàm lên Drone (LOADED_ON_DRONE).
+            Kiểm tra kiện hàng tại bãi đáp (STATION_RECEIVED) và xác nhận ngàm khóa lên Drone
+            (LOADED_ON_DRONE) với cơ chế chống trùng lặp Idempotency.
           </p>
         </div>
 
-        <div className="flex items-center gap-2 bg-white px-3.5 py-2 rounded-xl border border-slate-200 shadow-2xs">
+        <div className="flex items-center gap-2 bg-white px-3.5 py-2 rounded-xl border border-slate-200 shadow-xs">
           <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
           <span className="text-xs font-bold text-slate-700">
-            Trạm đang trực: {STATIONS.find((s) => s.id === stationId)?.code || "STN-Q1"}
+            Trạm đang trực: {currentStation?.stationCode || "STN-Q1"}
           </span>
         </div>
       </div>
 
-      {/* Station Overview Cards */}
+      {/* Station Overview Cards (Real Slots from Backend) */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {STATIONS.map((stn) => {
+        {stations.map((stn) => {
           const active = stn.id === stationId;
           return (
             <button
@@ -117,215 +192,258 @@ export default function StationOperatorView() {
               className={`text-left p-4 rounded-2xl border transition-all cursor-pointer ${
                 active
                   ? "bg-blue-50/70 border-blue-500 ring-2 ring-blue-500/15 shadow-sm"
-                  : "bg-white border-slate-200 hover:border-slate-300 shadow-2xs"
+                  : "bg-white border-slate-200 hover:border-slate-300 shadow-xs"
               }`}
             >
-              <div className="flex items-center justify-between mb-1.5">
-                <span className="px-2.5 py-0.5 rounded-md bg-slate-900 text-white font-mono text-xs font-bold">
-                  {stn.code}
+              <div className="flex items-center justify-between mb-2">
+                <span
+                  className={`text-xs font-bold px-2.5 py-0.5 rounded-full font-mono ${
+                    active ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-600"
+                  }`}
+                >
+                  {stn.stationCode}
                 </span>
-                <span className="text-[11px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-                  ACTIVE (4 Slots)
+                <span className="text-[11px] font-semibold text-slate-400">
+                  {active ? "Đang chọn trực" : "Bấm để chuyển trạm"}
                 </span>
               </div>
-              <p className="font-bold text-slate-900 text-sm">{stn.name}</p>
-              <p className="text-xs text-slate-500 mt-1 font-mono truncate">{stn.id}</p>
+              <p className="text-sm font-bold text-slate-900 mb-1">{stn.name}</p>
+              <p className="text-xs text-slate-500 truncate mb-3">{stn.addressLine}</p>
+              <div className="flex items-center gap-2 pt-2 border-t border-slate-100 text-xs">
+                <span className="font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md">
+                  Bãi đáp trống: {stn.availableLandingPadsCount ?? 1}
+                </span>
+                <span className="font-semibold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-md">
+                  Dock sạc trống: {stn.availableChargingDocksCount ?? 1}
+                </span>
+              </div>
             </button>
           );
         })}
       </div>
 
+      {/* Feedback banner */}
       {feedback && (
         <div
-          className={`p-4 rounded-xl border text-sm font-semibold flex items-center justify-between ${
-            feedback.type === "error"
-              ? "bg-red-50 border-red-200 text-red-700"
-              : "bg-emerald-50 border-emerald-200 text-emerald-800"
+          className={`p-4 rounded-xl border text-sm font-medium flex items-center justify-between ${
+            feedback.type === "success"
+              ? "bg-emerald-50 border-emerald-200 text-emerald-800"
+              : "bg-rose-50 border-rose-200 text-rose-800"
           }`}
         >
           <span>{feedback.message}</span>
           <button
             type="button"
             onClick={() => setFeedback(null)}
-            className="text-xs underline ml-4 cursor-pointer"
+            className="text-xs font-bold underline cursor-pointer"
           >
             Đóng
           </button>
         </div>
       )}
 
-      {/* Scanner Form Card */}
-      <form
-        onSubmit={handleScanSubmit}
-        className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs space-y-5"
-      >
-        <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-100">
-          <h2 className="text-base font-bold text-slate-900">
-            Quét Mã Barcode / QR Kiện Hàng
-          </h2>
-          <div className="flex items-center gap-1.5 flex-wrap">
-            <span className="text-xs text-slate-400 mr-1">Chọn nhanh mã mẫu:</span>
-            {QUICK_BARCODES.map((code) => (
-              <button
-                key={code}
-                type="button"
-                onClick={() => setPackageBarcode(code)}
-                className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-blue-50 hover:text-blue-600 text-slate-700 font-mono text-xs font-semibold transition cursor-pointer"
-              >
-                {code}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="md:col-span-2">
-            <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
-              Mã Barcode / QR Bưu Kiện (*)
-            </label>
-            <input
-              type="text"
-              placeholder="Ví dụ: PKG-2026-0001 hoặc mã vận đơn SDD-..."
-              value={packageBarcode}
-              onChange={(e) => setPackageBarcode(e.target.value)}
-              autoFocus
-              className="w-full px-4 py-2.5 rounded-xl border border-slate-300 bg-slate-50 focus:bg-white text-slate-900 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition"
-            />
+      {/* Main 2-Column: Scan Form vs History */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        {/* Left Column: Form (5 cols) */}
+        <div className="lg:col-span-5 bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-5">
+          <div className="border-b border-slate-100 pb-3">
+            <h2 className="text-base font-bold text-slate-900">Quét Mã Kiện Hàng</h2>
+            <p className="text-xs text-slate-500 mt-0.5">
+              Sử dụng máy quét Barcode hoặc nhập trực tiếp mã vận đơn/mã kiện.
+            </p>
           </div>
 
-          <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
-              Thao tác bàn giao (*)
-            </label>
-            <select
-              value={handoffAction}
-              onChange={(e) => setHandoffAction(e.target.value)}
-              className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-slate-50 focus:bg-white text-slate-900 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition"
-            >
-              <option value="STATION_RECEIVED">STATION_RECEIVED — Trạm tiếp nhận kiện hàng</option>
-              <option value="LOADED_ON_DRONE">LOADED_ON_DRONE — Đã khóa kiện lên ngàm Drone</option>
-            </select>
-          </div>
+          <form onSubmit={handleScanSubmit} className="space-y-4 text-xs">
+            {/* Quick Barcodes from real orders */}
+            {quickBarcodes.length > 0 && (
+              <div>
+                <label className="block text-slate-700 font-bold uppercase tracking-wider text-[11px] mb-1.5">
+                  Mã Kiện / Vận Đơn Đang Hoạt Động (Bấm Chọn Nhanh)
+                </label>
+                <div className="flex flex-wrap gap-1.5">
+                  {quickBarcodes.map((code) => (
+                    <button
+                      key={code}
+                      type="button"
+                      onClick={() => setPackageBarcode(code)}
+                      className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-blue-100 hover:text-blue-700 text-slate-700 font-mono text-[11px] transition cursor-pointer"
+                    >
+                      {code}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
 
-          <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
-              Trạm thực hiện
-            </label>
-            <select
-              value={stationId}
-              onChange={(e) => setStationId(e.target.value)}
-              className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-slate-50 focus:bg-white text-slate-900 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition"
-            >
-              {STATIONS.map((s) => (
-                <option key={s.id} value={s.id}>
-                  {s.code} — {s.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {handoffAction === "LOADED_ON_DRONE" && (
-            <div className="md:col-span-2">
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
-                Chọn Drone tiếp nhận kiện hàng (*)
+            <div>
+              <label className="block text-slate-700 font-bold uppercase tracking-wider text-[11px] mb-1.5">
+                Mã Barcode / Mã Vận Đơn *
               </label>
-              <select
-                value={droneId}
-                onChange={(e) => setDroneId(e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-slate-50 focus:bg-white text-slate-900 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition"
-              >
-                {DRONES.map((d) => (
-                  <option key={d.id} value={d.id}>
-                    {d.code} — {d.model}
-                  </option>
-                ))}
-              </select>
+              <input
+                type="text"
+                placeholder="Ví dụ: SDD-20261118-754642 hoặc PKG-1118-01-3958"
+                value={packageBarcode}
+                onChange={(e) => setPackageBarcode(e.target.value)}
+                required
+                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-slate-50 text-slate-900 font-mono text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-600 transition"
+              />
             </div>
-          )}
 
-          <div className="md:col-span-2">
-            <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
-              Ghi chú kiểm tra an toàn tải trọng
-            </label>
-            <input
-              type="text"
-              placeholder="Ví dụ: Kiện hàng nguyên vẹn, đã niêm phong & cân đúng tải trọng..."
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              className="w-full px-4 py-2.5 rounded-xl border border-slate-300 bg-slate-50 focus:bg-white text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition"
-            />
+            <div>
+              <label className="block text-slate-700 font-bold uppercase tracking-wider text-[11px] mb-1.5">
+                Hành Động Bàn Giao *
+              </label>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setHandoffAction("STATION_RECEIVED")}
+                  className={`p-3 rounded-xl border text-center transition cursor-pointer ${
+                    handoffAction === "STATION_RECEIVED"
+                      ? "border-blue-600 bg-blue-50 text-blue-900 font-bold shadow-xs"
+                      : "border-slate-200 bg-white text-slate-600 hover:border-slate-300"
+                  }`}
+                >
+                  <div className="text-xs">Tiếp Nhận Trạm</div>
+                  <div className="text-[10px] text-slate-400 font-normal mt-0.5 font-mono">
+                    STATION_RECEIVED
+                  </div>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setHandoffAction("LOADED_ON_DRONE")}
+                  className={`p-3 rounded-xl border text-center transition cursor-pointer ${
+                    handoffAction === "LOADED_ON_DRONE"
+                      ? "border-blue-600 bg-blue-50 text-blue-900 font-bold shadow-xs"
+                      : "border-slate-200 bg-white text-slate-600 hover:border-slate-300"
+                  }`}
+                >
+                  <div className="text-xs">Gắn Lên Drone</div>
+                  <div className="text-[10px] text-slate-400 font-normal mt-0.5 font-mono">
+                    LOADED_ON_DRONE
+                  </div>
+                </button>
+              </div>
+            </div>
+
+            {handoffAction === "LOADED_ON_DRONE" && (
+              <div>
+                <label className="block text-slate-700 font-bold uppercase tracking-wider text-[11px] mb-1.5">
+                  Thiết Bị Drone Tiếp Nhận *
+                </label>
+                <select
+                  value={droneId}
+                  onChange={(e) => setDroneId(e.target.value)}
+                  className="w-full px-3.5 py-2 rounded-xl border border-slate-300 bg-slate-50 text-slate-900 text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-600 transition"
+                >
+                  {drones.map((d) => (
+                    <option key={d.id} value={d.id}>
+                      [{d.droneCode}] {d.model} — Pin: {d.batteryPercentage}%
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            <div>
+              <label className="block text-slate-700 font-bold uppercase tracking-wider text-[11px] mb-1.5">
+                Ghi Chú Kiểm Tra An Toàn (Tùy chọn)
+              </label>
+              <textarea
+                rows="2"
+                placeholder="Bao bì nguyên vẹn, ngàm drone khóa an toàn..."
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                className="w-full px-3.5 py-2 rounded-xl border border-slate-300 bg-slate-50 text-slate-900 text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-600 transition"
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full py-3 px-4 rounded-xl font-bold text-white bg-blue-600 hover:bg-blue-500 shadow-md transition cursor-pointer disabled:opacity-50 text-sm tracking-wide"
+            >
+              {loading ? "Đang xử lý quét mã..." : "Xác Nhận Quét Mã Bàn Giao"}
+            </button>
+          </form>
+        </div>
+
+        {/* Right Column: History Table (7 cols) */}
+        <div className="lg:col-span-7 bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-4">
+          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+            <div>
+              <h2 className="text-base font-bold text-slate-900">
+                Nhật Ký Quét Bàn Giao Tại Trạm
+              </h2>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Lịch sử các lần quét tại trạm {currentStation?.name || "hiện tại"}.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => loadHistory(stationId)}
+              className="px-3 py-1 rounded-lg text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 transition cursor-pointer"
+            >
+              Làm Mới
+            </button>
           </div>
-        </div>
 
-        <div className="flex justify-end pt-2">
-          <button
-            type="submit"
-            disabled={loading}
-            className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-sm shadow-md shadow-blue-600/20 transition cursor-pointer disabled:opacity-50"
-          >
-            {loading ? "Đang xác nhận..." : "Xác Nhận Quét Mã Bàn Giao"}
-          </button>
-        </div>
-      </form>
-
-      {/* History Table Card */}
-      <div className="bg-white border border-slate-200 rounded-2xl shadow-xs overflow-hidden">
-        <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-          <h3 className="text-base font-bold text-slate-900">
-            Lịch sử quét mã bàn giao tại trạm ({history.length})
-          </h3>
-          <button
-            type="button"
-            onClick={() => loadHistory(stationId)}
-            className="px-3 py-1.5 rounded-lg border border-slate-200 hover:border-blue-500 text-xs font-semibold text-slate-600 hover:text-blue-600 transition cursor-pointer"
-          >
-            Làm mới
-          </button>
-        </div>
-
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse text-sm">
-            <thead>
-              <tr className="bg-slate-50 text-slate-500 text-[11px] font-bold uppercase tracking-wider border-b border-slate-200">
-                <th className="py-3.5 px-5">Mã Kiện Hàng</th>
-                <th className="py-3.5 px-5">Trạng Thái Handoff</th>
-                <th className="py-3.5 px-5">Ghi Chú Kiểm Hàng</th>
-                <th className="py-3.5 px-5">Thời Gian Quét</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {history.length === 0 ? (
-                <tr>
-                  <td colSpan="4" className="py-10 text-center text-slate-400">
-                    Chưa có kiện hàng nào được quét tại trạm này.
-                  </td>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse text-xs">
+              <thead>
+                <tr className="border-b border-slate-200 bg-slate-50/75 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                  <th className="py-2.5 px-3">Mã Kiện</th>
+                  <th className="py-2.5 px-3">Hành Động</th>
+                  <th className="py-2.5 px-3">Thời Gian</th>
+                  <th className="py-2.5 px-3">Ghi Chú</th>
                 </tr>
-              ) : (
-                history.map((item) => (
-                  <tr key={`${item.handoffId}-${item.handoffStatus}`} className="hover:bg-slate-50/80">
-                    <td className="py-3.5 px-5 font-mono font-bold text-slate-900">
-                      {item.packageBarcode}
-                    </td>
-                    <td className="py-3.5 px-5">
-                      <span
-                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold border ${
-                          item.handoffStatus === "LOADED_ON_DRONE"
-                            ? "bg-blue-50 text-blue-700 border-blue-200"
-                            : "bg-emerald-50 text-emerald-700 border-emerald-200"
-                        }`}
-                      >
-                        {item.handoffStatus}
-                      </span>
-                    </td>
-                    <td className="py-3.5 px-5 text-slate-600">{item.notes || "—"}</td>
-                    <td className="py-3.5 px-5 text-slate-500 font-mono text-xs">
-                      {new Date(item.scannedAt).toLocaleString("vi-VN")}
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {history.length === 0 ? (
+                  <tr>
+                    <td colSpan="4" className="py-10 text-center text-slate-400">
+                      Chưa có sự kiện quét mã nào tại trạm này.
                     </td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+                ) : (
+                  history.map((h) => (
+                    <tr key={h.handoffId} className="hover:bg-slate-50 transition-colors">
+                      <td className="py-2.5 px-3 font-mono font-bold text-slate-900">
+                        {h.packageBarcode}
+                      </td>
+                      <td className="py-2.5 px-3">
+                        <span
+                          className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full font-mono text-[10px] font-bold ${
+                            h.handoffStatus === "STATION_RECEIVED"
+                              ? "bg-blue-50 text-blue-700 border border-blue-200"
+                              : "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                          }`}
+                        >
+                          <span
+                            className={`w-1 h-1 rounded-full ${
+                              h.handoffStatus === "STATION_RECEIVED"
+                                ? "bg-blue-500"
+                                : "bg-emerald-500"
+                            }`}
+                          ></span>
+                          {h.handoffStatus}
+                        </span>
+                      </td>
+                      <td className="py-2.5 px-3 text-slate-500 text-[11px]">
+                        {new Date(h.scannedAt).toLocaleTimeString("vi-VN", {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                          second: "2-digit",
+                        })}
+                      </td>
+                      <td className="py-2.5 px-3 text-slate-600 truncate max-w-xs">
+                        {h.notes || "—"}
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>

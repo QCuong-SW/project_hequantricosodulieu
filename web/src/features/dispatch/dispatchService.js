@@ -94,26 +94,29 @@ export const INITIAL_STATIONS = [
   {
     id: '22222222-2222-2222-2222-222222222001',
     stationCode: 'STN-Q1',
-    name: 'Tram Trung Tam Quan 1',
+    name: 'Trạm Trung Tâm Quận 1',
+    addressLine: 'Khu vực Bến Thành, Quận 1, TP.HCM',
     latitude: 10.771595,
     longitude: 106.70475,
-    availableLandingPads: 2,
+    availableLandingPadsCount: 1,
   },
   {
     id: '22222222-2222-2222-2222-222222222002',
     stationCode: 'STN-TD',
-    name: 'Tram Khu Cong Nghe Cao Thu Duc',
+    name: 'Trạm Khu Công Nghệ Cao Thủ Đức',
+    addressLine: 'Khu Công Nghệ Cao, TP. Thủ Đức, TP.HCM',
     latitude: 10.841128,
     longitude: 106.809883,
-    availableLandingPads: 2,
+    availableLandingPadsCount: 1,
   },
   {
     id: '22222222-2222-2222-2222-222222222003',
     stationCode: 'STN-Q7',
-    name: 'Tram Khu Do Thi Phu My Hung Q7',
+    name: 'Trạm Khu Đô Thị Phú Mỹ Hưng Q7',
+    addressLine: 'Khu vực Phú Mỹ Hưng, Quận 7, TP.HCM',
     latitude: 10.72956,
     longitude: 106.72175,
-    availableLandingPads: 2,
+    availableLandingPadsCount: 2,
   },
 ]
 
@@ -125,14 +128,19 @@ function mapBackendOrder(o) {
     trackingNumber: o.trackingNumber,
     customerName: snapshot.senderName || 'Khách hàng',
     senderAddress: snapshot.senderAddressText || '—',
+    senderLatitude: snapshot.senderLatitude,
+    senderLongitude: snapshot.senderLongitude,
     recipientName: snapshot.recipientName || 'Người nhận',
     recipientAddress: snapshot.recipientAddressText || '—',
+    recipientLatitude: snapshot.recipientLatitude,
+    recipientLongitude: snapshot.recipientLongitude,
     totalWeightKg: Number(o.totalWeightKg || 0),
     shippingFee: Number(o.shippingFee || 0),
     pickupMethod: o.pickupMethod || 'STATION_DROP',
     deliveryMethod: o.deliveryMethod || 'CUSTOMER_ADDRESS',
     isFragile: pkgs.some((p) => p.isFragile),
     status: o.status || 'PENDING_APPROVAL',
+    concurrencyVersion: o.concurrencyVersion || 1,
     createdAt: o.createdAt ? new Date(o.createdAt).toLocaleString('vi-VN') : '',
   }
 }
@@ -151,11 +159,12 @@ export async function fetchAllOrdersApi() {
   }
 }
 
-export async function fetchAvailableDronesApi() {
+export async function fetchAvailableDronesApi(requiredPayloadKg = null) {
   try {
-    const response = await fetch(`${API_V1_URL}/flight-schedules/drones/available`, {
-      headers: authHeaders(),
-    })
+    const url = requiredPayloadKg
+      ? `${API_V1_URL}/flight-schedules/drones/available?requiredPayloadKg=${requiredPayloadKg}`
+      : `${API_V1_URL}/flight-schedules/drones/available`
+    const response = await fetch(url, { headers: authHeaders() })
     if (!response.ok) return INITIAL_DRONES
     const payload = await response.json()
     const list = Array.isArray(payload) ? payload : payload?.data || []
@@ -165,32 +174,83 @@ export async function fetchAvailableDronesApi() {
   }
 }
 
-export async function reviewOrderApprovalApi(payload) {
+export async function fetchLandingStationsApi() {
   try {
-    const response = await fetch(`${API_V1_URL}/flight-schedules/orders/review`, {
-      method: 'POST',
+    const response = await fetch(`${API_V1_URL}/landing-stations`, {
       headers: authHeaders(),
-      body: JSON.stringify(payload),
     })
-    if (!response.ok) return null
-    return await response.json()
+    if (!response.ok) return INITIAL_STATIONS
+    const payload = await response.json()
+    const list = Array.isArray(payload) ? payload : payload?.data || []
+    return list.length > 0 ? list : INITIAL_STATIONS
   } catch {
-    return null
+    return INITIAL_STATIONS
   }
 }
 
-export async function assignFlightScheduleApi(payload) {
+export async function fetchFlightSchedulesApi() {
   try {
-    const response = await fetch(`${API_V1_URL}/flight-schedules/assign`, {
-      method: 'POST',
+    const response = await fetch(`${API_V1_URL}/flight-schedules`, {
       headers: authHeaders(),
-      body: JSON.stringify(payload),
     })
-    if (!response.ok) return null
-    return await response.json()
+    if (!response.ok) return []
+    const payload = await response.json()
+    return Array.isArray(payload) ? payload : payload?.data || []
   } catch {
-    return null
+    return []
   }
+}
+
+export async function reviewOrderApprovalApi(payload) {
+  const response = await fetch(`${API_V1_URL}/flight-schedules/orders/review`, {
+    method: 'POST',
+    headers: authHeaders(),
+    body: JSON.stringify(payload),
+  })
+
+  const text = await response.text()
+  let data = null
+  try {
+    data = text ? JSON.parse(text) : null
+  } catch {
+    data = text
+  }
+
+  if (!response.ok) {
+    const errMessage =
+      data?.message ||
+      (Array.isArray(data?.errors) ? data.errors.join(', ') : null) ||
+      `Phê duyệt đơn hàng thất bại (${response.status})`
+    throw new Error(errMessage)
+  }
+
+  return data
+}
+
+export async function assignFlightScheduleApi(payload) {
+  const response = await fetch(`${API_V1_URL}/flight-schedules/assign`, {
+    method: 'POST',
+    headers: authHeaders(),
+    body: JSON.stringify(payload),
+  })
+
+  const text = await response.text()
+  let data = null
+  try {
+    data = text ? JSON.parse(text) : null
+  } catch {
+    data = text
+  }
+
+  if (!response.ok) {
+    const errMessage =
+      data?.message ||
+      (Array.isArray(data?.errors) ? data.errors.join(', ') : null) ||
+      `Gán lịch bay thất bại (${response.status})`
+    throw new Error(errMessage)
+  }
+
+  return data
 }
 
 export async function predictOrderEtaApi(orderId, windSpeedKmh = 10) {

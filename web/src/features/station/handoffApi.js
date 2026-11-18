@@ -35,3 +35,42 @@ export async function fetchStationHandoffs(stationId) {
     return [];
   }
 }
+
+export async function fetchStationsWithSlots() {
+  try {
+    const response = await fetch(`${API_V1_URL}/landing-stations`, {
+      headers: authHeaders(),
+    });
+    if (!response.ok) return [];
+    const payload = await response.json();
+    return Array.isArray(payload) ? payload : payload?.data || [];
+  } catch {
+    return [];
+  }
+}
+
+export async function fetchActiveDrones() {
+  try {
+    const response = await fetch(`${API_V1_URL}/flight-schedules/drones/available`, {
+      headers: authHeaders(),
+    });
+    if (!response.ok) return [];
+    const payload = await response.json();
+    return Array.isArray(payload) ? payload : payload?.data || [];
+  } catch {
+    return [];
+  }
+}
+
+export async function fetchPendingOrdersForHandoff() {
+  try {
+    const response = await fetch(`${API_V1_URL}/delivery-orders`, {
+      headers: authHeaders(),
+    });
+    if (!response.ok) return [];
+    const payload = await response.json();
+    return Array.isArray(payload) ? payload : payload?.data || [];
+  } catch {
+    return [];
+  }
+}

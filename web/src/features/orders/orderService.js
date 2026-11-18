@@ -100,13 +100,23 @@ export async function createDeliveryOrder(body) {
   return unwrapData(payload)
 }
 
+export async function getLandingStations() {
+  try {
+    const payload = await request('/landing-stations')
+    const items = unwrapData(payload)
+    return Array.isArray(items) ? items : []
+  } catch {
+    return []
+  }
+}
+
 export async function getCustomerOrders(customerId) {
   const targetCustomerId = customerId || getConfiguredCustomerId()
   const payload = await request(`/delivery-orders/customer/${targetCustomerId}`)
   return unwrapData(payload) || []
 }
 
-export async function cancelDeliveryOrder(orderId, reason = 'Khách hàng yêu cầu hủy đơn trước khi bay.') {
+export async function cancelDeliveryOrder(orderId, expectedConcurrencyVersion = 0, reason = 'Khách hàng yêu cầu hủy đơn trước khi bay.') {
   const payload = await request(`/delivery-orders/${orderId}/cancel`, {
     method: 'POST',
     body: JSON.stringify({
@@ -114,7 +124,7 @@ export async function cancelDeliveryOrder(orderId, reason = 'Khách hàng yêu c
       requestedByUserId: getConfiguredCustomerId(),
       requestedByRole: 'CUSTOMER',
       cancellationReason: reason,
-      expectedConcurrencyVersion: 0,
+      expectedConcurrencyVersion: expectedConcurrencyVersion || 0,
     }),
   })
   return unwrapData(payload)
