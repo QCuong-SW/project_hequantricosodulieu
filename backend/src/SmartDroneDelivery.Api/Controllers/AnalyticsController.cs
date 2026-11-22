@@ -313,21 +313,22 @@ public class AnalyticsController : ControllerBase
     {
         var checkedAt = DateTime.UtcNow;
         var canConnect = false;
+        string? connectError = null;
         var userCount = 5;
         var auditLogCount = 12;
 
         try
         {
-            canConnect = await _db.Database.CanConnectAsync(ct);
-            if (canConnect)
-            {
-                userCount = await _db.Users.CountAsync(ct);
-                auditLogCount = await _db.AuditLogs.CountAsync(ct);
-            }
+            await _db.Database.OpenConnectionAsync(ct);
+            canConnect = true;
+            userCount = await _db.Users.CountAsync(ct);
+            auditLogCount = await _db.AuditLogs.CountAsync(ct);
+            await _db.Database.CloseConnectionAsync();
         }
-        catch
+        catch (Exception ex)
         {
             canConnect = false;
+            connectError = ex.Message + (ex.InnerException != null ? " --> " + ex.InnerException.Message : "");
         }
 
         var orders = await _orderRepository.GetAllAsync(null, ct);
@@ -346,6 +347,7 @@ public class AnalyticsController : ControllerBase
                 status = canConnect ? "ONLINE" : "FALLBACK_IN_MEMORY",
                 canConnect,
                 provider = "Microsoft.EntityFrameworkCore.SqlServer",
+                error = connectError,
                 checkedAt
             },
             tables = new[]
