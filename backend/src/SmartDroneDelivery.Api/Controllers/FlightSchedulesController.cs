@@ -103,4 +103,33 @@ public class FlightSchedulesController : ControllerBase
             data = schedules
         });
     }
+
+    [HttpPost("{id:guid}/abort")]
+    public async Task<IActionResult> AbortFlightSchedule(
+        Guid id,
+        [FromBody] AbortFlightScheduleRequest? request,
+        CancellationToken cancellationToken = default)
+    {
+        var (success, schedule, errors) = await _flightScheduleService.AbortFlightScheduleAsync(
+            id,
+            request?.AbortReason,
+            cancellationToken);
+
+        if (!success || errors.Count > 0)
+        {
+            return BadRequest(new
+            {
+                success = false,
+                message = "Failed to abort flight schedule.",
+                errors
+            });
+        }
+
+        return Ok(new
+        {
+            success = true,
+            message = "Chuyến bay đã bị hủy khẩn cấp và chuyển trạng thái ABORTED.",
+            data = schedule
+        });
+    }
 }

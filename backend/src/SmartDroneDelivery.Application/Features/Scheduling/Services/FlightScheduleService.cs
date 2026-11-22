@@ -158,6 +158,32 @@ public class FlightScheduleService : IFlightScheduleService
         return Task.FromResult(list);
     }
 
+    public Task<(bool Success, FlightScheduleResponseDto? Schedule, List<string> Errors)> AbortFlightScheduleAsync(
+        Guid scheduleId,
+        string? abortReason,
+        CancellationToken cancellationToken = default)
+    {
+        var errors = new List<string>();
+        if (!Schedules.TryGetValue(scheduleId, out var schedule))
+        {
+            errors.Add($"Flight schedule with ID '{scheduleId}' was not found.");
+            return Task.FromResult<(bool, FlightScheduleResponseDto?, List<string>)>((false, null, errors));
+        }
+
+        schedule.Status = "ABORTED";
+        schedule.AbortReason = string.IsNullOrWhiteSpace(abortReason) ? "Điều phối viên yêu cầu hủy chuyến khẩn cấp" : abortReason.Trim();
+        schedule.ActualArrival = DateTime.UtcNow;
+
+        if (Drones.TryGetValue(schedule.DroneId, out var drone))
+        {
+            drone.Status = "IDLE";
+        }
+
+        var droneCode = Drones.TryGetValue(schedule.DroneId, out var d) ? d.DroneCode : string.Empty;
+        var dto = MapScheduleDto(schedule, droneCode);
+        return Task.FromResult<(bool, FlightScheduleResponseDto?, List<string>)>((true, dto, errors));
+    }
+
     private static List<string> ValidateAssignmentRequest(
         AssignFlightScheduleRequest? request,
         out Drone? drone)
@@ -232,6 +258,7 @@ public class FlightScheduleService : IFlightScheduleService
         ScheduledArrival = s.ScheduledArrival,
         FlightDistanceKm = s.FlightDistanceKm,
         Status = s.Status,
+        AbortReason = s.AbortReason,
         CreatedAt = s.CreatedAt,
         Waypoints = s.Waypoints.Select(w => new FlightWaypointDto
         {

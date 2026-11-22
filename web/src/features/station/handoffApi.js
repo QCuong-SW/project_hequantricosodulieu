@@ -74,3 +74,16 @@ export async function fetchPendingOrdersForHandoff() {
     return [];
   }
 }
+
+export async function updateStationSlotStatus(stationId, slotId, status) {
+  const response = await fetch(`${API_V1_URL}/landing-stations/${stationId}/slots/${slotId}`, {
+    method: "PATCH",
+    headers: authHeaders(),
+    body: JSON.stringify({ status }),
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(data.message || data.Message || "Cập nhật slot trạm thất bại.");
+  }
+  return data;
+}

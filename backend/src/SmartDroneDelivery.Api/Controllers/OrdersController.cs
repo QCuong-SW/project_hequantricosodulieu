@@ -10,13 +10,16 @@ public class OrdersController : ControllerBase
 {
     private readonly IOrderService _orderService;
     private readonly IOrderCancellationService _orderCancellationService;
+    private readonly IOrderRepository _orderRepository;
 
     public OrdersController(
         IOrderService orderService,
-        IOrderCancellationService orderCancellationService)
+        IOrderCancellationService orderCancellationService,
+        IOrderRepository orderRepository)
     {
         _orderService = orderService;
         _orderCancellationService = orderCancellationService;
+        _orderRepository = orderRepository;
     }
 
     [HttpPost]
@@ -191,6 +194,38 @@ public class OrdersController : ControllerBase
             success = true,
             message = "Order rejected successfully.",
             data = result
+        });
+    }
+
+    [HttpPost("{id:guid}/pay")]
+    public async Task<IActionResult> PayOrder(
+        Guid id,
+        CancellationToken cancellationToken)
+    {
+        var order = await _orderRepository.GetByIdAsync(id, cancellationToken);
+        if (order is null)
+        {
+            return NotFound(new
+            {
+                success = false,
+                message = $"Delivery order '{id}' was not found."
+            });
+        }
+
+        order.PaymentStatus = "PAID";
+        order.UpdatedAt = DateTime.UtcNow;
+        await _orderRepository.AddAsync(order, cancellationToken);
+
+        return Ok(new
+        {
+            success = true,
+            message = "Thanh toán cước phí thành công. Đơn hàng đã chuyển sang trạng thái PAID.",
+            data = new
+            {
+                orderId = order.Id,
+                paymentStatus = order.PaymentStatus,
+                paidAt = DateTime.UtcNow
+            }
         });
     }
 }

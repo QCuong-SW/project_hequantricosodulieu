@@ -42,6 +42,11 @@ public class DroneStatusDto
     public string Status { get; set; } = string.Empty;
 }
 
+public class AbortFlightScheduleRequest
+{
+    public string? AbortReason { get; set; }
+}
+
 public class FlightScheduleResponseDto
 {
     public Guid Id { get; set; }
@@ -56,6 +61,7 @@ public class FlightScheduleResponseDto
     public DateTime ScheduledArrival { get; set; }
     public decimal FlightDistanceKm { get; set; }
     public string Status { get; set; } = string.Empty;
+    public string? AbortReason { get; set; }
     public DateTime CreatedAt { get; set; }
     public List<FlightWaypointDto> Waypoints { get; set; } = new();
 }

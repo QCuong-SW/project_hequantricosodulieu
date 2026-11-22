@@ -265,3 +265,22 @@ export async function predictOrderEtaApi(orderId, windSpeedKmh = 10) {
     return null
   }
 }
+
+export async function abortFlightScheduleApi(scheduleId, abortReason) {
+  const response = await fetch(`${API_V1_URL}/flight-schedules/${scheduleId}/abort`, {
+    method: 'POST',
+    headers: authHeaders(),
+    body: JSON.stringify({ abortReason }),
+  })
+  const text = await response.text()
+  let data = null
+  try {
+    data = text ? JSON.parse(text) : null
+  } catch {
+    data = text
+  }
+  if (!response.ok) {
+    throw new Error(data?.message || 'Hủy chuyến bay thất bại.')
+  }
+  return data
+}

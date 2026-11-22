@@ -3,6 +3,7 @@ import {
   cancelDeliveryOrder,
   getConfiguredCustomerId,
   getCustomerOrders,
+  payDeliveryOrder,
 } from './orderService'
 
 export const ORDER_STATUS_LABELS = {
@@ -19,6 +20,24 @@ export const ORDER_STATUS_LABELS = {
   CANCELLED: 'Đã hủy đơn',
 }
 
+const ORDER_TIMELINE_STEPS = [
+  { key: 'DRAFT', label: 'Tạo đơn' },
+  { key: 'PENDING_APPROVAL', label: 'Chờ duyệt' },
+  { key: 'APPROVED', label: 'Đã duyệt' },
+  { key: 'SCHEDULED', label: 'Xếp lịch' },
+  { key: 'IN_TRANSIT', label: 'Đang bay' },
+  { key: 'DELIVERED', label: 'Đã giao' },
+]
+
+function getStepIndex(status) {
+  if (['DELIVERED'].includes(status)) return 5
+  if (['IN_TRANSIT', 'DELIVERING', 'ARRIVED'].includes(status)) return 4
+  if (['SCHEDULED'].includes(status)) return 3
+  if (['APPROVED'].includes(status)) return 2
+  if (['PENDING_APPROVAL'].includes(status)) return 1
+  return 0
+}
+
 const CANCELLABLE_STATUSES = new Set(['DRAFT', 'PENDING_APPROVAL', 'APPROVED', 'SCHEDULED'])
 
 export default function OrderListPage({ onViewOrder }) {
@@ -32,8 +51,11 @@ export default function OrderListPage({ onViewOrder }) {
   // Modal states
   const [selectedOrder, setSelectedOrder] = useState(null)
   const [cancellingOrder, setCancellingOrder] = useState(null)
+  const [payingOrder, setPayingOrder] = useState(null)
+  const [paymentMethod, setPaymentMethod] = useState('VNPAY_QR')
   const [cancelReason, setCancelReason] = useState('Khách hàng yêu cầu hủy đơn trước khi bay.')
   const [isCancelling, setIsCancelling] = useState(false)
+  const [isPaying, setIsPaying] = useState(false)
   const [copiedTracking, setCopiedTracking] = useState('')
 
   async function loadOrders() {
@@ -88,7 +110,7 @@ export default function OrderListPage({ onViewOrder }) {
     setError('')
     setSuccess('')
     try {
-      const res = await cancelDeliveryOrder(
+      await cancelDeliveryOrder(
         cancellingOrder.id,
         cancellingOrder.concurrencyVersion || 0,
         cancelReason
@@ -106,6 +128,27 @@ export default function OrderListPage({ onViewOrder }) {
     }
   }
 
+  async function handleConfirmPayment(e) {
+    e.preventDefault()
+    if (!payingOrder) return
+
+    setIsPaying(true)
+    setError('')
+    setSuccess('')
+    try {
+      await payDeliveryOrder(payingOrder.id)
+      setSuccess(
+        `Thanh toán thành công ${formatCurrency(payingOrder.shippingFee)} cho đơn ${payingOrder.trackingNumber || payingOrder.id} qua ${paymentMethod}.`
+      )
+      setPayingOrder(null)
+      await loadOrders()
+    } catch (err) {
+      setError(`Thanh toán thất bại: ${err.message}`)
+    } finally {
+      setIsPaying(false)
+    }
+  }
+
   function copyToClipboard(text) {
     if (!text) return
     navigator.clipboard.writeText(text)
@@ -114,7 +157,7 @@ export default function OrderListPage({ onViewOrder }) {
   }
 
   return (
-    <section className="max-w-6xl mx-auto space-y-6 text-slate-900 pb-12">
+    <section className="max-w-6xl mx-auto space-y-6 text-slate-900 pb-16">
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-200 pb-5">
         <div>
@@ -128,7 +171,7 @@ export default function OrderListPage({ onViewOrder }) {
             Lịch Sử Đơn Hàng Drone
           </h1>
           <p className="text-sm text-slate-500 mt-0.5">
-            Quản lý hành trình giao hàng, theo dõi trạng thái và hủy đơn trước khi cất cánh.
+            Quản lý hành trình giao hàng, thanh toán cước phí và hủy đơn trước khi cất cánh.
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -241,7 +284,7 @@ export default function OrderListPage({ onViewOrder }) {
                   <th className="py-3.5 px-4">Ngày Tạo</th>
                   <th className="py-3.5 px-4">Tuyến Giao</th>
                   <th className="py-3.5 px-4">Khối Lượng</th>
-                  <th className="py-3.5 px-4">Cước Phí</th>
+                  <th className="py-3.5 px-4">Cước Phí &amp; Thanh Toán</th>
                   <th className="py-3.5 px-4">Trạng Thái</th>
                   <th className="py-3.5 px-4 text-right">Thao Tác</th>
                 </tr>
@@ -250,6 +293,7 @@ export default function OrderListPage({ onViewOrder }) {
                 {filteredOrders.map((order) => {
                   const tracking = order.trackingNumber || shortId(order.id)
                   const canCancel = CANCELLABLE_STATUSES.has(order.status)
+                  const isPaid = order.paymentStatus === 'PAID'
                   return (
                     <tr key={order.id} className="hover:bg-slate-50/80 transition-colors">
                       <td className="py-3.5 px-4">
@@ -281,13 +325,33 @@ export default function OrderListPage({ onViewOrder }) {
                       <td className="py-3.5 px-4 text-xs font-mono font-semibold text-slate-700">
                         {order.totalWeightKg ?? totalWeight(order)} kg
                       </td>
-                      <td className="py-3.5 px-4 text-xs font-mono font-bold text-slate-900">
-                        {formatCurrency(order.shippingFee)}
+                      <td className="py-3.5 px-4 text-xs">
+                        <div className="font-mono font-bold text-slate-900">
+                          {formatCurrency(order.shippingFee)}
+                        </div>
+                        <span
+                          className={`inline-block mt-0.5 px-2 py-0.5 rounded text-[10px] font-bold font-mono ${
+                            isPaid
+                              ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                              : 'bg-amber-50 text-amber-700 border border-amber-200'
+                          }`}
+                        >
+                          {isPaid ? 'ĐÃ THANH TOÁN' : 'CHƯA THANH TOÁN'}
+                        </span>
                       </td>
                       <td className="py-3.5 px-4">
                         <StatusBadge status={order.status} />
                       </td>
-                      <td className="py-3.5 px-4 text-right space-x-2">
+                      <td className="py-3.5 px-4 text-right space-x-1.5 whitespace-nowrap">
+                        {!isPaid && order.status !== 'CANCELLED' && (
+                          <button
+                            type="button"
+                            onClick={() => setPayingOrder(order)}
+                            className="px-2.5 py-1 rounded-lg text-xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 transition cursor-pointer"
+                          >
+                            Thanh Toán
+                          </button>
+                        )}
                         <button
                           type="button"
                           onClick={() =>
@@ -316,20 +380,56 @@ export default function OrderListPage({ onViewOrder }) {
         )}
       </div>
 
-      {/* Modal: View Order Details */}
+      {/* Modal: View Order Details with Stepper Timeline */}
       {selectedOrder && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
           <div className="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl space-y-5 border border-slate-200 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div>
                 <span className="text-[10px] font-mono font-bold text-blue-600 uppercase tracking-wider">
-                  ORDER SPECIFICATION
+                  ORDER SPECIFICATION &amp; TRACKING
                 </span>
                 <h3 className="text-lg font-bold text-slate-900">
                   {selectedOrder.trackingNumber || selectedOrder.id}
                 </h3>
               </div>
               <StatusBadge status={selectedOrder.status} />
+            </div>
+
+            {/* Stepper Timeline */}
+            <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
+              <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-3">
+                Tiến Trình Hành Trình Đơn Hàng:
+              </div>
+              <div className="flex items-center justify-between relative">
+                {ORDER_TIMELINE_STEPS.map((step, idx) => {
+                  const currentIdx = getStepIndex(selectedOrder.status)
+                  const isDone = idx <= currentIdx
+                  const isCurrent = idx === currentIdx
+                  return (
+                    <div key={step.key} className="flex-1 flex flex-col items-center text-center relative z-10">
+                      <div
+                        className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-mono font-bold transition-all ${
+                          isCurrent
+                            ? 'bg-blue-600 text-white ring-4 ring-blue-100 scale-110'
+                            : isDone
+                              ? 'bg-emerald-600 text-white'
+                              : 'bg-slate-200 text-slate-500'
+                        }`}
+                      >
+                        {idx + 1}
+                      </div>
+                      <span
+                        className={`text-[10px] mt-1 font-semibold truncate max-w-[80px] ${
+                          isCurrent ? 'text-blue-700' : isDone ? 'text-slate-800' : 'text-slate-400'
+                        }`}
+                      >
+                        {step.label}
+                      </span>
+                    </div>
+                  )
+                })}
+              </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
@@ -402,7 +502,8 @@ export default function OrderListPage({ onViewOrder }) {
 
             <div className="flex items-center justify-between text-xs border-t border-slate-100 pt-3">
               <span className="text-slate-500">
-                Phiên bản đồng thời: #{selectedOrder.concurrencyVersion}
+                Phiên bản đồng thời: #{selectedOrder.concurrencyVersion} · Trạng thái cước:{' '}
+                <strong>{selectedOrder.paymentStatus || 'PENDING'}</strong>
               </span>
               <button
                 type="button"
@@ -413,6 +514,77 @@ export default function OrderListPage({ onViewOrder }) {
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Modal: Payment Simulation */}
+      {payingOrder && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
+          <form
+            onSubmit={handleConfirmPayment}
+            className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4 border border-slate-200"
+          >
+            <div>
+              <span className="text-[10px] font-mono font-bold text-emerald-600 uppercase tracking-wider">
+                SECURE PAYMENT GATEWAY (SIMULATOR)
+              </span>
+              <h3 className="text-lg font-bold text-slate-900 mt-0.5">Thanh Toán Cước Phí Vận Chuyển</h3>
+              <p className="text-xs text-slate-500 mt-1">
+                Mã đơn hàng: <strong className="font-mono text-slate-900">{payingOrder.trackingNumber || payingOrder.id}</strong>
+              </p>
+            </div>
+
+            <div className="bg-emerald-50/70 p-4 rounded-xl border border-emerald-100 text-center space-y-1">
+              <div className="text-xs text-emerald-800 font-semibold">Số tiền cần thanh toán:</div>
+              <div className="text-2xl font-black font-mono text-emerald-700">
+                {formatCurrency(payingOrder.shippingFee)}
+              </div>
+            </div>
+
+            <div className="space-y-2 text-xs">
+              <label className="block text-slate-700 font-bold uppercase tracking-wider text-[11px]">
+                Chọn phương thức thanh toán:
+              </label>
+              <div className="grid grid-cols-3 gap-2">
+                {[
+                  { key: 'VNPAY_QR', name: 'VNPay QR' },
+                  { key: 'MOMO', name: 'Ví MoMo' },
+                  { key: 'BANK_CARD', name: 'Thẻ ATM / Visa' },
+                ].map((m) => (
+                  <button
+                    key={m.key}
+                    type="button"
+                    onClick={() => setPaymentMethod(m.key)}
+                    className={`p-2.5 rounded-xl border text-center transition cursor-pointer ${
+                      paymentMethod === m.key
+                        ? 'border-emerald-600 bg-emerald-50 text-emerald-800 font-bold shadow-xs'
+                        : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'
+                    }`}
+                  >
+                    {m.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => setPayingOrder(null)}
+                disabled={isPaying}
+                className="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition cursor-pointer"
+              >
+                Hủy
+              </button>
+              <button
+                type="submit"
+                disabled={isPaying}
+                className="px-5 py-2.5 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white shadow-md transition cursor-pointer disabled:opacity-50"
+              >
+                {isPaying ? 'Đang xử lý...' : 'Xác Nhận Thanh Toán'}
+              </button>
+            </div>
+          </form>
         </div>
       )}
 

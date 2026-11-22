@@ -149,6 +149,112 @@ public class AddressService : IAddressService
         return fallbackDto;
     }
 
+    public async Task<AddressResponse?> UpdateAddressAsync(
+        Guid userId,
+        Guid addressId,
+        CreateAddressRequest request)
+    {
+        try
+        {
+            var customer = await _context.CustomerProfiles
+                .FirstOrDefaultAsync(x => x.UserId == userId && !x.IsDeleted);
+
+            if (customer != null)
+            {
+                var addr = await _context.DeliveryAddresses
+                    .FirstOrDefaultAsync(x => x.Id == addressId && x.CustomerId == customer.Id && !x.IsDeleted);
+
+                if (addr != null)
+                {
+                    if (request.IsDefault)
+                    {
+                        var others = await _context.DeliveryAddresses
+                            .Where(x => x.CustomerId == customer.Id && x.Id != addressId && !x.IsDeleted)
+                            .ToListAsync();
+                        foreach (var a in others) a.IsDefault = false;
+                    }
+
+                    addr.AddressLine = request.AddressLine.Trim();
+                    addr.Ward = request.Ward?.Trim();
+                    addr.District = request.District?.Trim();
+                    addr.City = request.City.Trim();
+                    addr.Latitude = request.Latitude;
+                    addr.Longitude = request.Longitude;
+                    addr.IsDefault = request.IsDefault;
+
+                    await _context.SaveChangesAsync();
+
+                    var dto = new AddressResponse
+                    {
+                        Id = addr.Id,
+                        AddressLine = addr.AddressLine,
+                        Ward = addr.Ward,
+                        District = addr.District,
+                        City = addr.City,
+                        Latitude = addr.Latitude,
+                        Longitude = addr.Longitude,
+                        IsDefault = addr.IsDefault,
+                        CreatedAt = addr.CreatedAt
+                    };
+
+                    FallbackAddresses[dto.Id] = dto;
+                    return dto;
+                }
+            }
+        }
+        catch {}
+
+        if (FallbackAddresses.TryGetValue(addressId, out var existing))
+        {
+            if (request.IsDefault)
+            {
+                foreach (var k in FallbackAddresses.Keys)
+                {
+                    if (k != addressId && FallbackAddresses.TryGetValue(k, out var other))
+                        other.IsDefault = false;
+                }
+            }
+
+            existing.AddressLine = request.AddressLine.Trim();
+            existing.Ward = request.Ward?.Trim();
+            existing.District = request.District?.Trim();
+            existing.City = request.City.Trim();
+            existing.Latitude = request.Latitude;
+            existing.Longitude = request.Longitude;
+            existing.IsDefault = request.IsDefault;
+
+            return existing;
+        }
+
+        return null;
+    }
+
+    public async Task<bool> DeleteAddressAsync(Guid userId, Guid addressId)
+    {
+        try
+        {
+            var customer = await _context.CustomerProfiles
+                .FirstOrDefaultAsync(x => x.UserId == userId && !x.IsDeleted);
+
+            if (customer != null)
+            {
+                var addr = await _context.DeliveryAddresses
+                    .FirstOrDefaultAsync(x => x.Id == addressId && x.CustomerId == customer.Id && !x.IsDeleted);
+
+                if (addr != null)
+                {
+                    addr.IsDeleted = true;
+                    await _context.SaveChangesAsync();
+                    FallbackAddresses.TryRemove(addressId, out _);
+                    return true;
+                }
+            }
+        }
+        catch {}
+
+        return FallbackAddresses.TryRemove(addressId, out _);
+    }
+
     private static ConcurrentDictionary<Guid, AddressResponse> SeedFallbackAddresses()
     {
         var dict = new ConcurrentDictionary<Guid, AddressResponse>();

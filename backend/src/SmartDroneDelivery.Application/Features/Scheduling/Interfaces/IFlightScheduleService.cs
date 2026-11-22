@@ -18,4 +18,9 @@ public interface IFlightScheduleService
 
     Task<IReadOnlyList<FlightScheduleResponseDto>> GetFlightSchedulesAsync(
         CancellationToken cancellationToken = default);
+
+    Task<(bool Success, FlightScheduleResponseDto? Schedule, List<string> Errors)> AbortFlightScheduleAsync(
+        Guid scheduleId,
+        string? abortReason,
+        CancellationToken cancellationToken = default);
 }

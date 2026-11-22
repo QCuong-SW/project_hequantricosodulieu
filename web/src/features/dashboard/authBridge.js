@@ -41,3 +41,11 @@ export async function loginAsRole(role) {
   return loginWithCredentials(account.email, 'P@ssword123!');
 }
 
+export function clearAuthSession() {
+  window.__accessToken = null;
+  localStorage.removeItem('accessToken');
+  localStorage.removeItem('refreshToken');
+  localStorage.removeItem('currentUser');
+  localStorage.removeItem('customerId');
+}
+

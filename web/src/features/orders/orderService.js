@@ -92,6 +92,28 @@ export async function createMyAddress(body) {
   return unwrapData(payload)
 }
 
+export async function updateMyAddress(addressId, body) {
+  const payload = await request(`/addresses/${addressId}`, {
+    method: 'PUT',
+    body: JSON.stringify(body),
+  })
+  return unwrapData(payload)
+}
+
+export async function deleteMyAddress(addressId) {
+  const payload = await request(`/addresses/${addressId}`, {
+    method: 'DELETE',
+  })
+  return unwrapData(payload)
+}
+
+export async function payDeliveryOrder(orderId) {
+  const payload = await request(`/delivery-orders/${orderId}/pay`, {
+    method: 'POST',
+  })
+  return unwrapData(payload)
+}
+
 export async function createDeliveryOrder(body) {
   const payload = await request('/delivery-orders', {
     method: 'POST',

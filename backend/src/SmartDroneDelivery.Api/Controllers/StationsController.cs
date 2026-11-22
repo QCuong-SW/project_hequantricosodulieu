@@ -32,4 +32,27 @@ public class StationsController : ControllerBase
         if (station is null) return NotFound(new { Message = "Landing station not found." });
         return Ok(station);
     }
+
+    [HttpPatch("{stationId:guid}/slots/{slotId:guid}")]
+    public async Task<IActionResult> UpdateSlotStatus(
+        Guid stationId,
+        Guid slotId,
+        [FromBody] UpdateSlotStatusRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        var success = await _stationQueryService.UpdateSlotStatusAsync(stationId, slotId, request.Status, cancellationToken);
+        if (!success)
+        {
+            return NotFound(new { success = false, message = "Trạm hoặc ô lưu trữ/bãi đáp không tồn tại." });
+        }
+
+        return Ok(new
+        {
+            success = true,
+            message = "Cập nhật trạng thái slot trạm thành công.",
+            stationId,
+            slotId,
+            status = request.Status
+        });
+    }
 }

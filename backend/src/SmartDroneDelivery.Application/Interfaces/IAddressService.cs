@@ -9,4 +9,13 @@ public interface IAddressService
     Task<AddressResponse> CreateAddressAsync(
         Guid userId,
         CreateAddressRequest request);
+
+    Task<AddressResponse?> UpdateAddressAsync(
+        Guid userId,
+        Guid addressId,
+        CreateAddressRequest request);
+
+    Task<bool> DeleteAddressAsync(
+        Guid userId,
+        Guid addressId);
 }

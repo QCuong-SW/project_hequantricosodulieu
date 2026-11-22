@@ -3,6 +3,7 @@ import {
   INITIAL_DRONES,
   INITIAL_PENDING_ORDERS,
   INITIAL_STATIONS,
+  abortFlightScheduleApi,
   assignFlightScheduleApi,
   fetchAllOrdersApi,
   fetchAvailableDronesApi,
@@ -20,6 +21,9 @@ export function DispatcherDashboard() {
   const [flightSchedules, setFlightSchedules] = useState([])
   const [statusFilter, setStatusFilter] = useState('ALL')
   const [selectedOrderForModal, setSelectedOrderForModal] = useState(null)
+  const [abortingFlight, setAbortingFlight] = useState(null)
+  const [abortReason, setAbortReason] = useState('')
+  const [isAborting, setIsAborting] = useState(false)
   const [actionMessage, setActionMessage] = useState('')
   const [errorMessage, setErrorMessage] = useState('')
   const [etaMap, setEtaMap] = useState({})
@@ -108,6 +112,28 @@ export function DispatcherDashboard() {
       setErrorMessage(`Lỗi gán lịch bay: ${err.message}`)
     } finally {
       setIsSubmitting(false)
+    }
+  }
+
+  const handleAbortFlight = async () => {
+    if (!abortingFlight) return
+    setIsAborting(true)
+    setErrorMessage('')
+    try {
+      await abortFlightScheduleApi(
+        abortingFlight.id,
+        abortReason || 'Điều phối viên phát lệnh hủy chuyến khẩn cấp.'
+      )
+      setActionMessage(
+        `Chuyến bay ${abortingFlight.flightCode} đã bị hủy khẩn cấp thành công. Thiết bị bay đã chuyển về trạng thái IDLE.`
+      )
+      setAbortingFlight(null)
+      setAbortReason('')
+      await refreshData()
+    } catch (err) {
+      setErrorMessage(`Lỗi khi hủy chuyến bay: ${err.message}`)
+    } finally {
+      setIsAborting(false)
     }
   }
 
@@ -397,12 +423,13 @@ export function DispatcherDashboard() {
                 <th className="py-3 px-4">Khởi Hành Dự Kiến</th>
                 <th className="py-3 px-4">Hạ Cánh Dự Kiến</th>
                 <th className="py-3 px-4">Trạng Thái Chuyến</th>
+                <th className="py-3 px-4 text-right">Lệnh Khẩn Cấp</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 text-xs">
               {flightSchedules.length === 0 ? (
                 <tr>
-                  <td colSpan="6" className="py-8 text-center text-slate-400">
+                  <td colSpan="7" className="py-8 text-center text-slate-400">
                     Chưa có chuyến bay nào được xếp lịch.
                   </td>
                 </tr>
@@ -429,7 +456,9 @@ export function DispatcherDashboard() {
                             ? 'bg-blue-50 text-blue-800 border-blue-200'
                             : flt.status === 'COMPLETED'
                               ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
-                              : 'bg-slate-100 text-slate-700 border-slate-200'
+                              : flt.status === 'ABORTED'
+                                ? 'bg-rose-50 text-rose-800 border-rose-200'
+                                : 'bg-slate-100 text-slate-700 border-slate-200'
                         }`}
                       >
                         <span
@@ -438,11 +467,38 @@ export function DispatcherDashboard() {
                               ? 'bg-blue-500 animate-pulse'
                               : flt.status === 'COMPLETED'
                                 ? 'bg-emerald-500'
-                                : 'bg-slate-400'
+                                : flt.status === 'ABORTED'
+                                  ? 'bg-rose-500'
+                                  : 'bg-slate-400'
                           }`}
                         ></span>
                         {flt.status}
                       </span>
+                    </td>
+                    <td className="py-3 px-4 text-right">
+                      {flt.status === 'IN_PROGRESS' || flt.status === 'SCHEDULED' ? (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setAbortingFlight(flt)
+                            setAbortReason('')
+                          }}
+                          className="px-2.5 py-1 text-xs font-bold rounded-lg bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 transition-colors cursor-pointer"
+                        >
+                          Hủy Khẩn Cấp
+                        </button>
+                      ) : flt.status === 'ABORTED' ? (
+                        <div className="flex flex-col items-end">
+                          <span className="text-[11px] font-semibold text-rose-600">Đã Hủy</span>
+                          {flt.abortReason && (
+                            <span className="text-[10px] text-slate-400 truncate max-w-[140px]" title={flt.abortReason}>
+                              {flt.abortReason}
+                            </span>
+                          )}
+                        </div>
+                      ) : (
+                        <span className="text-xs text-slate-400 font-medium">—</span>
+                      )}
                     </td>
                   </tr>
                 ))
@@ -530,6 +586,108 @@ export function DispatcherDashboard() {
           onConfirmAssign={handleConfirmAssignDrone}
           isSubmitting={isSubmitting}
         />
+      )}
+
+      {/* Modal Hủy Chuyến Bay Khẩn Cấp */}
+      {abortingFlight && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4">
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-lg w-full overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+            <div className="p-5 bg-rose-50 border-b border-rose-100 flex items-center justify-between">
+              <div>
+                <span className="text-[10px] font-mono font-black text-rose-700 uppercase tracking-widest">
+                  EMERGENCY MISSION ABORT
+                </span>
+                <h3 className="text-base font-extrabold text-slate-900 mt-0.5">
+                  Lệnh Hủy Chuyến Bay Khẩn Cấp
+                </h3>
+              </div>
+              <span className="px-2.5 py-1 rounded-full text-xs font-mono font-bold bg-white text-rose-700 border border-rose-200">
+                {abortingFlight.flightCode}
+              </span>
+            </div>
+
+            <div className="p-6 space-y-4">
+              <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200 text-xs space-y-1.5">
+                <div className="flex justify-between">
+                  <span className="text-slate-500 font-medium">Drone thực hiện:</span>
+                  <span className="font-mono font-bold text-slate-900">{abortingFlight.droneCode}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500 font-medium">Cự ly lộ trình:</span>
+                  <span className="font-mono font-bold text-slate-900">{abortingFlight.flightDistanceKm} km</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500 font-medium">Trạng thái hiện tại:</span>
+                  <span className="font-mono font-bold text-rose-700">{abortingFlight.status}</span>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-2">
+                  Chọn Lý Do Khẩn Cấp Nhanh:
+                </label>
+                <div className="flex flex-wrap gap-1.5">
+                  {[
+                    'Thời tiết xấu / gió giật nguy hiểm',
+                    'Sự cố pin tụt nhanh / nhiệt độ cao',
+                    'Xung đột không phận hành lang',
+                    'Lệnh từ cơ quan điều phối không lưu',
+                    'Kiện hàng bất thường / nghi ngờ lỏng khóa',
+                  ].map((preset) => (
+                    <button
+                      key={preset}
+                      type="button"
+                      onClick={() => setAbortReason(preset)}
+                      className={`text-[11px] font-medium px-2.5 py-1 rounded-lg border transition-all cursor-pointer ${
+                        abortReason === preset
+                          ? 'bg-rose-100 border-rose-300 text-rose-800 font-semibold'
+                          : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
+                      }`}
+                    >
+                      {preset}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">
+                  Chi Tiết Lý Do Hủy Chuyến:
+                </label>
+                <textarea
+                  value={abortReason}
+                  onChange={(e) => setAbortReason(e.target.value)}
+                  placeholder="Ghi rõ lý do điều phối viên kích hoạt lệnh hủy chuyến bay..."
+                  rows={3}
+                  className="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500"
+                />
+              </div>
+
+              <div className="p-3 bg-amber-50 rounded-xl border border-amber-200 text-[11px] text-amber-800 font-medium">
+                Cảnh báo: Hành động này sẽ lập tức ra lệnh Drone quay về trạm gần nhất hoặc hạ cánh an toàn.
+              </div>
+            </div>
+
+            <div className="p-4 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-2.5">
+              <button
+                type="button"
+                onClick={() => setAbortingFlight(null)}
+                disabled={isAborting}
+                className="px-4 py-2 text-xs font-bold text-slate-600 hover:text-slate-800 bg-white border border-slate-200 rounded-xl transition-all cursor-pointer"
+              >
+                Hủy Bỏ
+              </button>
+              <button
+                type="button"
+                onClick={handleAbortFlight}
+                disabled={isAborting}
+                className="px-4 py-2 text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 rounded-xl shadow-xs transition-all cursor-pointer disabled:opacity-50"
+              >
+                {isAborting ? 'Đang Phát Lệnh Hủy...' : 'Xác Nhận Hủy Khẩn Cấp'}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )

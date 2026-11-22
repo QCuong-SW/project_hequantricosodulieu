@@ -49,6 +49,41 @@ public class AddressesController : ControllerBase
             });
     }
 
+    // PUT: api/v1/addresses/{id}
+    [HttpPut("{id:guid}")]
+    public async Task<IActionResult> UpdateAddress(
+        Guid id,
+        [FromBody] CreateAddressRequest request)
+    {
+        var userId = ResolveCurrentUserId();
+        var updated = await _addressService.UpdateAddressAsync(userId, id, request);
+        if (updated is null)
+            return NotFound(new { success = false, message = $"Address with id '{id}' was not found." });
+
+        return Ok(new
+        {
+            success = true,
+            message = "Address updated successfully.",
+            data = updated
+        });
+    }
+
+    // DELETE: api/v1/addresses/{id}
+    [HttpDelete("{id:guid}")]
+    public async Task<IActionResult> DeleteAddress(Guid id)
+    {
+        var userId = ResolveCurrentUserId();
+        var deleted = await _addressService.DeleteAddressAsync(userId, id);
+        if (!deleted)
+            return NotFound(new { success = false, message = $"Address with id '{id}' was not found." });
+
+        return Ok(new
+        {
+            success = true,
+            message = "Address deleted successfully."
+        });
+    }
+
     private Guid ResolveCurrentUserId()
     {
         var sub = User.FindFirst("sub")?.Value;

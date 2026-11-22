@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
 import { ROLES, getNavigationByRole } from '../navigation/navigationConfig'
+import { clearAuthSession } from '../features/dashboard/authBridge'
+import { showToast } from '../utils/toast'
 import './MainLayout.css'
 
 const ROLE_BADGE_COLORS = {
@@ -15,12 +17,39 @@ export function MainLayout({
   initialRole = ROLES.ADMIN,
   onNavigate,
   onRoleChange,
+  onLogout,
   currentUser,
   children,
 }) {
   const [currentRole, setCurrentRole] = useState(initialRole)
   const [currentPath, setCurrentPath] = useState(activePath)
   const [isSidebarOpen, setIsSidebarOpen] = useState(true)
+  const [toasts, setToasts] = useState([])
+
+  useEffect(() => {
+    const handleToast = (e) => {
+      const toast = e.detail
+      if (!toast) return
+      setToasts((prev) => [...prev, toast])
+      setTimeout(() => {
+        setToasts((prev) => prev.filter((t) => t.id !== toast.id))
+      }, 3500)
+    }
+    window.addEventListener('sdd-toast', handleToast)
+    return () => window.removeEventListener('sdd-toast', handleToast)
+  }, [])
+
+  const removeToast = (id) => {
+    setToasts((prev) => prev.filter((t) => t.id !== id))
+  }
+
+  const handleLogout = () => {
+    clearAuthSession()
+    if (onLogout) {
+      onLogout()
+    }
+    showToast('Đã đăng xuất phiên làm việc an toàn.', 'info')
+  }
 
   useEffect(() => {
     setCurrentPath(activePath)
@@ -107,7 +136,26 @@ export function MainLayout({
                     isActive ? 'bg-white' : 'bg-slate-600 group-hover:bg-slate-400'
                   }`}
                 />
-                {isSidebarOpen && <span className="truncate">{item.label}</span>}
+                {isSidebarOpen && (
+                  <div className="flex items-center justify-between w-full overflow-hidden">
+                    <span className="truncate">{item.label}</span>
+                    {item.path === '/orders' && (
+                      <span className="px-1.5 py-0.5 rounded-full text-[9px] font-mono font-bold bg-blue-500/20 text-blue-300">
+                        6 ĐƠN
+                      </span>
+                    )}
+                    {item.path === '/dispatch/drones' && (
+                      <span className="px-1.5 py-0.5 rounded-full text-[9px] font-mono font-bold bg-emerald-500/20 text-emerald-300">
+                        LIVE
+                      </span>
+                    )}
+                    {item.path === '/stations' && (
+                      <span className="px-1.5 py-0.5 rounded-full text-[9px] font-mono font-bold bg-amber-500/20 text-amber-300">
+                        3 TRẠM
+                      </span>
+                    )}
+                  </div>
+                )}
               </button>
             )
           })}
@@ -149,7 +197,7 @@ export function MainLayout({
             </span>
           </div>
 
-          <div className="flex items-center gap-3.5 flex-wrap">
+          <div className="flex items-center gap-3 flex-wrap">
             {currentUser?.email && (
               <div className="hidden sm:flex items-center gap-2.5 px-3 py-1.5 rounded-full bg-slate-100/80 border border-slate-200/80 text-xs">
                 <span className="w-2 h-2 rounded-full bg-emerald-500" />
@@ -181,8 +229,56 @@ export function MainLayout({
                 ))}
               </select>
             </div>
+
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="px-3 py-1.5 rounded-lg text-xs font-bold text-slate-600 hover:text-rose-700 bg-white hover:bg-rose-50 border border-slate-200 hover:border-rose-200 transition cursor-pointer"
+            >
+              Đăng Xuất
+            </button>
           </div>
         </header>
+
+        {/* Global Toast Notifications Stack */}
+        <div className="fixed top-5 right-5 z-50 flex flex-col gap-2.5 max-w-sm pointer-events-none">
+          {toasts.map((t) => (
+            <div
+              key={t.id}
+              className={`pointer-events-auto bg-white rounded-xl border shadow-xl p-3.5 flex items-center justify-between gap-3 animate-in fade-in slide-in-from-top-4 duration-200 ${
+                t.type === 'success'
+                  ? 'border-emerald-200 bg-emerald-50/70 text-emerald-950'
+                  : t.type === 'error'
+                    ? 'border-rose-200 bg-rose-50/70 text-rose-950'
+                    : t.type === 'warning'
+                      ? 'border-amber-200 bg-amber-50/70 text-amber-950'
+                      : 'border-blue-200 bg-blue-50/70 text-blue-950'
+              }`}
+            >
+              <div className="flex items-center gap-2.5">
+                <span
+                  className={`w-2 h-2 rounded-full shrink-0 ${
+                    t.type === 'success'
+                      ? 'bg-emerald-500'
+                      : t.type === 'error'
+                        ? 'bg-rose-500'
+                        : t.type === 'warning'
+                          ? 'bg-amber-500'
+                          : 'bg-blue-500'
+                  }`}
+                />
+                <span className="text-xs font-semibold">{t.message}</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => removeToast(t.id)}
+                className="text-[11px] font-bold text-slate-400 hover:text-slate-700 cursor-pointer ml-2"
+              >
+                Đóng
+              </button>
+            </div>
+          ))}
+        </div>
 
         {/* Page Content */}
         <main className="flex-1 p-6 md:p-8 max-w-7xl w-full mx-auto">

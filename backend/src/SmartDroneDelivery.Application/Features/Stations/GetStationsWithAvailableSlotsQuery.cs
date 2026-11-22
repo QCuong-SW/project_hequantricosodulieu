@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 namespace SmartDroneDelivery.Application.Features.Stations;
 
 public record GetStationsWithAvailableSlotsQuery(string? SlotType = null, bool OnlyActive = true);
+public record UpdateSlotStatusRequest(string Status);
 
 public interface IStationQueryService
 {
@@ -14,15 +15,17 @@ public interface IStationQueryService
         GetStationsWithAvailableSlotsQuery query, CancellationToken cancellationToken = default);
     Task<LandingStationResponseDto?> GetStationByIdAsync(
         Guid stationId, CancellationToken cancellationToken = default);
+    Task<bool> UpdateSlotStatusAsync(
+        Guid stationId, Guid slotId, string status, CancellationToken cancellationToken = default);
 }
 
 public class StationQueryService : IStationQueryService
 {
-    private readonly IEnumerable<LandingStationResponseDto> _stations;
+    private readonly List<LandingStationResponseDto> _stations;
     public StationQueryService(IEnumerable<LandingStationResponseDto>? stations = null)
     {
         var provided = stations?.ToList();
-        _stations = (provided is { Count: > 0 }) ? provided : SeedDefaultStations();
+        _stations = (provided is { Count: > 0 }) ? provided : SeedDefaultStations().ToList();
     }
 
     public Task<IReadOnlyList<LandingStationResponseDto>> GetStationsWithAvailableSlotsAsync(
@@ -41,7 +44,7 @@ public class StationQueryService : IStationQueryService
 
             return s with
             {
-                AvailableSlots = availableSlots,
+                AvailableSlots = s.AvailableSlots, // keep all slots visible for station management
                 AvailableSlotsCount = availableSlots.Count,
                 AvailableLandingPadsCount = availableSlots.Count(x => x.SlotType == "LANDING_PAD"),
                 AvailableChargingDocksCount = availableSlots.Count(x => x.SlotType == "CHARGING_DOCK")
@@ -54,6 +57,31 @@ public class StationQueryService : IStationQueryService
     public Task<LandingStationResponseDto?> GetStationByIdAsync(Guid stationId, CancellationToken cancellationToken = default)
     {
         return Task.FromResult(_stations.FirstOrDefault(s => s.Id == stationId));
+    }
+
+    public Task<bool> UpdateSlotStatusAsync(Guid stationId, Guid slotId, string status, CancellationToken cancellationToken = default)
+    {
+        var stationIndex = _stations.FindIndex(s => s.Id == stationId);
+        if (stationIndex < 0) return Task.FromResult(false);
+
+        var station = _stations[stationIndex];
+        var slotIndex = station.AvailableSlots.ToList().FindIndex(sl => sl.Id == slotId);
+        if (slotIndex < 0) return Task.FromResult(false);
+
+        var slotsList = station.AvailableSlots.ToList();
+        var existingSlot = slotsList[slotIndex];
+        slotsList[slotIndex] = existingSlot with { Status = status, UpdatedAt = DateTime.UtcNow };
+
+        var availableSlots = slotsList.Where(s => s.Status == "AVAILABLE").ToList();
+        _stations[stationIndex] = station with
+        {
+            AvailableSlots = slotsList,
+            AvailableSlotsCount = availableSlots.Count,
+            AvailableLandingPadsCount = availableSlots.Count(s => s.SlotType == "LANDING_PAD"),
+            AvailableChargingDocksCount = availableSlots.Count(s => s.SlotType == "CHARGING_DOCK")
+        };
+
+        return Task.FromResult(true);
     }
 
     private static IReadOnlyList<LandingStationResponseDto> SeedDefaultStations()
