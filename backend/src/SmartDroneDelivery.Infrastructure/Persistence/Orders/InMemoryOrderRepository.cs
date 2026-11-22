@@ -44,14 +44,12 @@ public class InMemoryOrderRepository : IOrderRepository
     public Task<IReadOnlyList<DeliveryOrder>> GetByCustomerIdAsync(Guid customerId, CancellationToken cancellationToken = default)
     {
         var query = Orders.Values.AsEnumerable();
-        if (customerId != Guid.Empty && customerId != DefaultCustomerId)
+        if (customerId != Guid.Empty)
         {
-            var specific = query.Where(o => o.CustomerId == customerId).ToList();
-            if (specific.Count > 0)
-            {
-                return Task.FromResult<IReadOnlyList<DeliveryOrder>>(
-                    specific.OrderByDescending(o => o.CreatedAt).ToList());
-            }
+            var specific = query.Where(o => o.CustomerId == customerId)
+                .OrderByDescending(o => o.CreatedAt)
+                .ToList();
+            return Task.FromResult<IReadOnlyList<DeliveryOrder>>(specific);
         }
 
         IReadOnlyList<DeliveryOrder> list = query
@@ -233,6 +231,59 @@ public class InMemoryOrderRepository : IOrderRepository
                     IsFragile = true,
                     IsHazardous = false,
                     CreatedAt = now.AddMinutes(-30)
+                }
+            ]
+        };
+
+        var customerBId = Guid.Parse("11111111-1111-1111-1111-111111111006");
+        var order4Id = Guid.Parse("a1111111-1111-1111-1111-111111111004");
+        dict[order4Id] = new DeliveryOrder
+        {
+            Id = order4Id,
+            TrackingNumber = "SDD-20261109-823901",
+            CustomerId = customerBId,
+            Status = OrderStatusStateMachine.Approved,
+            TotalWeightKg = 2.10m,
+            ShippingFee = 46000m,
+            PaymentStatus = "PAID",
+            PickupMethod = "STATION_DROP",
+            DeliveryMethod = "CUSTOMER_ADDRESS",
+            EstimatedDeliveryTime = now.AddMinutes(20),
+            ConcurrencyVersion = 2,
+            CreatedAt = now.AddMinutes(-20),
+            UpdatedAt = now.AddMinutes(-10),
+            AddressSnapshot = new OrderAddressSnapshot
+            {
+                Id = Guid.NewGuid(),
+                OrderId = order4Id,
+                SenderName = "Tran Thi Bich (Customer B)",
+                SenderPhone = "0909876543",
+                SenderAddressText = "Khu Do Thi Sala, TP. Thu Duc, TP.HCM",
+                SenderLatitude = 10.768000m,
+                SenderLongitude = 106.723000m,
+                RecipientName = "Le Minh Khoa",
+                RecipientPhone = "0918765432",
+                RecipientAddressText = "The Landmark 81, Binh Thanh, TP.HCM",
+                RecipientLatitude = 10.795000m,
+                RecipientLongitude = 106.721800m,
+                CreatedAt = now.AddMinutes(-20)
+            },
+            Packages =
+            [
+                new Package
+                {
+                    Id = Guid.NewGuid(),
+                    OrderId = order4Id,
+                    PackageCode = "PKG-2026-0004",
+                    Description = "Mau xet nghiem nhanh & duoc pham chuyen dung",
+                    WeightKg = 2.10m,
+                    LengthCm = 20m,
+                    WidthCm = 15m,
+                    HeightCm = 10m,
+                    DeclaredValue = 1500000m,
+                    IsFragile = true,
+                    IsHazardous = false,
+                    CreatedAt = now.AddMinutes(-20)
                 }
             ]
         };

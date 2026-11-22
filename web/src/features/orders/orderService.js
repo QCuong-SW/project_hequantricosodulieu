@@ -153,5 +153,5 @@ export async function cancelDeliveryOrder(orderId, expectedConcurrencyVersion = 
 }
 
 export function getConfiguredCustomerId() {
-  return import.meta.env.VITE_CUSTOMER_ID || localStorage.getItem('customerId') || DEFAULT_CUSTOMER_ID
+  return localStorage.getItem('customerId') || import.meta.env.VITE_CUSTOMER_ID || DEFAULT_CUSTOMER_ID
 }

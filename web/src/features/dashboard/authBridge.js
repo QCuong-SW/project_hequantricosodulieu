@@ -5,6 +5,15 @@ export function getAccessToken() {
   return window.__accessToken || localStorage.getItem('accessToken') || null;
 }
 
+export function getCurrentUser() {
+  try {
+    const raw = localStorage.getItem('currentUser');
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
 export function setAuthSession(authData) {
   if (!authData?.accessToken) return;
   window.__accessToken = authData.accessToken;
@@ -14,31 +23,66 @@ export function setAuthSession(authData) {
   }
   if (authData.user) {
     localStorage.setItem('currentUser', JSON.stringify(authData.user));
-    if (authData.user.userId) {
-      localStorage.setItem('customerId', String(authData.user.userId));
+    const uid = authData.user.userId || authData.user.id;
+    if (uid) {
+      localStorage.setItem('customerId', String(uid));
     }
   }
 }
 
-export async function loginWithCredentials(email, password = 'P@ssword123!') {
+export async function loginWithCredentials(email, password = 'Password123!') {
   try {
     const res = await fetch(`${AUTH_API_URL}/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ email: email.trim(), password }),
     });
-    if (!res.ok) return null;
-    const data = await res.json();
+
+    const data = await res.json().catch(() => null);
+
+    if (!res.ok) {
+      const errorMsg = data?.detail || data?.message || data?.title || 'Email hoặc mật khẩu không chính xác.';
+      return { success: false, error: errorMsg };
+    }
+
     setAuthSession(data);
-    return data;
-  } catch {
-    return null;
+    return { success: true, data };
+  } catch (err) {
+    return { success: false, error: err.message || 'Không thể kết nối đến máy chủ xác thực.' };
+  }
+}
+
+export async function registerAccount({ fullName, email, password, phone = '' }) {
+  try {
+    const res = await fetch(`${AUTH_API_URL}/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      body: JSON.stringify({
+        fullName: fullName.trim(),
+        email: email.trim(),
+        password,
+        phone: phone.trim() || null,
+      }),
+    });
+
+    const data = await res.json().catch(() => null);
+
+    if (!res.ok) {
+      const errorMsg = data?.detail || data?.message || data?.title || 'Đăng ký không thành công.';
+      return { success: false, error: errorMsg };
+    }
+
+    setAuthSession(data);
+    return { success: true, data };
+  } catch (err) {
+    return { success: false, error: err.message || 'Không thể kết nối đến máy chủ.' };
   }
 }
 
 export async function loginAsRole(role) {
   const account = ROLE_ACCOUNTS[role] || ROLE_ACCOUNTS.CUSTOMER;
-  return loginWithCredentials(account.email, 'P@ssword123!');
+  const res = await loginWithCredentials(account.email, 'Password123!');
+  return res.success ? res.data : null;
 }
 
 export function clearAuthSession() {

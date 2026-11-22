@@ -59,6 +59,43 @@ public class AuthController : ControllerBase
         return result.Success ? Ok(result.Data) : Unauthorized(Problem401(result.Error));
     }
 
+    /// <summary>Đăng ký tài khoản người dùng mới (ROLE: CUSTOMER) với không gian dữ liệu riêng biệt.</summary>
+    [HttpPost("register")]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(AuthResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> Register([FromBody] RegisterRequest request, CancellationToken ct)
+    {
+        var result = await _auth.RegisterAsync(request, GetClientIp(), ct);
+        if (!result.Success)
+        {
+            return BadRequest(new ProblemDetails
+            {
+                Status = StatusCodes.Status400BadRequest,
+                Title = "Đăng ký thất bại",
+                Detail = result.Error
+            });
+        }
+
+        if (result.Data?.User != null)
+        {
+            var u = result.Data.User;
+            RuntimeUsers[u.UserId.ToString()] = new AdminUserItem
+            {
+                Id = u.UserId.ToString(),
+                Email = u.Email,
+                FullName = u.FullName,
+                Phone = request.Phone,
+                Status = "ACTIVE",
+                Role = "CUSTOMER",
+                Roles = new List<string> { "CUSTOMER" },
+                CreatedAt = DateTime.UtcNow
+            };
+        }
+
+        return Ok(result.Data);
+    }
+
     /// <summary>Đổi refresh token lấy cặp token mới (refresh token cũ bị thu hồi).</summary>
     [HttpPost("refresh")]
     [AllowAnonymous]
@@ -203,7 +240,8 @@ public class AuthController : ControllerBase
             new AdminUserItem { Id = "11111111-1111-1111-1111-111111111002", Email = "dispatcher@smartdrone.vn", FullName = "Điều phối viên Chuyến Bay", Phone = "0900000002", Status = "ACTIVE", Role = "DISPATCHER", Roles = new List<string> { "DISPATCHER" }, CreatedAt = DateTime.UtcNow.AddDays(-28) },
             new AdminUserItem { Id = "11111111-1111-1111-1111-111111111003", Email = "operator@smartdrone.vn", FullName = "Nhân viên Bãi Đáp Trạm", Phone = "0900000003", Status = "ACTIVE", Role = "STATION_OPERATOR", Roles = new List<string> { "STATION_OPERATOR" }, CreatedAt = DateTime.UtcNow.AddDays(-25) },
             new AdminUserItem { Id = "11111111-1111-1111-1111-111111111004", Email = "manager@smartdrone.vn", FullName = "Quản lý Logistics Vận Hành", Phone = "0900000004", Status = "ACTIVE", Role = "LOGISTICS_MANAGER", Roles = new List<string> { "LOGISTICS_MANAGER" }, CreatedAt = DateTime.UtcNow.AddDays(-20) },
-            new AdminUserItem { Id = "11111111-1111-1111-1111-111111111005", Email = "customer@smartdrone.vn", FullName = "Khách hàng Doanh Nghiệp Mẫu", Phone = "0900000005", Status = "ACTIVE", Role = "CUSTOMER", Roles = new List<string> { "CUSTOMER" }, CreatedAt = DateTime.UtcNow.AddDays(-15) },
+            new AdminUserItem { Id = "11111111-1111-1111-1111-111111111005", Email = "customer@smartdrone.vn", FullName = "Nguyễn Văn An (Khách hàng A)", Phone = "0900000005", Status = "ACTIVE", Role = "CUSTOMER", Roles = new List<string> { "CUSTOMER" }, CreatedAt = DateTime.UtcNow.AddDays(-15) },
+            new AdminUserItem { Id = "11111111-1111-1111-1111-111111111006", Email = "customer2@smartdrone.vn", FullName = "Trần Thị Bích (Khách hàng B)", Phone = "0900000006", Status = "ACTIVE", Role = "CUSTOMER", Roles = new List<string> { "CUSTOMER" }, CreatedAt = DateTime.UtcNow.AddDays(-10) },
         };
 
         foreach (var u in defaults)

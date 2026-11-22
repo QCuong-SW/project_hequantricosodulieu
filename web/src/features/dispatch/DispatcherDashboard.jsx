@@ -147,19 +147,9 @@ export function DispatcherDashboard() {
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-emerald-900/10 pb-5">
         <div>
-          <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-emerald-600"></span>
-            <p className="text-xs font-bold tracking-widest text-emerald-700 uppercase font-mono">
-              FLIGHT OPERATIONS / DISPATCHER CENTER
-            </p>
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 mt-1">
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">
             Trung Tâm Điều Phối Chuyến Bay Drone
           </h1>
-          <p className="text-sm text-slate-500 mt-0.5">
-            Duyệt đơn hàng, kiểm tra tải trọng kiện hàng (&lt;= 5.0 kg), phân bổ Drone và giám sát
-            hành lang bay.
-          </p>
         </div>
         <div className="flex items-center gap-2">
           <button

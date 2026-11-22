@@ -8,7 +8,13 @@ namespace SmartDroneDelivery.Application.Services;
 
 public class AddressService : IAddressService
 {
-    private static readonly ConcurrentDictionary<Guid, AddressResponse> FallbackAddresses = SeedFallbackAddresses();
+    private class FallbackItem
+    {
+        public Guid UserId { get; set; }
+        public AddressResponse Address { get; set; } = new();
+    }
+
+    private static readonly ConcurrentDictionary<Guid, FallbackItem> FallbackAddresses = SeedFallbackAddresses();
     private readonly IAppDbContext _context;
 
     public AddressService(IAppDbContext context)
@@ -53,6 +59,8 @@ public class AddressService : IAddressService
         }
 
         return FallbackAddresses.Values
+            .Where(x => x.UserId == userId)
+            .Select(x => x.Address)
             .OrderByDescending(x => x.IsDefault)
             .ThenByDescending(x => x.CreatedAt)
             .ToList();
@@ -112,7 +120,7 @@ public class AddressService : IAddressService
                     CreatedAt = newAddress.CreatedAt
                 };
 
-                FallbackAddresses[dto.Id] = dto;
+                FallbackAddresses[dto.Id] = new FallbackItem { UserId = userId, Address = dto };
                 return dto;
             }
         }
@@ -125,9 +133,9 @@ public class AddressService : IAddressService
         {
             foreach (var key in FallbackAddresses.Keys.ToList())
             {
-                if (FallbackAddresses.TryGetValue(key, out var item))
+                if (FallbackAddresses.TryGetValue(key, out var item) && item.UserId == userId)
                 {
-                    item.IsDefault = false;
+                    item.Address.IsDefault = false;
                 }
             }
         }
@@ -145,7 +153,7 @@ public class AddressService : IAddressService
             CreatedAt = DateTime.UtcNow
         };
 
-        FallbackAddresses[fallbackDto.Id] = fallbackDto;
+        FallbackAddresses[fallbackDto.Id] = new FallbackItem { UserId = userId, Address = fallbackDto };
         return fallbackDto;
     }
 
@@ -197,7 +205,7 @@ public class AddressService : IAddressService
                         CreatedAt = addr.CreatedAt
                     };
 
-                    FallbackAddresses[dto.Id] = dto;
+                    FallbackAddresses[dto.Id] = new FallbackItem { UserId = userId, Address = dto };
                     return dto;
                 }
             }
@@ -206,24 +214,27 @@ public class AddressService : IAddressService
 
         if (FallbackAddresses.TryGetValue(addressId, out var existing))
         {
+            if (existing.UserId != userId)
+                return null; // Forbidden: Cannot update another user's address
+
             if (request.IsDefault)
             {
                 foreach (var k in FallbackAddresses.Keys)
                 {
-                    if (k != addressId && FallbackAddresses.TryGetValue(k, out var other))
-                        other.IsDefault = false;
+                    if (k != addressId && FallbackAddresses.TryGetValue(k, out var other) && other.UserId == userId)
+                        other.Address.IsDefault = false;
                 }
             }
 
-            existing.AddressLine = request.AddressLine.Trim();
-            existing.Ward = request.Ward?.Trim();
-            existing.District = request.District?.Trim();
-            existing.City = request.City.Trim();
-            existing.Latitude = request.Latitude;
-            existing.Longitude = request.Longitude;
-            existing.IsDefault = request.IsDefault;
+            existing.Address.AddressLine = request.AddressLine.Trim();
+            existing.Address.Ward = request.Ward?.Trim();
+            existing.Address.District = request.District?.Trim();
+            existing.Address.City = request.City.Trim();
+            existing.Address.Latitude = request.Latitude;
+            existing.Address.Longitude = request.Longitude;
+            existing.Address.IsDefault = request.IsDefault;
 
-            return existing;
+            return existing.Address;
         }
 
         return null;
@@ -252,56 +263,111 @@ public class AddressService : IAddressService
         }
         catch {}
 
-        return FallbackAddresses.TryRemove(addressId, out _);
+        if (FallbackAddresses.TryGetValue(addressId, out var existing))
+        {
+            if (existing.UserId != userId)
+                return false; // Forbidden: Cannot delete another user's address
+
+            return FallbackAddresses.TryRemove(addressId, out _);
+        }
+
+        return false;
     }
 
-    private static ConcurrentDictionary<Guid, AddressResponse> SeedFallbackAddresses()
+    private static ConcurrentDictionary<Guid, FallbackItem> SeedFallbackAddresses()
     {
-        var dict = new ConcurrentDictionary<Guid, AddressResponse>();
+        var dict = new ConcurrentDictionary<Guid, FallbackItem>();
         var now = DateTime.UtcNow;
+
+        var userA = Guid.Parse("11111111-1111-1111-1111-111111111005");
+        var userB = Guid.Parse("11111111-1111-1111-1111-111111111006");
 
         var items = new[]
         {
-            new AddressResponse
+            new FallbackItem
             {
-                Id = Guid.Parse("44444444-4444-4444-4444-444444444001"),
-                AddressLine = "Lô E2a-7, Đường D1, Khu Công Nghệ Cao",
-                Ward = "Long Thạnh Mỹ",
-                District = "TP. Thủ Đức",
-                City = "TP. Hồ Chí Minh",
-                Latitude = 10.841128m,
-                Longitude = 106.809883m,
-                IsDefault = true,
-                CreatedAt = now.AddDays(-5)
+                UserId = userA,
+                Address = new AddressResponse
+                {
+                    Id = Guid.Parse("44444444-4444-4444-4444-444444444001"),
+                    AddressLine = "Lô E2a-7, Đường D1, Khu Công Nghệ Cao",
+                    Ward = "Long Thạnh Mỹ",
+                    District = "TP. Thủ Đức",
+                    City = "TP. Hồ Chí Minh",
+                    Latitude = 10.841128m,
+                    Longitude = 106.809883m,
+                    IsDefault = true,
+                    CreatedAt = now.AddDays(-5)
+                }
             },
-            new AddressResponse
+            new FallbackItem
             {
-                Id = Guid.Parse("44444444-4444-4444-4444-444444444002"),
-                AddressLine = "Số 2 Hải Triều, Tòa Bitexco Financial Tower",
-                Ward = "Bến Nghé",
-                District = "Quận 1",
-                City = "TP. Hồ Chí Minh",
-                Latitude = 10.771595m,
-                Longitude = 106.704750m,
-                IsDefault = false,
-                CreatedAt = now.AddDays(-3)
+                UserId = userA,
+                Address = new AddressResponse
+                {
+                    Id = Guid.Parse("44444444-4444-4444-4444-444444444002"),
+                    AddressLine = "Số 2 Hải Triều, Tòa Bitexco Financial Tower",
+                    Ward = "Bến Nghé",
+                    District = "Quận 1",
+                    City = "TP. Hồ Chí Minh",
+                    Latitude = 10.771595m,
+                    Longitude = 106.704750m,
+                    IsDefault = false,
+                    CreatedAt = now.AddDays(-3)
+                }
             },
-            new AddressResponse
+            new FallbackItem
             {
-                Id = Guid.Parse("44444444-4444-4444-4444-444444444003"),
-                AddressLine = "101 Tôn Dật Tiên, Khu đô thị Phú Mỹ Hưng",
-                Ward = "Tân Phú",
-                District = "Quận 7",
-                City = "TP. Hồ Chí Minh",
-                Latitude = 10.729560m,
-                Longitude = 106.721750m,
-                IsDefault = false,
-                CreatedAt = now.AddDays(-1)
+                UserId = userA,
+                Address = new AddressResponse
+                {
+                    Id = Guid.Parse("44444444-4444-4444-4444-444444444003"),
+                    AddressLine = "101 Tôn Dật Tiên, Khu đô thị Phú Mỹ Hưng",
+                    Ward = "Tân Phú",
+                    District = "Quận 7",
+                    City = "TP. Hồ Chí Minh",
+                    Latitude = 10.729560m,
+                    Longitude = 106.721750m,
+                    IsDefault = false,
+                    CreatedAt = now.AddDays(-1)
+                }
+            },
+            new FallbackItem
+            {
+                UserId = userB,
+                Address = new AddressResponse
+                {
+                    Id = Guid.Parse("44444444-4444-4444-4444-444444444004"),
+                    AddressLine = "Khu Đô Thị Sala, Số 10 Mai Chí Thọ",
+                    Ward = "An Lợi Đông",
+                    District = "TP. Thủ Đức",
+                    City = "TP. Hồ Chí Minh",
+                    Latitude = 10.768000m,
+                    Longitude = 106.723000m,
+                    IsDefault = true,
+                    CreatedAt = now.AddDays(-2)
+                }
+            },
+            new FallbackItem
+            {
+                UserId = userB,
+                Address = new AddressResponse
+                {
+                    Id = Guid.Parse("44444444-4444-4444-4444-444444444005"),
+                    AddressLine = "The Landmark 81, 720A Điện Biên Phủ",
+                    Ward = "Phường 22",
+                    District = "Quận Bình Thạnh",
+                    City = "TP. Hồ Chí Minh",
+                    Latitude = 10.795000m,
+                    Longitude = 106.721800m,
+                    IsDefault = false,
+                    CreatedAt = now.AddDays(-1)
+                }
             }
         };
 
         foreach (var item in items)
-            dict[item.Id] = item;
+            dict[item.Address.Id] = item;
 
         return dict;
     }

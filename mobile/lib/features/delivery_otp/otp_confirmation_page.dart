@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:material_ui/material_ui.dart';
+import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
 import '../../core/session_manager.dart';
@@ -148,10 +148,10 @@ class _OtpConfirmationPageState extends State<OtpConfirmationPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF3F6FC),
+      backgroundColor: const Color(0xFFF6F8F7),
       appBar: AppBar(
         title: const Text('Xác nhận nhận hàng'),
-        backgroundColor: const Color(0xFF2563EB),
+        backgroundColor: const Color(0xFF059669),
         foregroundColor: Colors.white,
       ),
       body: SafeArea(
@@ -161,7 +161,8 @@ class _OtpConfirmationPageState extends State<OtpConfirmationPage> {
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 430),
               child: Card(
-                elevation: 3,
+                elevation: 2,
+                color: Colors.white,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(20),
                 ),
@@ -177,9 +178,7 @@ class _OtpConfirmationPageState extends State<OtpConfirmationPage> {
                               ? Icons.check_circle
                               : Icons.verified_user_outlined,
                           size: 76,
-                          color: _isDelivered
-                              ? Colors.green
-                              : const Color(0xFF2563EB),
+                          color: const Color(0xFF059669),
                         ),
 
                         const SizedBox(height: 20),
@@ -192,7 +191,7 @@ class _OtpConfirmationPageState extends State<OtpConfirmationPage> {
                           style: const TextStyle(
                             fontSize: 23,
                             fontWeight: FontWeight.bold,
-                            color: Color(0xFF172554),
+                            color: Color(0xFF0F172A),
                           ),
                         ),
 
@@ -213,7 +212,7 @@ class _OtpConfirmationPageState extends State<OtpConfirmationPage> {
                         Container(
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFEFF6FF),
+                            color: const Color(0xFFECFDF5),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Column(
@@ -327,7 +326,7 @@ class _OtpConfirmationPageState extends State<OtpConfirmationPage> {
                           child: ElevatedButton(
                             onPressed: _isLoading ? null : _confirmDelivery,
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF2563EB),
+                              backgroundColor: const Color(0xFF059669),
                               foregroundColor: Colors.white,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),

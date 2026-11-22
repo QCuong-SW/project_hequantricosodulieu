@@ -1,5 +1,5 @@
 
-import 'package:material_ui/material_ui.dart';
+import 'package:flutter/material.dart';
 
 import 'core/session_manager.dart';
 import 'features/auth/login_page.dart';
@@ -20,8 +20,9 @@ class SmartDroneApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF2563EB),
+          seedColor: const Color(0xFF059669),
         ),
+        scaffoldBackgroundColor: const Color(0xFFF6F8F7),
         useMaterial3: true,
       ),
       home: const SessionGate(),

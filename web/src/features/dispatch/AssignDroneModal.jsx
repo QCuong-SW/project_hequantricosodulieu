@@ -298,8 +298,8 @@ export function AssignDroneModal({
           </div>
 
           {/* Waypoints preview */}
-          <div className="p-3 bg-[#0B1512] text-white rounded-xl font-mono text-[11px] space-y-1 border border-emerald-950">
-            <div className="text-emerald-400 uppercase tracking-widest text-[10px] font-bold">
+          <div className="p-3 bg-emerald-50/70 text-emerald-950 rounded-xl font-mono text-[11px] space-y-1 border border-emerald-200">
+            <div className="text-emerald-700 uppercase tracking-widest text-[10px] font-bold">
               Waypoints Corridors:
             </div>
             <div>

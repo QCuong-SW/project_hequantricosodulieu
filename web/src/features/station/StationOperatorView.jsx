@@ -189,26 +189,9 @@ export default function StationOperatorView() {
       {/* Header */}
       <div className="flex flex-wrap items-end justify-between gap-4 pb-5 border-b border-emerald-900/10">
         <div>
-          <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-emerald-600"></span>
-            <p className="text-[11px] font-extrabold uppercase tracking-widest text-emerald-700 font-mono">
-              STATION OPERATOR / PACKAGE HANDOFF CONSOLE
-            </p>
-          </div>
-          <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-slate-900 mt-1">
+          <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-slate-900">
             Trạm Tiếp Đất &amp; Bàn Giao Kiện Hàng Drone
           </h1>
-          <p className="text-sm text-slate-500 mt-1">
-            Kiểm tra kiện hàng tại bãi đáp (STATION_RECEIVED) và xác nhận ngàm khóa lên Drone
-            (LOADED_ON_DRONE) với cơ chế chống trùng lặp Idempotency.
-          </p>
-        </div>
-
-        <div className="flex items-center gap-2 bg-white px-3.5 py-2 rounded-xl border border-emerald-200/80 shadow-xs">
-          <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
-          <span className="text-xs font-bold text-slate-800">
-            Trạm đang trực: {currentStation?.stationCode || "STN-Q1"}
-          </span>
         </div>
       </div>
 

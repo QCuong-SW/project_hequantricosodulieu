@@ -66,18 +66,9 @@ export default function LogisticsDashboard() {
       {/* Page Header */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 border-b border-emerald-900/10 pb-5">
         <div>
-          <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-emerald-600"></span>
-            <p className="text-xs font-bold tracking-widest text-emerald-700 uppercase font-mono">
-              LOGISTICS / REAL-TIME OPERATIONS ANALYTICS
-            </p>
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 mt-1">
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">
             Dashboard Vận Hành Logistics &amp; Trạm Tiếp Đất
           </h1>
-          <p className="text-sm text-slate-600 mt-0.5">
-            Tổng hợp dữ liệu hiệu suất chuyến bay, tỷ lệ đúng giờ và mức độ sử dụng trạm từ SQL Views.
-          </p>
         </div>
 
         {/* Date Filter & Actions Controls */}

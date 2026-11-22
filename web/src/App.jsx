@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react'
 import MainLayout from './layouts/MainLayout'
 import { ROLES } from './navigation/navigationConfig'
 import { ROLE_ACCOUNTS, API_V1_URL } from './config/apiConfig'
-import { loginAsRole, loginWithCredentials, getAccessToken, clearAuthSession } from './features/dashboard/authBridge'
+import { loginAsRole, loginWithCredentials, getAccessToken, clearAuthSession, getCurrentUser } from './features/dashboard/authBridge'
+import LoginPage from './features/auth/LoginPage'
 import LogisticsDashboard from './features/dashboard/LogisticsDashboard'
 import CreateOrderPage from './features/orders/CreateOrderPage'
 import OrderListPage from './features/orders/OrderListPage'
@@ -10,6 +11,8 @@ import { getMyAddresses, createMyAddress, updateMyAddress, deleteMyAddress } fro
 import DispatcherDashboard from './features/dispatch/DispatcherDashboard'
 import StationOperatorView from './features/station/StationOperatorView'
 import LiveDroneMapView from './features/station/LiveDroneMapView'
+import AdminProductsPage from './features/products/AdminProductsPage'
+import AdminFeedbacksPage from './features/feedbacks/AdminFeedbacksPage'
 import './App.css'
 
 function SavedAddressesPage() {
@@ -110,13 +113,7 @@ function SavedAddressesPage() {
     <section className="max-w-6xl mx-auto space-y-6 text-slate-900 pb-16">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-emerald-900/10 pb-5">
         <div>
-          <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-emerald-600"></span>
-            <p className="text-xs font-bold tracking-widest text-emerald-700 uppercase font-mono">
-              CUSTOMER / ADDRESS BOOK
-            </p>
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 mt-1">
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">
             Sổ Địa Chỉ Giao Nhận Bằng Drone
           </h1>
           <p className="text-sm text-slate-500 mt-0.5">
@@ -570,18 +567,9 @@ function AdminUsersPage({ currentUser, onSwitchAccount }) {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-emerald-900/10 pb-5">
         <div>
-          <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-emerald-600"></span>
-            <p className="text-xs font-bold tracking-widest text-emerald-700 uppercase font-mono">
-              ADMIN / RBAC &amp; DATABASE OPERATIONS
-            </p>
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 mt-1">
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">
             Quản Trị Người Dùng &amp; Giám Sát CSDL
           </h1>
-          <p className="text-sm text-slate-500 mt-0.5">
-            Quản trị 5 vai trò bảo mật RBAC, giám sát trạng thái SQL Server, hiệu suất SQL Views và nhật ký kiểm toán.
-          </p>
         </div>
         <div className="flex items-center gap-2">
           {adminTab === 'USERS' && (
@@ -655,59 +643,6 @@ function AdminUsersPage({ currentUser, onSwitchAccount }) {
       {/* TAB 1: USERS & RBAC */}
       {adminTab === 'USERS' && (
         <div className="space-y-6">
-          {/* JWT Login Simulator Card */}
-          <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-xs space-y-4">
-            <div>
-              <h2 className="text-sm font-bold text-slate-900">Kiểm Tra Đăng Nhập JWT (`POST /api/auth/login`)</h2>
-              <p className="text-xs text-slate-500 mt-0.5">
-                Thử nghiệm cấp phát Access Token &amp; Refresh Token theo tiêu chuẩn OAuth2 / OpenID Connect.
-              </p>
-            </div>
-
-            <form onSubmit={handleLoginSubmit} className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-end text-xs">
-              <div className="sm:col-span-5">
-                <label className="block text-slate-700 font-bold uppercase tracking-wider text-[11px] mb-1.5">
-                  Email tài khoản *
-                </label>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  className="w-full px-3.5 py-2 rounded-xl border border-slate-300 bg-slate-50 text-slate-900 text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition"
-                />
-              </div>
-              <div className="sm:col-span-4">
-                <label className="block text-slate-700 font-bold uppercase tracking-wider text-[11px] mb-1.5">
-                  Mật khẩu *
-                </label>
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  className="w-full px-3.5 py-2 rounded-xl border border-slate-300 bg-slate-50 text-slate-900 text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition"
-                />
-              </div>
-              <div className="sm:col-span-3">
-                <button
-                  type="submit"
-                  className="w-full py-2 px-4 rounded-xl font-bold text-white bg-emerald-600 hover:bg-emerald-700 shadow-xs shadow-emerald-600/20 transition cursor-pointer text-xs"
-                >
-                  Đăng Nhập &amp; Cấp JWT
-                </button>
-              </div>
-            </form>
-
-            <div className="p-3 bg-emerald-50/50 rounded-xl border border-emerald-100 flex items-center justify-between text-xs text-slate-700">
-              <div>
-                Trạng thái Token: <strong className="font-semibold text-emerald-800">{hasToken ? 'Đã cấp JWT Bearer' : 'Chưa có Token'}</strong>
-                {currentUser?.email ? ` — Đang đăng nhập: ${currentUser.email}` : ''}
-              </div>
-              <span className="font-mono text-[11px] text-emerald-700 font-bold">SHA-256 HMAC</span>
-            </div>
-          </div>
-
           {/* Users RBAC Table with Search & Filters */}
           <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs overflow-hidden">
             <div className="p-4 border-b border-slate-100 flex flex-wrap items-center justify-between gap-3">
@@ -726,9 +661,6 @@ function AdminUsersPage({ currentUser, onSwitchAccount }) {
                 >
                   <option value="ALL">Tất Cả Vai Trò</option>
                   <option value="ADMIN">ADMIN</option>
-                  <option value="DISPATCHER">DISPATCHER</option>
-                  <option value="STATION_OPERATOR">STATION_OPERATOR</option>
-                  <option value="LOGISTICS_MANAGER">LOGISTICS_MANAGER</option>
                   <option value="CUSTOMER">CUSTOMER</option>
                 </select>
               </div>
@@ -1103,9 +1035,6 @@ function AdminUsersPage({ currentUser, onSwitchAccount }) {
                     className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600"
                   >
                     <option value="CUSTOMER">CUSTOMER</option>
-                    <option value="DISPATCHER">DISPATCHER</option>
-                    <option value="STATION_OPERATOR">STATION_OPERATOR</option>
-                    <option value="LOGISTICS_MANAGER">LOGISTICS_MANAGER</option>
                     <option value="ADMIN">ADMIN</option>
                   </select>
                 </div>
@@ -1150,27 +1079,48 @@ function AdminUsersPage({ currentUser, onSwitchAccount }) {
 }
 
 export default function App() {
-  const [role, setRole] = useState(ROLES.ADMIN)
-  const [activePath, setActivePath] = useState('/dashboard')
+  const [currentUser, setCurrentUser] = useState(() => getCurrentUser())
+  const [role, setRole] = useState(() => {
+    const user = getCurrentUser()
+    return user?.roles?.[0] || ROLES.CUSTOMER
+  })
+  const [activePath, setActivePath] = useState(() => {
+    const user = getCurrentUser()
+    const r = user?.roles?.[0] || ROLES.CUSTOMER
+    return r === ROLES.CUSTOMER ? '/orders' : '/dashboard'
+  })
   const [trackingOrderId, setTrackingOrderId] = useState('SDD-20261108-482910')
-  const [currentUser, setCurrentUser] = useState(ROLE_ACCOUNTS.ADMIN)
 
+  // When currentUser changes, ensure their customerId is persisted for data isolation
   useEffect(() => {
-    let active = true
-    const fallbackUser = ROLE_ACCOUNTS[role] || ROLE_ACCOUNTS.CUSTOMER
-    setCurrentUser(fallbackUser)
-    localStorage.setItem('customerId', ROLE_ACCOUNTS.CUSTOMER.userId)
-
-    loginAsRole(role).then((authData) => {
-      if (active && authData?.user) {
-        setCurrentUser(authData.user)
-      }
-    })
-
-    return () => {
-      active = false
+    if (currentUser?.userId || currentUser?.id) {
+      const uid = String(currentUser.userId || currentUser.id)
+      localStorage.setItem('customerId', uid)
     }
-  }, [role])
+  }, [currentUser])
+
+  function handleLoginSuccess(user, userRole) {
+    setCurrentUser(user)
+    const normalizedRole = userRole || user?.roles?.[0] || ROLES.CUSTOMER
+    setRole(normalizedRole)
+    if (normalizedRole === ROLES.CUSTOMER) {
+      setActivePath('/orders')
+    } else {
+      setActivePath('/dashboard')
+    }
+  }
+
+  function handleLogout() {
+    clearAuthSession()
+    setCurrentUser(null)
+    setRole(ROLES.CUSTOMER)
+    setActivePath('/orders')
+  }
+
+  // Gating: If not logged in, show the Login Page
+  if (!currentUser || !getAccessToken()) {
+    return <LoginPage onLoginSuccess={handleLoginSuccess} />
+  }
 
   function renderActiveView() {
     switch (activePath) {
@@ -1205,6 +1155,10 @@ export default function App() {
         return <StationOperatorView />
       case '/tracking':
         return <LiveDroneMapView key={trackingOrderId} initialOrderId={trackingOrderId} />
+      case '/admin/products':
+        return <AdminProductsPage />
+      case '/admin/feedbacks':
+        return <AdminFeedbacksPage />
       case '/admin/users':
         return (
           <AdminUsersPage
@@ -1227,12 +1181,7 @@ export default function App() {
       currentUser={currentUser}
       onNavigate={(path) => setActivePath(path)}
       onRoleChange={(nextRole) => setRole(nextRole)}
-      onLogout={() => {
-        clearAuthSession()
-        setCurrentUser(null)
-        setRole(ROLES.CUSTOMER)
-        setActivePath('/dashboard')
-      }}
+      onLogout={handleLogout}
     >
       {renderActiveView()}
     </MainLayout>

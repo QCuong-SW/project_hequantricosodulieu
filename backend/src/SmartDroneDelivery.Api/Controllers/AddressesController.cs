@@ -86,7 +86,7 @@ public class AddressesController : ControllerBase
 
     private Guid ResolveCurrentUserId()
     {
-        var sub = User.FindFirst("sub")?.Value;
+        var sub = User.FindFirst("sub")?.Value ?? User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
         return Guid.TryParse(sub, out var id) && id != Guid.Empty ? id : DefaultCustomerUserId;
     }
 }

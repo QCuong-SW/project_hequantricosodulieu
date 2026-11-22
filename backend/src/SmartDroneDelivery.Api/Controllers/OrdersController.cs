@@ -8,6 +8,9 @@ namespace SmartDroneDelivery.Api.Controllers;
 [Route("api/v1/delivery-orders")]
 public class OrdersController : ControllerBase
 {
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, (double Progress, DateTime UpdatedAt, bool Paused)> TelemetryOverrides = new(StringComparer.OrdinalIgnoreCase);
+    private static readonly DateTime ServerBootTime = DateTime.UtcNow;
+
     private readonly IOrderService _orderService;
     private readonly IOrderCancellationService _orderCancellationService;
     private readonly IOrderRepository _orderRepository;
@@ -27,6 +30,16 @@ public class OrdersController : ControllerBase
         [FromBody] CreateOrderRequest request,
         CancellationToken cancellationToken)
     {
+        var sub = User.FindFirst("sub")?.Value ?? User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (Guid.TryParse(sub, out var callerId) && callerId != Guid.Empty)
+        {
+            request.CustomerId = callerId;
+        }
+        else if (request.CustomerId == Guid.Empty)
+        {
+            request.CustomerId = Guid.Parse("11111111-1111-1111-1111-111111111005");
+        }
+
         var (order, errors) = await _orderService.CreateOrderAsync(request, cancellationToken);
         if (errors.Count > 0 || order is null)
         {
@@ -38,13 +51,23 @@ public class OrdersController : ControllerBase
             });
         }
 
+        // Đặt xong tự động chuyển sang trạng thái đang giao hàng (IN_TRANSIT) để Drone bay giao ngay
+        var storedOrder = await _orderRepository.GetByIdAsync(order.Id, cancellationToken);
+        if (storedOrder is not null)
+        {
+            storedOrder.Status = "IN_TRANSIT";
+            storedOrder.UpdatedAt = DateTime.UtcNow;
+            await _orderRepository.AddAsync(storedOrder, cancellationToken);
+            order.Status = "IN_TRANSIT";
+        }
+
         return CreatedAtAction(
             nameof(GetOrderById),
             new { id = order.Id },
             new
             {
                 success = true,
-                message = "Delivery order created successfully and is pending approval.",
+                message = "Đặt hàng thành công! Drone đã cất cánh và đang trên đường giao hàng.",
                 data = order
             });
     }
@@ -96,6 +119,17 @@ public class OrdersController : ControllerBase
             {
                 success = false,
                 message = $"Delivery order '{id}' was not found."
+            });
+        }
+
+        var sub = User.FindFirst("sub")?.Value ?? User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        var role = User.FindFirst("role")?.Value ?? User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
+        if (Guid.TryParse(sub, out var callerId) && (role == "CUSTOMER" || string.IsNullOrEmpty(role)) && order.CustomerId != callerId)
+        {
+            return StatusCode(StatusCodes.Status403Forbidden, new
+            {
+                success = false,
+                message = "Bạn không có quyền truy cập đơn hàng của người dùng khác (Data Isolation)."
             });
         }
 
@@ -228,4 +262,332 @@ public class OrdersController : ControllerBase
             }
         });
     }
+
+    [HttpGet("telemetry/{key}")]
+    public async Task<IActionResult> GetSynchronizedTelemetry(
+        string key,
+        CancellationToken cancellationToken = default)
+    {
+        var order = await _orderRepository.GetByTrackingNumberAsync(key, cancellationToken);
+        if (order is null && Guid.TryParse(key, out var guidId))
+        {
+            order = await _orderRepository.GetByIdAsync(guidId, cancellationToken);
+        }
+
+        var originLat = (double)(order?.AddressSnapshot?.SenderLatitude ?? 10.771595m);
+        var originLng = (double)(order?.AddressSnapshot?.SenderLongitude ?? 106.704750m);
+        var originLabel = order?.AddressSnapshot?.SenderAddressText ?? "Trạm Drone Hub Trung Tâm Quận 1";
+
+        var destLat = (double)(order?.AddressSnapshot?.RecipientLatitude ?? 10.841128m);
+        var destLng = (double)(order?.AddressSnapshot?.RecipientLongitude ?? 106.809883m);
+        var destLabel = order?.AddressSnapshot?.RecipientAddressText ?? "Khu Công Nghệ Cao TP. Thủ Đức";
+
+        var trackingKey = order?.TrackingNumber ?? key;
+        var nowUtc = DateTime.UtcNow;
+        var nowUnixMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+        const double speedPerSecond = 1.0 / 50.0; // 50 giây bay hết hành trình (2% mỗi giây), di chuyển cực mượt
+
+        double baseProgress;
+        long baseUnixMs;
+        bool paused;
+        double progress;
+
+        if (string.Equals(order?.Status, "DELIVERED", StringComparison.OrdinalIgnoreCase))
+        {
+            baseProgress = 1.0;
+            baseUnixMs = nowUnixMs;
+            paused = true;
+            progress = 1.0;
+        }
+        else if (TelemetryOverrides.TryGetValue(trackingKey, out var ov))
+        {
+            baseProgress = ov.Progress;
+            baseUnixMs = new DateTimeOffset(ov.UpdatedAt, TimeSpan.Zero).ToUnixTimeMilliseconds();
+            paused = ov.Paused;
+            if (paused)
+            {
+                progress = baseProgress;
+            }
+            else
+            {
+                var elapsedSec = (nowUnixMs - baseUnixMs) / 1000.0;
+                var raw = baseProgress + elapsedSec * speedPerSecond;
+                // Khi bay đến 100% thì Drone hạ cánh tại điểm giao để khách hàng xác nhận nhận hàng!
+                if (raw >= 1.0)
+                {
+                    progress = 1.0;
+                    paused = true;
+                    TelemetryOverrides[trackingKey] = (1.0, nowUtc, true);
+                }
+                else
+                {
+                    progress = raw;
+                }
+            }
+        }
+        else
+        {
+            baseUnixMs = new DateTimeOffset(ServerBootTime, TimeSpan.Zero).ToUnixTimeMilliseconds();
+            baseProgress = 0.20;
+            paused = false;
+            var elapsedSec = (nowUnixMs - baseUnixMs) / 1000.0;
+            var raw = baseProgress + elapsedSec * speedPerSecond;
+            if (raw >= 1.0)
+            {
+                progress = 1.0;
+                paused = true;
+                TelemetryOverrides[trackingKey] = (1.0, nowUtc, true);
+            }
+            else
+            {
+                progress = raw;
+            }
+        }
+
+        progress = Math.Clamp(progress, 0.0, 1.0);
+
+        var currentLat = Math.Round(originLat + (destLat - originLat) * progress, 6);
+        var currentLng = Math.Round(originLng + (destLng - originLng) * progress, 6);
+
+        var totalDistKm = CalculateHaversineKm(originLat, originLng, destLat, destLng);
+        var remainingDistKm = Math.Round(totalDistKm * (1.0 - progress), 2);
+        var etaMinutes = Math.Max(1, (int)Math.Ceiling((remainingDistKm / 48.0) * 60.0));
+
+        var altitude = progress >= 1.0 ? 0.0 : (progress > 0.85 ? 28.0 : 65.0);
+        var speed = (paused || progress >= 1.0) ? 0.0 : 48.5;
+        var battery = Math.Round(Math.Max(24.0, 96.0 - progress * 18.0), 1);
+        var isApproaching = progress >= 0.70 && progress < 1.0;
+
+        var stage = progress switch
+        {
+            >= 1.0 => "ARRIVED",
+            >= 0.70 => "APPROACHING",
+            >= 0.15 => "IN_TRANSIT",
+            _ => "TAKEOFF"
+        };
+
+        return Ok(new
+        {
+            success = true,
+            data = new
+            {
+                orderId = order?.Id.ToString() ?? key,
+                trackingNumber = trackingKey,
+                orderStatus = order?.Status ?? "IN_TRANSIT",
+                droneCode = "DRN-VN-04",
+                progress = Math.Round(progress, 5),
+                progressPercent = Math.Round(progress * 100.0, 1),
+                baseProgress = Math.Round(progress, 5),
+                baseUnixMs = nowUnixMs,
+                speedPerSecond = paused ? 0.0 : speedPerSecond,
+                paused,
+                serverUnixMs = nowUnixMs,
+                latitude = currentLat,
+                longitude = currentLng,
+                originLat,
+                originLng,
+                originLabel,
+                destLat,
+                destLng,
+                destLabel,
+                altitudeMeters = altitude,
+                speedKmh = speed,
+                batteryPercent = battery,
+                totalDistanceKm = totalDistKm,
+                remainingDistanceKm = remainingDistKm,
+                etaMinutes,
+                isApproaching,
+                flightStage = stage,
+                timestamp = nowUtc
+            }
+        });
+    }
+
+    [HttpPost("telemetry/{key}")]
+    public async Task<IActionResult> SetSynchronizedTelemetry(
+        string key,
+        [FromBody] TelemetryOverrideRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        var order = await _orderRepository.GetByTrackingNumberAsync(key, cancellationToken);
+        var trackingKey = order?.TrackingNumber ?? key;
+        var clamped = Math.Clamp(request.Progress, 0.0, 1.0);
+        TelemetryOverrides[trackingKey] = (clamped, DateTime.UtcNow, request.Paused);
+
+        return await GetSynchronizedTelemetry(trackingKey, cancellationToken);
+    }
+
+    private static double CalculateHaversineKm(double lat1, double lon1, double lat2, double lon2)
+    {
+        const double R = 6371.0;
+        var dLat = (lat2 - lat1) * Math.PI / 180.0;
+        var dLon = (lon2 - lon1) * Math.PI / 180.0;
+        var a = Math.Sin(dLat / 2) * Math.Sin(dLat / 2) +
+                Math.Cos(lat1 * Math.PI / 180.0) * Math.Cos(lat2 * Math.PI / 180.0) *
+                Math.Sin(dLon / 2) * Math.Sin(dLon / 2);
+        var c = 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
+        return Math.Round(R * c, 2);
+    }
+
+    [HttpGet("telemetry/{key}")]
+    public async Task<IActionResult> GetSynchronizedTelemetry(
+        string key,
+        CancellationToken cancellationToken = default)
+    {
+        var order = await _orderRepository.GetByTrackingNumberAsync(key, cancellationToken);
+        if (order is null && Guid.TryParse(key, out var guidId))
+        {
+            order = await _orderRepository.GetByIdAsync(guidId, cancellationToken);
+        }
+
+        var originLat = (double)(order?.AddressSnapshot?.SenderLatitude ?? 10.771595m);
+        var originLng = (double)(order?.AddressSnapshot?.SenderLongitude ?? 106.704750m);
+        var originLabel = order?.AddressSnapshot?.SenderAddressText ?? "Trạm Drone Hub Trung Tâm Quận 1";
+
+        var destLat = (double)(order?.AddressSnapshot?.RecipientLatitude ?? 10.841128m);
+        var destLng = (double)(order?.AddressSnapshot?.RecipientLongitude ?? 106.809883m);
+        var destLabel = order?.AddressSnapshot?.RecipientAddressText ?? "Khu Công Nghệ Cao TP. Thủ Đức";
+
+        var trackingKey = order?.TrackingNumber ?? key;
+        double progress;
+
+        if (string.Equals(order?.Status, "DELIVERED", StringComparison.OrdinalIgnoreCase))
+        {
+            progress = 1.0;
+        }
+        else if (TelemetryOverrides.TryGetValue(trackingKey, out var ov))
+        {
+            baseProgress = ov.Progress;
+            baseUnixMs = new DateTimeOffset(ov.UpdatedAt, TimeSpan.Zero).ToUnixTimeMilliseconds();
+            paused = ov.Paused;
+            if (paused)
+            {
+                progress = baseProgress;
+            }
+            else
+            {
+                var elapsedSec = (nowUnixMs - baseUnixMs) / 1000.0;
+                var raw = baseProgress + elapsedSec * speedPerSecond;
+                // Khi bay đến 100% thì Drone hạ cánh tại điểm giao để khách hàng xác nhận nhận hàng!
+                if (raw >= 1.0)
+                {
+                    progress = 1.0;
+                    paused = true;
+                    TelemetryOverrides[trackingKey] = (1.0, nowUtc, true);
+                }
+                else
+                {
+                    progress = raw;
+                }
+            }
+        }
+        else
+        {
+            baseUnixMs = new DateTimeOffset(ServerBootTime, TimeSpan.Zero).ToUnixTimeMilliseconds();
+            baseProgress = 0.20;
+            paused = false;
+            var elapsedSec = (nowUnixMs - baseUnixMs) / 1000.0;
+            var raw = baseProgress + elapsedSec * speedPerSecond;
+            if (raw >= 1.0)
+            {
+                progress = 1.0;
+                paused = true;
+                TelemetryOverrides[trackingKey] = (1.0, nowUtc, true);
+            }
+            else
+            {
+                progress = raw;
+            }
+        }
+
+        progress = Math.Clamp(progress, 0.0, 1.0);
+
+        var currentLat = Math.Round(originLat + (destLat - originLat) * progress, 6);
+        var currentLng = Math.Round(originLng + (destLng - originLng) * progress, 6);
+
+        var totalDistKm = CalculateHaversineKm(originLat, originLng, destLat, destLng);
+        var remainingDistKm = Math.Round(totalDistKm * (1.0 - progress), 2);
+        var etaMinutes = Math.Max(1, (int)Math.Ceiling((remainingDistKm / 48.0) * 60.0));
+
+        var altitude = progress >= 1.0 ? 0.0 : (progress > 0.85 ? 28.0 : 65.0);
+        var speed = (paused || progress >= 1.0) ? 0.0 : 48.5;
+        var battery = Math.Round(Math.Max(24.0, 96.0 - progress * 18.0), 1);
+        var isApproaching = progress >= 0.70 && progress < 1.0;
+
+        var stage = progress switch
+        {
+            >= 1.0 => "ARRIVED",
+            >= 0.70 => "APPROACHING",
+            >= 0.15 => "IN_TRANSIT",
+            _ => "TAKEOFF"
+        };
+
+        return Ok(new
+        {
+            success = true,
+            data = new
+            {
+                orderId = order?.Id.ToString() ?? key,
+                trackingNumber = trackingKey,
+                orderStatus = order?.Status ?? "IN_TRANSIT",
+                droneCode = "DRN-VN-04",
+                progress = Math.Round(progress, 5),
+                progressPercent = Math.Round(progress * 100.0, 1),
+                baseProgress = Math.Round(progress, 5),
+                baseUnixMs = nowUnixMs,
+                speedPerSecond = paused ? 0.0 : speedPerSecond,
+                paused,
+                serverUnixMs = nowUnixMs,
+                latitude = currentLat,
+                longitude = currentLng,
+                originLat,
+                originLng,
+                originLabel,
+                destLat,
+                destLng,
+                destLabel,
+                altitudeMeters = altitude,
+                speedKmh = speed,
+                batteryPercent = battery,
+                totalDistanceKm = totalDistKm,
+                remainingDistanceKm = remainingDistKm,
+                etaMinutes,
+                isApproaching,
+                flightStage = stage,
+                timestamp = nowUtc
+            }
+        });
+    }
+
+    [HttpPost("telemetry/{key}")]
+    public async Task<IActionResult> SetSynchronizedTelemetry(
+        string key,
+        [FromBody] TelemetryOverrideRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        var order = await _orderRepository.GetByTrackingNumberAsync(key, cancellationToken);
+        var trackingKey = order?.TrackingNumber ?? key;
+        var clamped = Math.Clamp(request.Progress, 0.0, 1.0);
+        TelemetryOverrides[trackingKey] = (clamped, DateTime.UtcNow, request.Paused);
+
+        return await GetSynchronizedTelemetry(trackingKey, cancellationToken);
+    }
+
+    private static double CalculateHaversineKm(double lat1, double lon1, double lat2, double lon2)
+    {
+        const double R = 6371.0;
+        var dLat = (lat2 - lat1) * Math.PI / 180.0;
+        var dLon = (lon2 - lon1) * Math.PI / 180.0;
+        var a = Math.Sin(dLat / 2) * Math.Sin(dLat / 2) +
+                Math.Cos(lat1 * Math.PI / 180.0) * Math.Cos(lat2 * Math.PI / 180.0) *
+                Math.Sin(dLon / 2) * Math.Sin(dLon / 2);
+        var c = 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
+        return Math.Round(R * c, 2);
+    }
+}
+
+public class TelemetryOverrideRequest
+{
+    public double Progress { get; set; } = 0.80;
+    public bool Paused { get; set; }
 }

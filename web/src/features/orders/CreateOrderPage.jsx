@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
+import RealGoogleMapView from '../../components/common/RealGoogleMapView'
+import { geocodeGoogleMaps } from '../../services/googleMapsService'
 import {
   createDeliveryOrder,
   getConfiguredCustomerId,
@@ -63,6 +65,33 @@ export default function CreateOrderPage({ onCreated }) {
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
+  const [isGeocoding, setIsGeocoding] = useState(false)
+  const [geocodeMessage, setGeocodeMessage] = useState('')
+
+  async function handleGeocodeRecipient() {
+    if (!recipient.addressText.trim()) return
+    setIsGeocoding(true)
+    setGeocodeMessage('')
+    try {
+      const geo = await geocodeGoogleMaps(recipient.addressText)
+      if (geo && geo.latitude && geo.longitude) {
+        setRecipient((prev) => ({
+          ...prev,
+          latitude: geo.latitude,
+          longitude: geo.longitude,
+        }))
+        setGeocodeMessage(
+          `Đã định vị thành công qua ${geo.provider}: (${geo.latitude.toFixed(6)}, ${geo.longitude.toFixed(6)})`
+        )
+      } else {
+        setGeocodeMessage('Không lấy được tọa độ chi tiết từ API. Đang sử dụng tọa độ bãi đáp mặc định.')
+      }
+    } catch {
+      setGeocodeMessage('Lỗi khi gọi Geocoding API.')
+    } finally {
+      setIsGeocoding(false)
+    }
+  }
 
   useEffect(() => {
     let active = true
@@ -276,23 +305,12 @@ export default function CreateOrderPage({ onCreated }) {
       {/* Page Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 border-b border-emerald-900/10 pb-5">
         <div>
-          <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-emerald-600"></span>
-            <p className="text-xs font-bold tracking-widest text-emerald-700 uppercase font-mono">
-              CUSTOMER / NEW DELIVERY ORDER
-            </p>
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 mt-1">
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">
             Tạo Đơn Giao Hàng Bằng Drone
           </h1>
           <p className="text-sm text-slate-500 mt-0.5">
             Thiết lập điểm cất cánh, điểm đáp nội đô TP.HCM và thông số bưu kiện.
           </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
-            Trực quan hóa GPS thời gian thực
-          </span>
         </div>
       </div>
 
@@ -540,22 +558,72 @@ export default function CreateOrderPage({ onCreated }) {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
-                  Địa chỉ giao chi tiết
-                </label>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider">
+                    Địa chỉ giao chi tiết
+                  </label>
+                  <button
+                    type="button"
+                    onClick={handleGeocodeRecipient}
+                    disabled={isGeocoding || !recipient.addressText.trim()}
+                    className="text-xs font-bold text-emerald-700 hover:text-emerald-800 disabled:opacity-40 flex items-center gap-1 cursor-pointer transition"
+                  >
+                    <svg className={`w-3.5 h-3.5 ${isGeocoding ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                    <span>{isGeocoding ? 'Đang tìm tọa độ...' : 'Định vị Google API'}</span>
+                  </button>
+                </div>
                 <textarea
                   value={recipient.addressText}
                   onChange={(e) => setRecipient({ ...recipient, addressText: e.target.value })}
                   rows="2"
+                  placeholder="Nhập địa chỉ nhận hàng để tra cứu tọa độ thật..."
                   className="w-full px-3.5 py-2 rounded-xl border border-slate-300 bg-slate-50 text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition"
                 />
               </div>
+
+              {geocodeMessage && (
+                <div className="p-2.5 bg-emerald-50 border border-emerald-200 rounded-xl text-xs font-semibold text-emerald-800">
+                  {geocodeMessage}
+                </div>
+              )}
 
               <div className="p-3 bg-emerald-50/60 rounded-xl border border-emerald-100 flex items-center justify-between text-xs text-emerald-950">
                 <span>Tọa độ giao hàng GPS:</span>
                 <span className="font-mono font-semibold">
                   {recipient.latitude.toFixed(6)}, {recipient.longitude.toFixed(6)}
                 </span>
+              </div>
+
+              {/* Real Google Maps Route Preview */}
+              <div className="space-y-2 pt-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                    <span>🗺️ Minh Họa Bản Đồ Tuyến Bay Google Maps</span>
+                    <span className="text-[10px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-bold">
+                      GOOGLE API
+                    </span>
+                  </span>
+                  <span className="text-xs text-emerald-700 font-bold font-mono">
+                    Khoảng cách: ~{distanceKm} km
+                  </span>
+                </div>
+                <RealGoogleMapView
+                  origin={{
+                    lat: sender.latitude,
+                    lng: sender.longitude,
+                    label: sender.name || 'Trạm cất cánh',
+                  }}
+                  destination={{
+                    lat: recipient.latitude,
+                    lng: recipient.longitude,
+                    label: recipient.name || 'Điểm giao nhận',
+                  }}
+                  heightClass="h-56 md:h-64"
+                  showControls={true}
+                  showTelemetryOverlay={false}
+                />
               </div>
             </div>
           </div>
@@ -711,38 +779,38 @@ export default function CreateOrderPage({ onCreated }) {
 
         {/* Right Column: Flight Calculation & Fee Summary (5 cols - Sticky) */}
         <div className="lg:col-span-5 space-y-6 lg:sticky lg:top-4">
-          <div className="bg-[#0B1512] text-white rounded-2xl p-6 shadow-xl space-y-6 border border-emerald-950">
+          <div className="bg-white text-slate-900 rounded-2xl p-6 shadow-md shadow-emerald-900/5 space-y-6 border border-emerald-200/90">
             <div>
               <div className="flex items-center justify-between">
-                <span className="text-xs font-mono tracking-widest text-emerald-400 uppercase font-bold">
+                <span className="text-xs font-mono tracking-widest text-emerald-700 uppercase font-bold">
                   FLIGHT ESTIMATE &amp; SUMMARY
                 </span>
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
               </div>
-              <h3 className="text-lg font-bold text-white mt-1">Dự Toán Hành Trình Bay</h3>
+              <h3 className="text-lg font-bold text-slate-900 mt-1">Dự Toán Hành Trình Bay</h3>
             </div>
 
             {/* Route visual */}
-            <div className="bg-slate-900/80 rounded-xl p-4 border border-emerald-900/40 space-y-3">
+            <div className="bg-emerald-50/50 rounded-xl p-4 border border-emerald-100 space-y-3">
               <div className="flex items-start gap-3">
-                <div className="w-2.5 h-2.5 rounded-full bg-emerald-400 mt-1 shrink-0"></div>
+                <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 mt-1 shrink-0"></div>
                 <div className="text-xs">
-                  <div className="text-slate-400">Xuất phát:</div>
-                  <div className="text-white font-medium line-clamp-1">{sender.addressText}</div>
-                  <div className="text-emerald-400 font-mono text-[11px]">
+                  <div className="text-slate-500 font-medium">Xuất phát:</div>
+                  <div className="text-slate-900 font-bold line-clamp-1">{sender.addressText}</div>
+                  <div className="text-emerald-700 font-mono text-[11px] font-semibold">
                     {sender.latitude.toFixed(4)}, {sender.longitude.toFixed(4)}
                   </div>
                 </div>
               </div>
 
-              <div className="border-l-2 border-dashed border-emerald-700/60 ml-1.25 h-4"></div>
+              <div className="border-l-2 border-dashed border-emerald-300 ml-1.25 h-4"></div>
 
               <div className="flex items-start gap-3">
-                <div className="w-2.5 h-2.5 rounded-full bg-teal-400 mt-1 shrink-0"></div>
+                <div className="w-2.5 h-2.5 rounded-full bg-teal-500 mt-1 shrink-0"></div>
                 <div className="text-xs">
-                  <div className="text-slate-400">Đích đến:</div>
-                  <div className="text-white font-medium line-clamp-1">{recipient.addressText}</div>
-                  <div className="text-teal-400 font-mono text-[11px]">
+                  <div className="text-slate-500 font-medium">Đích đến:</div>
+                  <div className="text-slate-900 font-bold line-clamp-1">{recipient.addressText || 'Chưa chọn địa chỉ nhận'}</div>
+                  <div className="text-teal-700 font-mono text-[11px] font-semibold">
                     {recipient.latitude.toFixed(4)}, {recipient.longitude.toFixed(4)}
                   </div>
                 </div>
@@ -751,43 +819,43 @@ export default function CreateOrderPage({ onCreated }) {
 
             {/* Key Flight Stats */}
             <div className="grid grid-cols-2 gap-3 text-center">
-              <div className="bg-slate-900/60 rounded-xl p-3 border border-emerald-900/40">
-                <div className="text-xs text-slate-400">Khoảng cách bay</div>
-                <div className="text-xl font-black text-emerald-300 font-mono mt-0.5">
+              <div className="bg-emerald-50/60 rounded-xl p-3 border border-emerald-100">
+                <div className="text-xs text-slate-500 font-medium">Khoảng cách bay</div>
+                <div className="text-xl font-black text-emerald-700 font-mono mt-0.5">
                   {distanceKm} km
                 </div>
               </div>
-              <div className="bg-slate-900/60 rounded-xl p-3 border border-emerald-900/40">
-                <div className="text-xs text-slate-400">Thời gian bay ước tính</div>
-                <div className="text-xl font-black text-teal-300 font-mono mt-0.5">
+              <div className="bg-teal-50/60 rounded-xl p-3 border border-teal-100">
+                <div className="text-xs text-slate-500 font-medium">Thời gian bay ước tính</div>
+                <div className="text-xl font-black text-teal-700 font-mono mt-0.5">
                   ~{estimatedFlightMinutes} phút
                 </div>
               </div>
             </div>
 
             {/* Fee Breakdown */}
-            <div className="space-y-2.5 text-xs border-t border-emerald-950 pt-4">
-              <div className="flex justify-between text-slate-300">
+            <div className="space-y-2.5 text-xs border-t border-slate-100 pt-4">
+              <div className="flex justify-between text-slate-600">
                 <span>Cước cơ bản cất cánh:</span>
-                <span className="font-mono">{calculatedFee.baseFee.toLocaleString('vi-VN')} đ</span>
+                <span className="font-mono font-semibold text-slate-800">{calculatedFee.baseFee.toLocaleString('vi-VN')} đ</span>
               </div>
-              <div className="flex justify-between text-slate-300">
+              <div className="flex justify-between text-slate-600">
                 <span>Phụ phí khối lượng ({packageInfo.weightKg || 0} kg):</span>
-                <span className="font-mono">
+                <span className="font-mono font-semibold text-slate-800">
                   {calculatedFee.weightFee.toLocaleString('vi-VN')} đ
                 </span>
               </div>
               {packageInfo.isFragile && (
-                <div className="flex justify-between text-amber-300">
+                <div className="flex justify-between text-amber-700 font-semibold">
                   <span>Bảo hiểm hàng dễ vỡ:</span>
                   <span className="font-mono">
                     +{calculatedFee.fragileFee.toLocaleString('vi-VN')} đ
                   </span>
                 </div>
               )}
-              <div className="flex justify-between text-base font-bold text-white border-t border-emerald-900/60 pt-3">
+              <div className="flex justify-between text-base font-bold text-slate-900 border-t border-emerald-100 pt-3">
                 <span>Tổng cước phí giao:</span>
-                <span className="text-emerald-400 font-mono text-lg">
+                <span className="text-emerald-700 font-mono text-lg font-extrabold">
                   {calculatedFee.total.toLocaleString('vi-VN')} đ
                 </span>
               </div>
@@ -797,14 +865,10 @@ export default function CreateOrderPage({ onCreated }) {
             <button
               type="submit"
               disabled={submitting || loadingData}
-              className="w-full py-3.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-800 disabled:text-slate-500 text-white font-bold text-sm tracking-wide shadow-lg shadow-emerald-950/60 transition cursor-pointer flex items-center justify-center gap-2"
+              className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 disabled:from-emerald-200 disabled:to-teal-200 disabled:text-emerald-900/50 text-white font-bold text-sm tracking-wide shadow-md shadow-emerald-600/20 transition cursor-pointer flex items-center justify-center gap-2"
             >
               {submitting ? 'Đang gửi yêu cầu đặt chuyến...' : 'Xác Nhận Tạo Đơn Giao Hàng'}
             </button>
-            <p className="text-[11px] text-center text-slate-400">
-              Đơn hàng sẽ chuyển sang trạng thái <strong>PENDING_APPROVAL</strong> để Điều phối viên
-              kiểm tra vùng cấm bay và gán Drone phù hợp.
-            </p>
           </div>
         </div>
       </form>

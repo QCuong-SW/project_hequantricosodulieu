@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import RealGoogleMapView from '../../components/common/RealGoogleMapView'
 import {
   cancelDeliveryOrder,
   getConfiguredCustomerId,
@@ -161,13 +162,7 @@ export default function OrderListPage({ onViewOrder }) {
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-emerald-900/10 pb-5">
         <div>
-          <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-emerald-600"></span>
-            <p className="text-xs font-bold tracking-widest text-emerald-700 uppercase font-mono">
-              CUSTOMER / ORDER HISTORY
-            </p>
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 mt-1">
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">
             Lịch Sử Đơn Hàng Drone
           </h1>
           <p className="text-sm text-slate-500 mt-0.5">
@@ -462,6 +457,47 @@ export default function OrderListPage({ onViewOrder }) {
               </div>
             </div>
 
+            {/* Real Google Maps Route Illustration */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <div className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                  <span>🗺️ Bản Đồ Lộ Trình Google Maps Thực Tế</span>
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold">
+                    CALL API GOOGLE
+                  </span>
+                </div>
+                {onViewOrder && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onViewOrder(selectedOrder);
+                      setSelectedOrder(null);
+                    }}
+                    className="text-xs font-bold text-emerald-700 hover:text-emerald-800 flex items-center gap-1 cursor-pointer hover:underline"
+                  >
+                    <span>Radar Trực Tiếp &rarr;</span>
+                  </button>
+                )}
+              </div>
+
+              <RealGoogleMapView
+                origin={{
+                  lat: Number(selectedOrder.addressSnapshot?.senderLatitude) || 10.771595,
+                  lng: Number(selectedOrder.addressSnapshot?.senderLongitude) || 106.70475,
+                  label: selectedOrder.addressSnapshot?.senderAddressText || 'Điểm cất cánh',
+                }}
+                destination={{
+                  lat: Number(selectedOrder.addressSnapshot?.recipientLatitude) || 10.841128,
+                  lng: Number(selectedOrder.addressSnapshot?.recipientLongitude) || 106.809883,
+                  label: selectedOrder.addressSnapshot?.recipientAddressText || 'Điểm giao hàng',
+                }}
+                droneCode={selectedOrder.droneCode || 'DRN-VN-04'}
+                heightClass="h-56 md:h-64"
+                showControls={true}
+                showTelemetryOverlay={false}
+              />
+            </div>
+
             {/* Packages list */}
             <div>
               <div className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
@@ -508,7 +544,7 @@ export default function OrderListPage({ onViewOrder }) {
               <button
                 type="button"
                 onClick={() => setSelectedOrder(null)}
-                className="px-4 py-2 rounded-xl text-xs font-bold bg-slate-900 text-white hover:bg-slate-800 transition cursor-pointer"
+                className="px-4 py-2 rounded-xl text-xs font-bold bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border border-emerald-200 transition cursor-pointer"
               >
                 Đóng
               </button>

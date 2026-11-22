@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:material_ui/material_ui.dart';
+import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
 import '../../core/session_manager.dart';
@@ -94,10 +94,10 @@ class _TrackingPageState extends State<TrackingPage> {
     final snapshot = _orderData?['addressSnapshot'] as Map<String, dynamic>?;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF3F6FC),
+      backgroundColor: const Color(0xFFF6F8F7),
       appBar: AppBar(
-        title: const Text('Theo dõi đơn hàng'),
-        backgroundColor: const Color(0xFF2563EB),
+        title: const Text('Theo dõi đơn hàng Drone'),
+        backgroundColor: const Color(0xFF059669),
         foregroundColor: Colors.white,
       ),
       body: SafeArea(
@@ -111,7 +111,7 @@ class _TrackingPageState extends State<TrackingPage> {
                 style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF172554),
+                  color: Color(0xFF0F172A),
                 ),
               ),
               const SizedBox(height: 8),
@@ -157,7 +157,7 @@ class _TrackingPageState extends State<TrackingPage> {
                       : const Icon(Icons.search),
                   label: Text(_isSearching ? 'ĐANG TRA CỨU...' : 'TRA CỨU ĐƠN HÀNG'),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF2563EB),
+                    backgroundColor: const Color(0xFF059669),
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -203,7 +203,7 @@ class _TrackingPageState extends State<TrackingPage> {
                               Icon(
                                 Icons.location_searching,
                                 size: 56,
-                                color: Color(0xFF2563EB),
+                                color: Color(0xFF059669),
                               ),
                               SizedBox(height: 12),
                               Text(
@@ -334,14 +334,14 @@ class _TrackingPageState extends State<TrackingPage> {
     final isCurrent = code.toUpperCase() == activeCode.toUpperCase();
     return Card(
       elevation: isCurrent ? 2 : 0,
-      color: isCurrent ? const Color(0xFFDBEAFE) : Colors.white,
+      color: isCurrent ? const Color(0xFFD1FAE5) : Colors.white,
       margin: const EdgeInsets.only(bottom: 8),
       child: ListTile(
         leading: CircleAvatar(
-          backgroundColor: isCurrent ? const Color(0xFF2563EB) : const Color(0xFFEFF6FF),
+          backgroundColor: isCurrent ? const Color(0xFF059669) : const Color(0xFFECFDF5),
           child: Icon(
             icon,
-            color: isCurrent ? Colors.white : const Color(0xFF2563EB),
+            color: isCurrent ? Colors.white : const Color(0xFF059669),
           ),
         ),
         title: Text(
@@ -352,7 +352,7 @@ class _TrackingPageState extends State<TrackingPage> {
         ),
         subtitle: Text(code),
         trailing: isCurrent
-            ? const Icon(Icons.check_circle, color: Color(0xFF2563EB))
+            ? const Icon(Icons.check_circle, color: Color(0xFF059669))
             : null,
       ),
     );

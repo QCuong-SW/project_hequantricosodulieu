@@ -11,6 +11,20 @@ public class LoginRequest
     public string Password { get; set; } = string.Empty;
 }
 
+public class RegisterRequest
+{
+    [Required, StringLength(128)]
+    public string FullName { get; set; } = string.Empty;
+
+    [Required, EmailAddress, StringLength(256)]
+    public string Email { get; set; } = string.Empty;
+
+    [Required, StringLength(128, MinimumLength = 6)]
+    public string Password { get; set; } = string.Empty;
+
+    public string? Phone { get; set; }
+}
+
 public class RefreshTokenRequest
 {
     [Required, StringLength(512)]

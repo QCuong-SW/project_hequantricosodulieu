@@ -1,5 +1,5 @@
 
-import 'package:material_ui/material_ui.dart';
+import 'package:flutter/material.dart';
 
 import 'auth_service.dart';
 import '../home/customer_home_page.dart';
@@ -82,7 +82,7 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF3F6FC),
+      backgroundColor: const Color(0xFFF6F8F7),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -90,9 +90,11 @@ class _LoginPageState extends State<LoginPage> {
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 430),
               child: Card(
-                elevation: 4,
+                elevation: 2,
+                color: Colors.white,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius: BorderRadius.circular(24),
+                  side: const BorderSide(color: Color(0xFFD1FAE5)),
                 ),
                 child: Padding(
                   padding: const EdgeInsets.all(28),
@@ -101,30 +103,51 @@ class _LoginPageState extends State<LoginPage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        const Icon(
-                          Icons.delivery_dining,
-                          size: 72,
-                          color: Color(0xFF2563EB),
+                        Center(
+                          child: Container(
+                            width: 64,
+                            height: 64,
+                            decoration: BoxDecoration(
+                              gradient: const LinearGradient(
+                                colors: [Color(0xFF10B981), Color(0xFF0F766E)],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                              borderRadius: BorderRadius.circular(18),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: const Color(0xFF059669).withValues(alpha: 0.25),
+                                  blurRadius: 12,
+                                  offset: const Offset(0, 6),
+                                ),
+                              ],
+                            ),
+                            child: const Icon(
+                              Icons.flight_takeoff_rounded,
+                              size: 34,
+                              color: Colors.white,
+                            ),
+                          ),
                         ),
                         const SizedBox(height: 16),
 
                         const Text(
-                          'SmartDroneDelivery',
+                          'Smart Drone Delivery',
                           textAlign: TextAlign.center,
                           style: TextStyle(
-                            fontSize: 25,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF172554),
+                            fontSize: 24,
+                            fontWeight: FontWeight.w800,
+                            color: Color(0xFF0F172A),
                           ),
                         ),
 
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 6),
 
                         const Text(
-                          'Đăng nhập tài khoản khách hàng',
+                          'Ứng dụng Khách hàng • TP. Hồ Chí Minh',
                           textAlign: TextAlign.center,
                           style: TextStyle(
-                            fontSize: 15,
+                            fontSize: 13,
                             color: Colors.black54,
                           ),
                         ),
@@ -225,10 +248,10 @@ class _LoginPageState extends State<LoginPage> {
                                 _isLoading ? null : _handleLogin,
                             style: ElevatedButton.styleFrom(
                               backgroundColor:
-                                  const Color(0xFF2563EB),
+                                  const Color(0xFF059669),
                               foregroundColor: Colors.white,
                               disabledBackgroundColor:
-                                  Colors.blue.shade200,
+                                  const Color(0xFFA7F3D0),
                               shape: RoundedRectangleBorder(
                                 borderRadius:
                                     BorderRadius.circular(12),
