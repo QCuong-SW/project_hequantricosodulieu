@@ -128,7 +128,7 @@ export function AssignDroneModal({
       <div className="bg-white rounded-2xl max-w-xl w-full p-6 shadow-2xl space-y-5 border border-slate-200 max-h-[92vh] overflow-y-auto">
         <div className="flex items-center justify-between border-b border-slate-100 pb-3">
           <div>
-            <span className="text-[10px] font-mono font-bold text-blue-600 uppercase tracking-wider">
+            <span className="text-[10px] font-mono font-bold text-emerald-700 uppercase tracking-wider">
               FLIGHT DISPATCH CONFIGURATION
             </span>
             <h3 className="text-lg font-bold text-slate-900">
@@ -145,14 +145,14 @@ export function AssignDroneModal({
         </div>
 
         {/* Order summary pill */}
-        <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200 text-xs space-y-1.5">
+        <div className="bg-emerald-50/40 p-3.5 rounded-xl border border-emerald-100 text-xs space-y-1.5">
           <div className="flex justify-between">
             <span className="text-slate-500">Mã vận đơn:</span>
             <span className="font-mono font-bold text-slate-900">{order.trackingNumber}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-slate-500">Trọng lượng bưu kiện:</span>
-            <span className="font-mono font-bold text-blue-700">
+            <span className="font-mono font-bold text-emerald-800">
               {order.totalWeightKg.toFixed(2)} kg (Giới hạn Drone: 5.0 kg)
             </span>
           </div>
@@ -191,7 +191,7 @@ export function AssignDroneModal({
                       onClick={() => setSelectedDroneId(drone.id)}
                       className={`p-3 rounded-xl border cursor-pointer transition-all flex items-center justify-between ${
                         isSelected
-                          ? 'border-blue-600 bg-blue-50/70 shadow-xs'
+                          ? 'border-emerald-600 bg-emerald-50/70 shadow-xs'
                           : 'border-slate-200 bg-white hover:border-slate-300'
                       }`}
                     >
@@ -234,7 +234,7 @@ export function AssignDroneModal({
               <select
                 value={originStationId}
                 onChange={(e) => setOriginStationId(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-slate-50 text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-600 transition"
+                className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-slate-50 text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition"
               >
                 {stations.map((stn) => (
                   <option key={stn.id} value={stn.id}>
@@ -250,7 +250,7 @@ export function AssignDroneModal({
               <select
                 value={destinationStationId}
                 onChange={(e) => setDestinationStationId(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-slate-50 text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-600 transition"
+                className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-slate-50 text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition"
               >
                 {stations.map((stn) => (
                   <option key={stn.id} value={stn.id}>
@@ -273,7 +273,7 @@ export function AssignDroneModal({
                 placeholder={computedDistanceKm.toString()}
                 value={flightDistanceKm}
                 onChange={(e) => setFlightDistanceKm(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-slate-50 text-slate-900 font-mono focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-600 transition"
+                className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-slate-50 text-slate-900 font-mono focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition"
               />
               <span className="text-[10px] text-slate-400 mt-0.5 block">
                 Tự tính theo GPS: {computedDistanceKm} km
@@ -289,7 +289,7 @@ export function AssignDroneModal({
                 max="120"
                 value={targetAltitudeMeter}
                 onChange={(e) => setTargetAltitudeMeter(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-slate-50 text-slate-900 font-mono focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-600 transition"
+                className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-slate-50 text-slate-900 font-mono focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition"
               />
               <span className="text-[10px] text-slate-400 mt-0.5 block">
                 Hành lang bay nội đô TP.HCM
@@ -298,8 +298,8 @@ export function AssignDroneModal({
           </div>
 
           {/* Waypoints preview */}
-          <div className="p-3 bg-slate-900 text-white rounded-xl font-mono text-[11px] space-y-1">
-            <div className="text-slate-400 uppercase tracking-widest text-[10px]">
+          <div className="p-3 bg-[#0B1512] text-white rounded-xl font-mono text-[11px] space-y-1 border border-emerald-950">
+            <div className="text-emerald-400 uppercase tracking-widest text-[10px] font-bold">
               Waypoints Corridors:
             </div>
             <div>
@@ -325,7 +325,7 @@ export function AssignDroneModal({
             <button
               type="submit"
               disabled={eligibleDrones.length === 0 || isSubmitting}
-              className="px-5 py-2.5 rounded-xl font-bold text-white bg-blue-600 hover:bg-blue-500 shadow-md transition cursor-pointer disabled:opacity-50"
+              className="px-5 py-2.5 rounded-xl font-bold text-white bg-emerald-600 hover:bg-emerald-700 shadow-md shadow-emerald-600/20 transition cursor-pointer disabled:opacity-50"
             >
               {isSubmitting ? 'Đang kích hoạt lịch bay...' : 'Xác Nhận Lên Lịch Bay'}
             </button>

@@ -145,11 +145,11 @@ export function DispatcherDashboard() {
   return (
     <div className="max-w-7xl mx-auto space-y-6 text-slate-900 pb-16">
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-200 pb-5">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-emerald-900/10 pb-5">
         <div>
           <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-blue-600"></span>
-            <p className="text-xs font-bold tracking-widest text-blue-600 uppercase font-mono">
+            <span className="w-2 h-2 rounded-full bg-emerald-600"></span>
+            <p className="text-xs font-bold tracking-widest text-emerald-700 uppercase font-mono">
               FLIGHT OPERATIONS / DISPATCHER CENTER
             </p>
           </div>
@@ -166,7 +166,7 @@ export function DispatcherDashboard() {
             type="button"
             onClick={refreshData}
             disabled={loading}
-            className="px-4 py-2 rounded-xl text-xs font-bold bg-white border border-slate-300 hover:border-blue-500 hover:text-blue-600 shadow-xs transition cursor-pointer disabled:opacity-50"
+            className="px-4 py-2 rounded-xl text-xs font-bold bg-white border border-slate-300 hover:border-emerald-500 hover:text-emerald-700 shadow-xs transition cursor-pointer disabled:opacity-50"
           >
             {loading ? 'Đang đồng bộ...' : 'Làm Mới Dữ Liệu'}
           </button>
@@ -175,31 +175,31 @@ export function DispatcherDashboard() {
 
       {/* KPI Cards Row */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs">
+        <div className="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-xs hover:border-amber-200 transition">
           <div className="text-xs font-semibold text-amber-600 uppercase tracking-wider">
             Chờ duyệt (Pending)
           </div>
           <div className="text-2xl font-black text-amber-600 font-mono mt-1">{pendingCount}</div>
         </div>
-        <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs">
-          <div className="text-xs font-semibold text-cyan-600 uppercase tracking-wider">
+        <div className="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-xs hover:border-emerald-200 transition">
+          <div className="text-xs font-semibold text-emerald-700 uppercase tracking-wider">
             Đã duyệt - Chờ gán Drone
           </div>
-          <div className="text-2xl font-black text-cyan-600 font-mono mt-1">{approvedCount}</div>
+          <div className="text-2xl font-black text-emerald-700 font-mono mt-1">{approvedCount}</div>
         </div>
-        <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs">
-          <div className="text-xs font-semibold text-purple-600 uppercase tracking-wider">
+        <div className="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-xs hover:border-teal-200 transition">
+          <div className="text-xs font-semibold text-teal-700 uppercase tracking-wider">
             Lịch bay đã lên (Scheduled)
           </div>
-          <div className="text-2xl font-black text-purple-600 font-mono mt-1">
+          <div className="text-2xl font-black text-teal-700 font-mono mt-1">
             {scheduledCount}
           </div>
         </div>
-        <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs">
-          <div className="text-xs font-semibold text-emerald-600 uppercase tracking-wider">
+        <div className="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-xs hover:border-emerald-300 transition">
+          <div className="text-xs font-semibold text-emerald-700 uppercase tracking-wider">
             Drone Sẵn Sàng (IDLE)
           </div>
-          <div className="text-2xl font-black text-emerald-600 font-mono mt-1">
+          <div className="text-2xl font-black text-emerald-700 font-mono mt-1">
             {idleDroneCount} / {drones.length}
           </div>
         </div>
@@ -207,12 +207,12 @@ export function DispatcherDashboard() {
 
       {/* Banner notifications */}
       {actionMessage && (
-        <div className="p-4 rounded-xl border border-blue-200 bg-blue-50 text-blue-900 text-xs font-semibold flex items-center justify-between">
+        <div className="p-4 rounded-xl border border-emerald-200 bg-emerald-50 text-emerald-900 text-xs font-semibold flex items-center justify-between">
           <span>{actionMessage}</span>
           <button
             type="button"
             onClick={() => setActionMessage('')}
-            className="text-blue-700 hover:text-blue-900 cursor-pointer"
+            className="text-emerald-700 hover:text-emerald-950 font-bold cursor-pointer"
           >
             x
           </button>
@@ -224,7 +224,7 @@ export function DispatcherDashboard() {
           <button
             type="button"
             onClick={() => setErrorMessage('')}
-            className="text-rose-700 hover:text-rose-900 cursor-pointer"
+            className="text-rose-700 hover:text-rose-900 font-bold cursor-pointer"
           >
             x
           </button>
@@ -232,7 +232,7 @@ export function DispatcherDashboard() {
       )}
 
       {/* Orders Approval & Dispatch Queue */}
-      <section className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+      <section className="bg-white rounded-2xl border border-slate-200/90 shadow-xs overflow-hidden">
         <div className="p-5 border-b border-slate-100 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
             <h2 className="text-base font-bold text-slate-900">
@@ -243,7 +243,7 @@ export function DispatcherDashboard() {
               hợp.
             </p>
           </div>
-          <div className="flex flex-wrap gap-1.5 bg-slate-100 p-1 rounded-xl text-xs font-semibold">
+          <div className="flex flex-wrap gap-1.5 bg-slate-100 p-1 rounded-xl text-xs font-semibold border border-slate-200/70">
             {['ALL', 'PENDING_APPROVAL', 'APPROVED', 'SCHEDULED', 'REJECTED'].map((filterKey) => (
               <button
                 key={filterKey}
@@ -251,7 +251,7 @@ export function DispatcherDashboard() {
                 onClick={() => setStatusFilter(filterKey)}
                 className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
                   statusFilter === filterKey
-                    ? 'bg-white text-blue-700 shadow-xs'
+                    ? 'bg-white text-emerald-800 shadow-xs font-bold'
                     : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
@@ -272,7 +272,7 @@ export function DispatcherDashboard() {
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse text-sm">
             <thead>
-              <tr className="border-b border-slate-200 bg-slate-50/75 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+              <tr className="border-b border-emerald-100 bg-emerald-50/40 text-[11px] font-bold text-emerald-950 uppercase tracking-wider">
                 <th className="py-3 px-4">Mã Đơn / Ngày Tạo</th>
                 <th className="py-3 px-4">Lộ Trình Giao Hàng</th>
                 <th className="py-3 px-4">Tải Trọng</th>
@@ -325,9 +325,9 @@ export function DispatcherDashboard() {
                           order.status === 'PENDING_APPROVAL'
                             ? 'bg-amber-50 text-amber-800 border-amber-200'
                             : order.status === 'APPROVED'
-                              ? 'bg-cyan-50 text-cyan-800 border-cyan-200'
+                              ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
                               : order.status === 'SCHEDULED'
-                                ? 'bg-purple-50 text-purple-800 border-purple-200'
+                                ? 'bg-teal-50 text-teal-800 border-teal-200'
                                 : order.status === 'REJECTED'
                                   ? 'bg-rose-50 text-rose-800 border-rose-200'
                                   : 'bg-slate-100 text-slate-700 border-slate-200'
@@ -338,9 +338,9 @@ export function DispatcherDashboard() {
                             order.status === 'PENDING_APPROVAL'
                               ? 'bg-amber-500'
                               : order.status === 'APPROVED'
-                                ? 'bg-cyan-500'
+                                ? 'bg-emerald-500'
                                 : order.status === 'SCHEDULED'
-                                  ? 'bg-purple-500'
+                                  ? 'bg-teal-500'
                                   : 'bg-slate-400'
                           }`}
                         ></span>
@@ -353,14 +353,14 @@ export function DispatcherDashboard() {
                           <button
                             type="button"
                             onClick={() => handleReviewOrder(order.id, true)}
-                            className="px-2.5 py-1 rounded-lg font-bold text-white bg-blue-600 hover:bg-blue-500 transition cursor-pointer"
+                            className="px-2.5 py-1 rounded-lg font-bold text-white bg-emerald-600 hover:bg-emerald-700 transition cursor-pointer shadow-xs"
                           >
                             Duyệt Đơn
                           </button>
                           <button
                             type="button"
                             onClick={() => handleReviewOrder(order.id, false)}
-                            className="px-2.5 py-1 rounded-lg font-bold text-rose-700 bg-rose-50 hover:bg-rose-100 transition cursor-pointer"
+                            className="px-2.5 py-1 rounded-lg font-bold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 transition cursor-pointer"
                           >
                             Từ Chối
                           </button>
@@ -371,7 +371,7 @@ export function DispatcherDashboard() {
                         <button
                           type="button"
                           onClick={() => setSelectedOrderForModal(order)}
-                          className="px-3 py-1 rounded-lg font-bold text-white bg-emerald-600 hover:bg-emerald-500 transition cursor-pointer shadow-xs"
+                          className="px-3 py-1 rounded-lg font-bold text-white bg-emerald-600 hover:bg-emerald-700 transition cursor-pointer shadow-xs"
                         >
                           Gán Drone
                         </button>
@@ -384,7 +384,7 @@ export function DispatcherDashboard() {
                       <button
                         type="button"
                         onClick={() => handlePredictEta(order.id)}
-                        className="px-2.5 py-1 rounded-lg font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 transition cursor-pointer"
+                        className="px-2.5 py-1 rounded-lg font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 transition cursor-pointer"
                       >
                         {etaMap[order.id] ? `${etaMap[order.id].estimatedMinutes}p` : 'Dự Báo ETA'}
                       </button>
@@ -398,7 +398,7 @@ export function DispatcherDashboard() {
       </section>
 
       {/* Scheduled Flight Missions Table */}
-      <section className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+      <section className="bg-white rounded-2xl border border-slate-200/90 shadow-xs overflow-hidden">
         <div className="p-5 border-b border-slate-100 flex items-center justify-between">
           <div>
             <h2 className="text-base font-bold text-slate-900">
@@ -408,7 +408,7 @@ export function DispatcherDashboard() {
               Danh sách các chuyến bay đã điều phối thành công và trạng thái thực hiện hành lang bay.
             </p>
           </div>
-          <span className="px-2.5 py-1 rounded-full text-xs font-mono font-bold bg-purple-50 text-purple-700 border border-purple-200">
+          <span className="px-2.5 py-1 rounded-full text-xs font-mono font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
             {flightSchedules.length} nhiệm vụ
           </span>
         </div>
@@ -416,7 +416,7 @@ export function DispatcherDashboard() {
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse text-sm">
             <thead>
-              <tr className="border-b border-slate-200 bg-slate-50/75 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+              <tr className="border-b border-emerald-100 bg-emerald-50/40 text-[11px] font-bold text-emerald-950 uppercase tracking-wider">
                 <th className="py-3 px-4">Mã Chuyến Bay</th>
                 <th className="py-3 px-4">Drone Thực Hiện</th>
                 <th className="py-3 px-4">Cự Ly Bay</th>
@@ -436,7 +436,7 @@ export function DispatcherDashboard() {
               ) : (
                 flightSchedules.map((flt) => (
                   <tr key={flt.id} className="hover:bg-slate-50/80 transition-colors">
-                    <td className="py-3 px-4 font-mono font-bold text-blue-700">
+                    <td className="py-3 px-4 font-mono font-bold text-emerald-800">
                       {flt.flightCode}
                     </td>
                     <td className="py-3 px-4 font-mono font-semibold text-slate-900">
@@ -453,9 +453,9 @@ export function DispatcherDashboard() {
                       <span
                         className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold border ${
                           flt.status === 'IN_PROGRESS'
-                            ? 'bg-blue-50 text-blue-800 border-blue-200'
+                            ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
                             : flt.status === 'COMPLETED'
-                              ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                              ? 'bg-teal-50 text-teal-800 border-teal-200'
                               : flt.status === 'ABORTED'
                                 ? 'bg-rose-50 text-rose-800 border-rose-200'
                                 : 'bg-slate-100 text-slate-700 border-slate-200'
@@ -464,9 +464,9 @@ export function DispatcherDashboard() {
                         <span
                           className={`w-1.5 h-1.5 rounded-full ${
                             flt.status === 'IN_PROGRESS'
-                              ? 'bg-blue-500 animate-pulse'
+                              ? 'bg-emerald-500 animate-pulse'
                               : flt.status === 'COMPLETED'
-                                ? 'bg-emerald-500'
+                                ? 'bg-teal-500'
                                 : flt.status === 'ABORTED'
                                   ? 'bg-rose-500'
                                   : 'bg-slate-400'
@@ -509,7 +509,7 @@ export function DispatcherDashboard() {
       </section>
 
       {/* Drone Fleet Status Section */}
-      <section className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+      <section className="bg-white rounded-2xl border border-slate-200/90 shadow-xs overflow-hidden">
         <div className="p-5 border-b border-slate-100">
           <h2 className="text-base font-bold text-slate-900">Đội Bay Không Người Lái (Drone Fleet)</h2>
           <p className="text-xs text-slate-500 mt-0.5">
@@ -520,7 +520,7 @@ export function DispatcherDashboard() {
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse text-sm">
             <thead>
-              <tr className="border-b border-slate-200 bg-slate-50/75 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+              <tr className="border-b border-emerald-100 bg-emerald-50/40 text-[11px] font-bold text-emerald-950 uppercase tracking-wider">
                 <th className="py-3 px-4">Mã Drone</th>
                 <th className="py-3 px-4">Model Thiết Bị</th>
                 <th className="py-3 px-4">Tải Trọng Tối Đa</th>
@@ -555,15 +555,15 @@ export function DispatcherDashboard() {
                     <span
                       className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold border ${
                         drone.status === 'IDLE'
-                          ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                          ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
                           : drone.status === 'ASSIGNED'
-                            ? 'bg-blue-50 text-blue-800 border-blue-200'
-                            : 'bg-slate-100 text-slate-700 border-slate-200'
+                            ? 'bg-teal-50 text-teal-800 border border-teal-200'
+                            : 'bg-slate-100 text-slate-700 border border-slate-200'
                       }`}
                     >
                       <span
                         className={`w-1.5 h-1.5 rounded-full ${
-                          drone.status === 'IDLE' ? 'bg-emerald-500' : 'bg-blue-500'
+                          drone.status === 'IDLE' ? 'bg-emerald-500' : 'bg-teal-500'
                         }`}
                       ></span>
                       {drone.status}

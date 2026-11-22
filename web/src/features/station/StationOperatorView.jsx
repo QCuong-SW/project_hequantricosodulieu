@@ -187,11 +187,11 @@ export default function StationOperatorView() {
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-16">
       {/* Header */}
-      <div className="flex flex-wrap items-end justify-between gap-4 pb-5 border-b border-slate-200">
+      <div className="flex flex-wrap items-end justify-between gap-4 pb-5 border-b border-emerald-900/10">
         <div>
           <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-blue-600"></span>
-            <p className="text-[11px] font-extrabold uppercase tracking-widest text-blue-600 font-mono">
+            <span className="w-2 h-2 rounded-full bg-emerald-600"></span>
+            <p className="text-[11px] font-extrabold uppercase tracking-widest text-emerald-700 font-mono">
               STATION OPERATOR / PACKAGE HANDOFF CONSOLE
             </p>
           </div>
@@ -204,9 +204,9 @@ export default function StationOperatorView() {
           </p>
         </div>
 
-        <div className="flex items-center gap-2 bg-white px-3.5 py-2 rounded-xl border border-slate-200 shadow-xs">
+        <div className="flex items-center gap-2 bg-white px-3.5 py-2 rounded-xl border border-emerald-200/80 shadow-xs">
           <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
-          <span className="text-xs font-bold text-slate-700">
+          <span className="text-xs font-bold text-slate-800">
             Trạm đang trực: {currentStation?.stationCode || "STN-Q1"}
           </span>
         </div>
@@ -223,29 +223,29 @@ export default function StationOperatorView() {
               onClick={() => setStationId(stn.id)}
               className={`text-left p-4 rounded-2xl border transition-all cursor-pointer ${
                 active
-                  ? "bg-blue-50/70 border-blue-500 ring-2 ring-blue-500/15 shadow-sm"
-                  : "bg-white border-slate-200 hover:border-slate-300 shadow-xs"
+                  ? "bg-emerald-50/80 border-emerald-500 ring-2 ring-emerald-500/20 shadow-sm"
+                  : "bg-white border-slate-200/90 hover:border-emerald-200 shadow-xs"
               }`}
             >
               <div className="flex items-center justify-between mb-2">
                 <span
                   className={`text-xs font-bold px-2.5 py-0.5 rounded-full font-mono ${
-                    active ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-600"
+                    active ? "bg-emerald-600 text-white" : "bg-slate-100 text-slate-600"
                   }`}
                 >
                   {stn.stationCode}
                 </span>
-                <span className="text-[11px] font-semibold text-slate-400">
+                <span className="text-[11px] font-semibold text-emerald-800">
                   {active ? "Đang chọn trực" : "Bấm để chuyển trạm"}
                 </span>
               </div>
               <p className="text-sm font-bold text-slate-900 mb-1">{stn.name}</p>
               <p className="text-xs text-slate-500 truncate mb-3">{stn.addressLine}</p>
               <div className="flex items-center gap-2 pt-2 border-t border-slate-100 text-xs">
-                <span className="font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md">
+                <span className="font-semibold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-100">
                   Bãi đáp trống: {stn.availableLandingPadsCount ?? 1}
                 </span>
-                <span className="font-semibold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-md">
+                <span className="font-semibold text-teal-800 bg-teal-50 px-2 py-0.5 rounded-md border border-teal-100">
                   Dock sạc trống: {stn.availableChargingDocksCount ?? 1}
                 </span>
               </div>
@@ -255,11 +255,11 @@ export default function StationOperatorView() {
       </div>
 
       {/* Sơ đồ Quản lý Slot Trạm (Bãi đáp, Khay sạc, Kho lưu trữ) */}
-      <section className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
+      <section className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-xs space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
           <div>
             <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-blue-600"></span>
+              <span className="w-2 h-2 rounded-full bg-emerald-600"></span>
               <h2 className="text-base font-extrabold text-slate-900">
                 Sơ Đồ Phân Bổ Slot Trạm — {currentStation?.name || currentStation?.stationCode}
               </h2>
@@ -268,7 +268,7 @@ export default function StationOperatorView() {
               Kiểm soát trạng thái trực tiếp của từng bãi đáp Drone, dock sạc và khoang lưu trữ tạm thời tại trạm.
             </p>
           </div>
-          <span className="px-2.5 py-1 rounded-full text-xs font-mono font-bold bg-blue-50 text-blue-700 border border-blue-200">
+          <span className="px-2.5 py-1 rounded-full text-xs font-mono font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
             {currentStationSlots.length} Khay / Bãi đáp
           </span>
         </div>
@@ -277,7 +277,6 @@ export default function StationOperatorView() {
           {currentStationSlots.map((slot) => {
             const isAvail = slot.status === "AVAILABLE";
             const isOcc = slot.status === "OCCUPIED";
-            const isMaint = slot.status === "MAINTENANCE";
 
             const typeLabel =
               slot.slotType === "LANDING_PAD"
@@ -291,10 +290,10 @@ export default function StationOperatorView() {
                 key={slot.id || slot.slotNumber}
                 className={`p-4 rounded-xl border transition-all ${
                   isAvail
-                    ? "bg-emerald-50/40 border-emerald-200"
+                    ? "bg-emerald-50/50 border-emerald-200"
                     : isOcc
-                      ? "bg-blue-50/40 border-blue-200"
-                      : "bg-amber-50/40 border-amber-200"
+                      ? "bg-teal-50/50 border-teal-200"
+                      : "bg-amber-50/50 border-amber-200"
                 }`}
               >
                 <div className="flex items-center justify-between mb-2">
@@ -304,9 +303,9 @@ export default function StationOperatorView() {
                   <span
                     className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-md ${
                       slot.slotType === "LANDING_PAD"
-                        ? "bg-sky-100 text-sky-800 border border-sky-200"
+                        ? "bg-emerald-100 text-emerald-800 border border-emerald-200"
                         : slot.slotType === "CHARGING_DOCK"
-                          ? "bg-amber-100 text-amber-800 border border-amber-200"
+                          ? "bg-teal-100 text-teal-800 border border-teal-200"
                           : "bg-purple-100 text-purple-800 border border-purple-200"
                     }`}
                   >
@@ -320,7 +319,7 @@ export default function StationOperatorView() {
                       isAvail
                         ? "bg-emerald-500 animate-pulse"
                         : isOcc
-                          ? "bg-blue-500"
+                          ? "bg-teal-600"
                           : "bg-amber-500"
                     }`}
                   ></span>
@@ -329,7 +328,7 @@ export default function StationOperatorView() {
                       isAvail
                         ? "text-emerald-700"
                         : isOcc
-                          ? "text-blue-700"
+                          ? "text-teal-800"
                           : "text-amber-700"
                     }`}
                   >
@@ -343,7 +342,7 @@ export default function StationOperatorView() {
                       <button
                         type="button"
                         onClick={() => handleToggleSlotStatus(slot, "OCCUPIED")}
-                        className="flex-1 text-[11px] font-bold py-1 px-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white transition-all cursor-pointer shadow-2xs"
+                        className="flex-1 text-[11px] font-bold py-1 px-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white transition-all cursor-pointer shadow-2xs"
                       >
                         Đặt Dùng
                       </button>
@@ -359,7 +358,7 @@ export default function StationOperatorView() {
                     <button
                       type="button"
                       onClick={() => handleToggleSlotStatus(slot, "AVAILABLE")}
-                      className="w-full text-[11px] font-bold py-1 px-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white transition-all cursor-pointer shadow-2xs"
+                      className="w-full text-[11px] font-bold py-1 px-2 rounded-lg bg-teal-600 hover:bg-teal-700 text-white transition-all cursor-pointer shadow-2xs"
                     >
                       Giải Phóng Slot
                     </button>
@@ -394,7 +393,7 @@ export default function StationOperatorView() {
       {/* Main 2-Column: Scan Form vs History */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* Left Column: Form (5 cols) */}
-        <div className="lg:col-span-5 bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-5">
+        <div className="lg:col-span-5 bg-white p-6 rounded-2xl border border-slate-200/90 shadow-xs space-y-5">
           <div className="border-b border-slate-100 pb-3">
             <h2 className="text-base font-bold text-slate-900">Quét Mã Kiện Hàng</h2>
             <p className="text-xs text-slate-500 mt-0.5">
@@ -415,7 +414,7 @@ export default function StationOperatorView() {
                       key={code}
                       type="button"
                       onClick={() => setPackageBarcode(code)}
-                      className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-blue-100 hover:text-blue-700 text-slate-700 font-mono text-[11px] transition cursor-pointer"
+                      className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-emerald-100 hover:text-emerald-800 text-slate-700 font-mono text-[11px] transition cursor-pointer"
                     >
                       {code}
                     </button>
@@ -434,7 +433,7 @@ export default function StationOperatorView() {
                 value={packageBarcode}
                 onChange={(e) => setPackageBarcode(e.target.value)}
                 required
-                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-slate-50 text-slate-900 font-mono text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-600 transition"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-slate-50 text-slate-900 font-mono text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition"
               />
             </div>
 
@@ -448,7 +447,7 @@ export default function StationOperatorView() {
                   onClick={() => setHandoffAction("STATION_RECEIVED")}
                   className={`p-3 rounded-xl border text-center transition cursor-pointer ${
                     handoffAction === "STATION_RECEIVED"
-                      ? "border-blue-600 bg-blue-50 text-blue-900 font-bold shadow-xs"
+                      ? "border-emerald-600 bg-emerald-50 text-emerald-900 font-bold shadow-xs"
                       : "border-slate-200 bg-white text-slate-600 hover:border-slate-300"
                   }`}
                 >
@@ -462,7 +461,7 @@ export default function StationOperatorView() {
                   onClick={() => setHandoffAction("LOADED_ON_DRONE")}
                   className={`p-3 rounded-xl border text-center transition cursor-pointer ${
                     handoffAction === "LOADED_ON_DRONE"
-                      ? "border-blue-600 bg-blue-50 text-blue-900 font-bold shadow-xs"
+                      ? "border-emerald-600 bg-emerald-50 text-emerald-900 font-bold shadow-xs"
                       : "border-slate-200 bg-white text-slate-600 hover:border-slate-300"
                   }`}
                 >
@@ -482,7 +481,7 @@ export default function StationOperatorView() {
                 <select
                   value={droneId}
                   onChange={(e) => setDroneId(e.target.value)}
-                  className="w-full px-3.5 py-2 rounded-xl border border-slate-300 bg-slate-50 text-slate-900 text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-600 transition"
+                  className="w-full px-3.5 py-2 rounded-xl border border-slate-300 bg-slate-50 text-slate-900 text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition"
                 >
                   {drones.map((d) => (
                     <option key={d.id} value={d.id}>
@@ -502,14 +501,14 @@ export default function StationOperatorView() {
                 placeholder="Bao bì nguyên vẹn, ngàm drone khóa an toàn..."
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                className="w-full px-3.5 py-2 rounded-xl border border-slate-300 bg-slate-50 text-slate-900 text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-600 transition"
+                className="w-full px-3.5 py-2 rounded-xl border border-slate-300 bg-slate-50 text-slate-900 text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition"
               />
             </div>
 
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 px-4 rounded-xl font-bold text-white bg-blue-600 hover:bg-blue-500 shadow-md transition cursor-pointer disabled:opacity-50 text-sm tracking-wide"
+              className="w-full py-3 px-4 rounded-xl font-bold text-white bg-emerald-600 hover:bg-emerald-700 shadow-md shadow-emerald-600/20 transition cursor-pointer disabled:opacity-50 text-sm tracking-wide"
             >
               {loading ? "Đang xử lý quét mã..." : "Xác Nhận Quét Mã Bàn Giao"}
             </button>
@@ -517,7 +516,7 @@ export default function StationOperatorView() {
         </div>
 
         {/* Right Column: History Table (7 cols) */}
-        <div className="lg:col-span-7 bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-4">
+        <div className="lg:col-span-7 bg-white p-6 rounded-2xl border border-slate-200/90 shadow-xs space-y-4">
           <div className="flex items-center justify-between border-b border-slate-100 pb-3">
             <div>
               <h2 className="text-base font-bold text-slate-900">
@@ -530,7 +529,7 @@ export default function StationOperatorView() {
             <button
               type="button"
               onClick={() => loadHistory(stationId)}
-              className="px-3 py-1 rounded-lg text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 transition cursor-pointer"
+              className="px-3 py-1 rounded-lg text-xs font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 transition cursor-pointer"
             >
               Làm Mới
             </button>
@@ -539,7 +538,7 @@ export default function StationOperatorView() {
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse text-xs">
               <thead>
-                <tr className="border-b border-slate-200 bg-slate-50/75 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                <tr className="border-b border-emerald-100 bg-emerald-50/40 text-[10px] font-bold text-emerald-950 uppercase tracking-wider">
                   <th className="py-2.5 px-3">Mã Kiện</th>
                   <th className="py-2.5 px-3">Hành Động</th>
                   <th className="py-2.5 px-3">Thời Gian</th>
@@ -563,15 +562,15 @@ export default function StationOperatorView() {
                         <span
                           className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full font-mono text-[10px] font-bold ${
                             h.handoffStatus === "STATION_RECEIVED"
-                              ? "bg-blue-50 text-blue-700 border border-blue-200"
-                              : "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                              ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
+                              : "bg-teal-50 text-teal-800 border border-teal-200"
                           }`}
                         >
                           <span
                             className={`w-1 h-1 rounded-full ${
                               h.handoffStatus === "STATION_RECEIVED"
-                                ? "bg-blue-500"
-                                : "bg-emerald-500"
+                                ? "bg-emerald-500"
+                                : "bg-teal-500"
                             }`}
                           ></span>
                           {h.handoffStatus}

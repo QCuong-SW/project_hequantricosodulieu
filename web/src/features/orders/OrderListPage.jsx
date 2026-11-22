@@ -159,11 +159,11 @@ export default function OrderListPage({ onViewOrder }) {
   return (
     <section className="max-w-6xl mx-auto space-y-6 text-slate-900 pb-16">
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-200 pb-5">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-emerald-900/10 pb-5">
         <div>
           <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-blue-600"></span>
-            <p className="text-xs font-bold tracking-widest text-blue-600 uppercase font-mono">
+            <span className="w-2 h-2 rounded-full bg-emerald-600"></span>
+            <p className="text-xs font-bold tracking-widest text-emerald-700 uppercase font-mono">
               CUSTOMER / ORDER HISTORY
             </p>
           </div>
@@ -179,7 +179,7 @@ export default function OrderListPage({ onViewOrder }) {
             type="button"
             onClick={loadOrders}
             disabled={loading}
-            className="px-4 py-2 rounded-xl text-xs font-bold bg-white border border-slate-300 hover:border-blue-500 hover:text-blue-600 shadow-xs transition cursor-pointer disabled:opacity-50"
+            className="px-4 py-2 rounded-xl text-xs font-bold bg-white border border-slate-300 hover:border-emerald-500 hover:text-emerald-700 shadow-xs transition cursor-pointer disabled:opacity-50"
           >
             {loading ? 'Đang đồng bộ...' : 'Làm Mới Danh Sách'}
           </button>
@@ -188,21 +188,21 @@ export default function OrderListPage({ onViewOrder }) {
 
       {/* KPI Cards Row */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs">
+        <div className="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-xs hover:border-emerald-200 transition">
           <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
             Tổng đơn hàng
           </div>
           <div className="text-2xl font-black text-slate-900 font-mono mt-1">{stats.total}</div>
         </div>
-        <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs">
-          <div className="text-xs font-semibold text-blue-600 uppercase tracking-wider">
+        <div className="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-xs hover:border-emerald-200 transition">
+          <div className="text-xs font-semibold text-emerald-700 uppercase tracking-wider">
             Đang bay / Tiếp cận
           </div>
-          <div className="text-2xl font-black text-blue-600 font-mono mt-1">
+          <div className="text-2xl font-black text-emerald-700 font-mono mt-1">
             {stats.activeFlights}
           </div>
         </div>
-        <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs">
+        <div className="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-xs hover:border-amber-200 transition">
           <div className="text-xs font-semibold text-amber-600 uppercase tracking-wider">
             Chờ duyệt / Lên lịch
           </div>
@@ -210,11 +210,11 @@ export default function OrderListPage({ onViewOrder }) {
             {stats.pendingOrScheduled}
           </div>
         </div>
-        <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs">
-          <div className="text-xs font-semibold text-emerald-600 uppercase tracking-wider">
+        <div className="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-xs hover:border-emerald-200 transition">
+          <div className="text-xs font-semibold text-emerald-700 uppercase tracking-wider">
             Giao thành công
           </div>
-          <div className="text-2xl font-black text-emerald-600 font-mono mt-1">
+          <div className="text-2xl font-black text-emerald-700 font-mono mt-1">
             {stats.delivered}
           </div>
         </div>
@@ -242,14 +242,14 @@ export default function OrderListPage({ onViewOrder }) {
             placeholder="Tìm kiếm theo mã vận đơn, tên hoặc địa chỉ người nhận..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full px-4 py-2.5 rounded-xl border border-slate-300 bg-white text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition shadow-xs"
+            className="w-full px-4 py-2.5 rounded-xl border border-slate-300 bg-white text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition shadow-xs"
           />
         </div>
         <div className="w-full sm:w-64">
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600 transition shadow-xs"
+            className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition shadow-xs"
           >
             <option value="ALL">Tất cả trạng thái (11 trạng thái)</option>
             {Object.entries(ORDER_STATUS_LABELS).map(([val, label]) => (
@@ -262,10 +262,10 @@ export default function OrderListPage({ onViewOrder }) {
       </div>
 
       {/* Orders Table Card */}
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+      <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs overflow-hidden">
         {loading ? (
           <div className="py-16 text-center text-slate-500 space-y-2">
-            <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
+            <div className="w-6 h-6 border-2 border-emerald-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
             <p className="text-sm font-medium">Đang tải danh sách đơn hàng từ máy chủ...</p>
           </div>
         ) : filteredOrders.length === 0 ? (
@@ -279,7 +279,7 @@ export default function OrderListPage({ onViewOrder }) {
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse text-sm">
               <thead>
-                <tr className="border-b border-slate-200 bg-slate-50/75 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                <tr className="border-b border-emerald-100 bg-emerald-50/40 text-[11px] font-bold text-emerald-950 uppercase tracking-wider">
                   <th className="py-3.5 px-4">Mã Vận Đơn</th>
                   <th className="py-3.5 px-4">Ngày Tạo</th>
                   <th className="py-3.5 px-4">Tuyến Giao</th>
@@ -305,7 +305,7 @@ export default function OrderListPage({ onViewOrder }) {
                             type="button"
                             onClick={() => copyToClipboard(tracking)}
                             title="Sao chép mã"
-                            className="text-[10px] text-slate-400 hover:text-blue-600 font-mono underline cursor-pointer"
+                            className="text-[10px] text-emerald-600 hover:text-emerald-800 font-mono underline cursor-pointer"
                           >
                             {copiedTracking === tracking ? 'Đã chép' : 'Chép'}
                           </button>
@@ -347,7 +347,7 @@ export default function OrderListPage({ onViewOrder }) {
                           <button
                             type="button"
                             onClick={() => setPayingOrder(order)}
-                            className="px-2.5 py-1 rounded-lg text-xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 transition cursor-pointer"
+                            className="px-2.5 py-1 rounded-lg text-xs font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 transition cursor-pointer"
                           >
                             Thanh Toán
                           </button>
@@ -357,7 +357,7 @@ export default function OrderListPage({ onViewOrder }) {
                           onClick={() =>
                             onViewOrder ? onViewOrder(order) : setSelectedOrder(order)
                           }
-                          className="px-2.5 py-1 rounded-lg text-xs font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 transition cursor-pointer"
+                          className="px-2.5 py-1 rounded-lg text-xs font-bold text-emerald-800 bg-emerald-50/80 hover:bg-emerald-100 border border-emerald-200 transition cursor-pointer"
                         >
                           Chi Tiết
                         </button>
@@ -365,7 +365,7 @@ export default function OrderListPage({ onViewOrder }) {
                           <button
                             type="button"
                             onClick={() => setCancellingOrder(order)}
-                            className="px-2.5 py-1 rounded-lg text-xs font-bold text-rose-700 bg-rose-50 hover:bg-rose-100 transition cursor-pointer"
+                            className="px-2.5 py-1 rounded-lg text-xs font-bold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 transition cursor-pointer"
                           >
                             Hủy Đơn
                           </button>
@@ -386,7 +386,7 @@ export default function OrderListPage({ onViewOrder }) {
           <div className="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl space-y-5 border border-slate-200 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div>
-                <span className="text-[10px] font-mono font-bold text-blue-600 uppercase tracking-wider">
+                <span className="text-[10px] font-mono font-bold text-emerald-700 uppercase tracking-wider">
                   ORDER SPECIFICATION &amp; TRACKING
                 </span>
                 <h3 className="text-lg font-bold text-slate-900">
@@ -397,8 +397,8 @@ export default function OrderListPage({ onViewOrder }) {
             </div>
 
             {/* Stepper Timeline */}
-            <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
-              <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-3">
+            <div className="bg-emerald-50/40 p-4 rounded-xl border border-emerald-100">
+              <div className="text-[10px] font-bold text-emerald-800 uppercase tracking-wider mb-3">
                 Tiến Trình Hành Trình Đơn Hàng:
               </div>
               <div className="flex items-center justify-between relative">
@@ -411,9 +411,9 @@ export default function OrderListPage({ onViewOrder }) {
                       <div
                         className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-mono font-bold transition-all ${
                           isCurrent
-                            ? 'bg-blue-600 text-white ring-4 ring-blue-100 scale-110'
+                            ? 'bg-emerald-600 text-white ring-4 ring-emerald-100 scale-110 shadow-xs'
                             : isDone
-                              ? 'bg-emerald-600 text-white'
+                              ? 'bg-emerald-700 text-white'
                               : 'bg-slate-200 text-slate-500'
                         }`}
                       >
@@ -421,7 +421,7 @@ export default function OrderListPage({ onViewOrder }) {
                       </div>
                       <span
                         className={`text-[10px] mt-1 font-semibold truncate max-w-[80px] ${
-                          isCurrent ? 'text-blue-700' : isDone ? 'text-slate-800' : 'text-slate-400'
+                          isCurrent ? 'text-emerald-800 font-bold' : isDone ? 'text-slate-800' : 'text-slate-400'
                         }`}
                       >
                         {step.label}
@@ -525,7 +525,7 @@ export default function OrderListPage({ onViewOrder }) {
             className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4 border border-slate-200"
           >
             <div>
-              <span className="text-[10px] font-mono font-bold text-emerald-600 uppercase tracking-wider">
+              <span className="text-[10px] font-mono font-bold text-emerald-700 uppercase tracking-wider">
                 SECURE PAYMENT GATEWAY (SIMULATOR)
               </span>
               <h3 className="text-lg font-bold text-slate-900 mt-0.5">Thanh Toán Cước Phí Vận Chuyển</h3>
@@ -579,7 +579,7 @@ export default function OrderListPage({ onViewOrder }) {
               <button
                 type="submit"
                 disabled={isPaying}
-                className="px-5 py-2.5 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white shadow-md transition cursor-pointer disabled:opacity-50"
+                className="px-5 py-2.5 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-md shadow-emerald-600/20 transition cursor-pointer disabled:opacity-50"
               >
                 {isPaying ? 'Đang xử lý...' : 'Xác Nhận Thanh Toán'}
               </button>
@@ -664,28 +664,28 @@ function StatusBadge({ status }) {
       dotColor = 'bg-amber-500'
       break
     case 'APPROVED':
-      badgeColor = 'bg-cyan-50 text-cyan-800 border-cyan-200'
-      dotColor = 'bg-cyan-500'
+      badgeColor = 'bg-emerald-50 text-emerald-800 border-emerald-200'
+      dotColor = 'bg-emerald-500'
       break
     case 'SCHEDULED':
-      badgeColor = 'bg-purple-50 text-purple-800 border-purple-200'
-      dotColor = 'bg-purple-500'
-      break
-    case 'IN_TRANSIT':
-      badgeColor = 'bg-blue-50 text-blue-800 border-blue-200'
-      dotColor = 'bg-blue-500 animate-pulse'
-      break
-    case 'DELIVERING':
-      badgeColor = 'bg-indigo-50 text-indigo-800 border-indigo-200'
-      dotColor = 'bg-indigo-500 animate-pulse'
-      break
-    case 'ARRIVED':
       badgeColor = 'bg-teal-50 text-teal-800 border-teal-200'
       dotColor = 'bg-teal-500'
       break
-    case 'DELIVERED':
+    case 'IN_TRANSIT':
+      badgeColor = 'bg-emerald-100 text-emerald-900 border-emerald-300'
+      dotColor = 'bg-emerald-600 animate-pulse'
+      break
+    case 'DELIVERING':
+      badgeColor = 'bg-teal-100 text-teal-900 border-teal-300'
+      dotColor = 'bg-teal-600 animate-pulse'
+      break
+    case 'ARRIVED':
       badgeColor = 'bg-emerald-50 text-emerald-800 border-emerald-200'
       dotColor = 'bg-emerald-500'
+      break
+    case 'DELIVERED':
+      badgeColor = 'bg-emerald-100 text-emerald-800 border-emerald-300'
+      dotColor = 'bg-emerald-600'
       break
     case 'DELIVERY_FAILED':
       badgeColor = 'bg-orange-50 text-orange-800 border-orange-200'

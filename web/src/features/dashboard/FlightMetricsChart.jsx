@@ -67,17 +67,17 @@ export default function FlightMetricsChart({ daily }) {
                 <title>
                   {`${formatDay(d.date)}: ${d.totalFlights} chuyến (${d.completedFlights} hoàn thành, ${d.abortedFlights} hủy, ${other} khác)`}
                 </title>
-                {/* Completed - Emerald */}
+                {/* Completed - Emerald Green */}
                 <rect
                   x={x}
                   y={baseY - hDone}
                   width={barW}
                   height={hDone}
-                  fill="#10b981"
+                  fill="#059669"
                   rx="2"
                   className="transition hover:opacity-85"
                 />
-                {/* Aborted - Rose */}
+                {/* Aborted - Rose Red */}
                 <rect
                   x={x}
                   y={baseY - hDone - hAbort}
@@ -87,13 +87,13 @@ export default function FlightMetricsChart({ daily }) {
                   rx="2"
                   className="transition hover:opacity-85"
                 />
-                {/* Other (Scheduled / In-flight) - Sky */}
+                {/* Other (Scheduled / In-flight) - Mint */}
                 <rect
                   x={x}
                   y={baseY - hDone - hAbort - hOther}
                   width={barW}
                   height={hOther}
-                  fill="#38bdf8"
+                  fill="#34d399"
                   rx="2"
                   className="transition hover:opacity-85"
                 />
@@ -115,7 +115,7 @@ export default function FlightMetricsChart({ daily }) {
 
       <div className="flex flex-wrap items-center justify-center gap-6 pt-2 border-t border-slate-100 text-xs">
         <div className="flex items-center gap-2">
-          <span className="w-3 h-3 rounded-sm bg-emerald-500"></span>
+          <span className="w-3 h-3 rounded-sm bg-emerald-600"></span>
           <span className="text-slate-700 font-medium">Hoàn thành an toàn</span>
         </div>
         <div className="flex items-center gap-2">
@@ -123,7 +123,7 @@ export default function FlightMetricsChart({ daily }) {
           <span className="text-slate-700 font-medium">Hủy giữa chừng (Aborted)</span>
         </div>
         <div className="flex items-center gap-2">
-          <span className="w-3 h-3 rounded-sm bg-sky-400"></span>
+          <span className="w-3 h-3 rounded-sm bg-emerald-400"></span>
           <span className="text-slate-700 font-medium">Khác (Đang bay, Đã xếp lịch, Đổi tuyến)</span>
         </div>
       </div>

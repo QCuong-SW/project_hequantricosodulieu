@@ -274,11 +274,11 @@ export default function CreateOrderPage({ onCreated }) {
   return (
     <section className="max-w-6xl mx-auto space-y-6 text-slate-900 pb-12">
       {/* Page Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 border-b border-slate-200 pb-5">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 border-b border-emerald-900/10 pb-5">
         <div>
           <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-blue-600"></span>
-            <p className="text-xs font-bold tracking-widest text-blue-600 uppercase font-mono">
+            <span className="w-2 h-2 rounded-full bg-emerald-600"></span>
+            <p className="text-xs font-bold tracking-widest text-emerald-700 uppercase font-mono">
               CUSTOMER / NEW DELIVERY ORDER
             </p>
           </div>
@@ -290,7 +290,7 @@ export default function CreateOrderPage({ onCreated }) {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+          <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
             Trực quan hóa GPS thời gian thực
           </span>
         </div>
@@ -315,10 +315,10 @@ export default function CreateOrderPage({ onCreated }) {
         {/* Left Column: Form Fields (7 cols) */}
         <div className="lg:col-span-7 space-y-6">
           {/* Section 1: Sender / Hub */}
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-xs p-6 space-y-5">
+          <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs p-6 space-y-5">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div className="flex items-center gap-2.5">
-                <span className="flex items-center justify-center w-6 h-6 rounded-md bg-blue-100 text-blue-700 text-xs font-bold font-mono">
+                <span className="flex items-center justify-center w-6 h-6 rounded-md bg-emerald-100 text-emerald-800 text-xs font-bold font-mono">
                   01
                 </span>
                 <h2 className="text-base font-bold text-slate-900">Điểm Xuất Phát (Điểm Gửi)</h2>
@@ -332,7 +332,7 @@ export default function CreateOrderPage({ onCreated }) {
                   }}
                   className={`px-3 py-1 rounded-md transition-all ${
                     originType === 'HUB'
-                      ? 'bg-white text-blue-700 shadow-xs'
+                      ? 'bg-white text-emerald-800 shadow-xs font-bold'
                       : 'text-slate-600 hover:text-slate-900'
                   }`}
                 >
@@ -343,7 +343,7 @@ export default function CreateOrderPage({ onCreated }) {
                   onClick={() => setOriginType('CUSTOM')}
                   className={`px-3 py-1 rounded-md transition-all ${
                     originType === 'CUSTOM'
-                      ? 'bg-white text-blue-700 shadow-xs'
+                      ? 'bg-white text-emerald-800 shadow-xs font-bold'
                       : 'text-slate-600 hover:text-slate-900'
                   }`}
                 >
@@ -362,7 +362,7 @@ export default function CreateOrderPage({ onCreated }) {
                     value={selectedStationId}
                     onChange={(e) => handleStationChange(e.target.value)}
                     disabled={loadingData || stations.length === 0}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-slate-50 text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-slate-50 text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition"
                   >
                     {stations.map((stn) => (
                       <option key={stn.id} value={stn.id}>
@@ -385,7 +385,7 @@ export default function CreateOrderPage({ onCreated }) {
                       value={sender.name}
                       onChange={(e) => setSender({ ...sender, name: e.target.value })}
                       required
-                      className="w-full px-3.5 py-2 rounded-xl border border-slate-300 bg-slate-50 text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-600 transition"
+                      className="w-full px-3.5 py-2 rounded-xl border border-slate-300 bg-slate-50 text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition"
                     />
                   </div>
                   <div>
@@ -397,12 +397,12 @@ export default function CreateOrderPage({ onCreated }) {
                       value={sender.phone}
                       onChange={(e) => setSender({ ...sender, phone: e.target.value })}
                       required
-                      className="w-full px-3.5 py-2 rounded-xl border border-slate-300 bg-slate-50 text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-600 transition"
+                      className="w-full px-3.5 py-2 rounded-xl border border-slate-300 bg-slate-50 text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition"
                     />
                   </div>
                 </div>
 
-                <div className="p-3 bg-blue-50/70 rounded-xl border border-blue-100 flex items-center justify-between text-xs text-blue-900">
+                <div className="p-3 bg-emerald-50/70 rounded-xl border border-emerald-100 flex items-center justify-between text-xs text-emerald-950">
                   <span>Tọa độ trạm cất cánh:</span>
                   <span className="font-mono font-semibold">
                     {sender.latitude.toFixed(6)}, {sender.longitude.toFixed(6)}
@@ -421,7 +421,7 @@ export default function CreateOrderPage({ onCreated }) {
                       value={sender.name}
                       onChange={(e) => setSender({ ...sender, name: e.target.value })}
                       required
-                      className="w-full px-3.5 py-2 rounded-xl border border-slate-300 bg-slate-50 text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-600 transition"
+                      className="w-full px-3.5 py-2 rounded-xl border border-slate-300 bg-slate-50 text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition"
                     />
                   </div>
                   <div>
@@ -433,7 +433,7 @@ export default function CreateOrderPage({ onCreated }) {
                       value={sender.phone}
                       onChange={(e) => setSender({ ...sender, phone: e.target.value })}
                       required
-                      className="w-full px-3.5 py-2 rounded-xl border border-slate-300 bg-slate-50 text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-600 transition"
+                      className="w-full px-3.5 py-2 rounded-xl border border-slate-300 bg-slate-50 text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition"
                     />
                   </div>
                 </div>
@@ -446,7 +446,7 @@ export default function CreateOrderPage({ onCreated }) {
                     value={sender.addressText}
                     onChange={(e) => setSender({ ...sender, addressText: e.target.value })}
                     required
-                    className="w-full px-3.5 py-2 rounded-xl border border-slate-300 bg-slate-50 text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-600 transition"
+                    className="w-full px-3.5 py-2 rounded-xl border border-slate-300 bg-slate-50 text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition"
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
@@ -461,7 +461,7 @@ export default function CreateOrderPage({ onCreated }) {
                       onChange={(e) =>
                         setSender({ ...sender, latitude: parseFloat(e.target.value) || 0 })
                       }
-                      className="w-full px-3.5 py-2 rounded-xl border border-slate-300 bg-slate-50 text-slate-900 text-sm font-mono focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-600 transition"
+                      className="w-full px-3.5 py-2 rounded-xl border border-slate-300 bg-slate-50 text-slate-900 text-sm font-mono focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition"
                     />
                   </div>
                   <div>
@@ -475,7 +475,7 @@ export default function CreateOrderPage({ onCreated }) {
                       onChange={(e) =>
                         setSender({ ...sender, longitude: parseFloat(e.target.value) || 0 })
                       }
-                      className="w-full px-3.5 py-2 rounded-xl border border-slate-300 bg-slate-50 text-slate-900 text-sm font-mono focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-600 transition"
+                      className="w-full px-3.5 py-2 rounded-xl border border-slate-300 bg-slate-50 text-slate-900 text-sm font-mono focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition"
                     />
                   </div>
                 </div>
@@ -484,9 +484,9 @@ export default function CreateOrderPage({ onCreated }) {
           </div>
 
           {/* Section 2: Recipient Address */}
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-xs p-6 space-y-5">
+          <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs p-6 space-y-5">
             <div className="flex items-center gap-2.5 border-b border-slate-100 pb-3">
-              <span className="flex items-center justify-center w-6 h-6 rounded-md bg-blue-100 text-blue-700 text-xs font-bold font-mono">
+              <span className="flex items-center justify-center w-6 h-6 rounded-md bg-emerald-100 text-emerald-800 text-xs font-bold font-mono">
                 02
               </span>
               <h2 className="text-base font-bold text-slate-900">Điểm Đích (Người Nhận)</h2>
@@ -501,7 +501,7 @@ export default function CreateOrderPage({ onCreated }) {
                   value={selectedAddressId}
                   onChange={(e) => handleRecipientAddressChange(e.target.value)}
                   disabled={loadingData || addresses.length === 0}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-slate-50 text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-slate-50 text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition"
                 >
                   <option value="">{loadingData ? 'Đang tải...' : 'Chọn địa chỉ nhận hàng'}</option>
                   {addresses.map((addr) => (
@@ -522,7 +522,7 @@ export default function CreateOrderPage({ onCreated }) {
                     value={recipient.name}
                     onChange={(e) => setRecipient({ ...recipient, name: e.target.value })}
                     required
-                    className="w-full px-3.5 py-2 rounded-xl border border-slate-300 bg-slate-50 text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-600 transition"
+                    className="w-full px-3.5 py-2 rounded-xl border border-slate-300 bg-slate-50 text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition"
                   />
                 </div>
                 <div>
@@ -534,7 +534,7 @@ export default function CreateOrderPage({ onCreated }) {
                     value={recipient.phone}
                     onChange={(e) => setRecipient({ ...recipient, phone: e.target.value })}
                     required
-                    className="w-full px-3.5 py-2 rounded-xl border border-slate-300 bg-slate-50 text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-600 transition"
+                    className="w-full px-3.5 py-2 rounded-xl border border-slate-300 bg-slate-50 text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition"
                   />
                 </div>
               </div>
@@ -547,11 +547,11 @@ export default function CreateOrderPage({ onCreated }) {
                   value={recipient.addressText}
                   onChange={(e) => setRecipient({ ...recipient, addressText: e.target.value })}
                   rows="2"
-                  className="w-full px-3.5 py-2 rounded-xl border border-slate-300 bg-slate-50 text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-600 transition"
+                  className="w-full px-3.5 py-2 rounded-xl border border-slate-300 bg-slate-50 text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition"
                 />
               </div>
 
-              <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between text-xs text-slate-700">
+              <div className="p-3 bg-emerald-50/60 rounded-xl border border-emerald-100 flex items-center justify-between text-xs text-emerald-950">
                 <span>Tọa độ giao hàng GPS:</span>
                 <span className="font-mono font-semibold">
                   {recipient.latitude.toFixed(6)}, {recipient.longitude.toFixed(6)}
@@ -561,9 +561,9 @@ export default function CreateOrderPage({ onCreated }) {
           </div>
 
           {/* Section 3: Package Specs */}
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-xs p-6 space-y-5">
+          <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs p-6 space-y-5">
             <div className="flex items-center gap-2.5 border-b border-slate-100 pb-3">
-              <span className="flex items-center justify-center w-6 h-6 rounded-md bg-blue-100 text-blue-700 text-xs font-bold font-mono">
+              <span className="flex items-center justify-center w-6 h-6 rounded-md bg-emerald-100 text-emerald-800 text-xs font-bold font-mono">
                 03
               </span>
               <h2 className="text-base font-bold text-slate-900">Quy Cách Kiện Hàng</h2>
@@ -579,7 +579,7 @@ export default function CreateOrderPage({ onCreated }) {
                   placeholder="Ví dụ: Thiết bị điện tử nhỏ, mẫu thử nghiệm y tế, tài liệu..."
                   value={packageInfo.description}
                   onChange={(e) => setPackageInfo({ ...packageInfo, description: e.target.value })}
-                  className="w-full px-3.5 py-2 rounded-xl border border-slate-300 bg-slate-50 text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-600 transition"
+                  className="w-full px-3.5 py-2 rounded-xl border border-slate-300 bg-slate-50 text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition"
                 />
               </div>
 
@@ -596,7 +596,7 @@ export default function CreateOrderPage({ onCreated }) {
                     value={packageInfo.weightKg}
                     onChange={(e) => setPackageInfo({ ...packageInfo, weightKg: e.target.value })}
                     required
-                    className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-slate-50 text-slate-900 text-sm font-semibold focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-600 transition"
+                    className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-slate-50 text-slate-900 text-sm font-semibold focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition"
                   />
                 </div>
                 <div>
@@ -610,7 +610,7 @@ export default function CreateOrderPage({ onCreated }) {
                     value={packageInfo.lengthCm}
                     onChange={(e) => setPackageInfo({ ...packageInfo, lengthCm: e.target.value })}
                     required
-                    className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-slate-50 text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-600 transition"
+                    className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-slate-50 text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition"
                   />
                 </div>
                 <div>
@@ -624,7 +624,7 @@ export default function CreateOrderPage({ onCreated }) {
                     value={packageInfo.widthCm}
                     onChange={(e) => setPackageInfo({ ...packageInfo, widthCm: e.target.value })}
                     required
-                    className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-slate-50 text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-600 transition"
+                    className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-slate-50 text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition"
                   />
                 </div>
                 <div>
@@ -638,7 +638,7 @@ export default function CreateOrderPage({ onCreated }) {
                     value={packageInfo.heightCm}
                     onChange={(e) => setPackageInfo({ ...packageInfo, heightCm: e.target.value })}
                     required
-                    className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-slate-50 text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-600 transition"
+                    className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-slate-50 text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition"
                   />
                 </div>
               </div>
@@ -653,7 +653,7 @@ export default function CreateOrderPage({ onCreated }) {
                   min="0"
                   value={packageInfo.declaredValue}
                   onChange={(e) => setPackageInfo({ ...packageInfo, declaredValue: e.target.value })}
-                  className="w-full px-3.5 py-2 rounded-xl border border-slate-300 bg-slate-50 text-slate-900 text-sm font-semibold focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-600 transition"
+                  className="w-full px-3.5 py-2 rounded-xl border border-slate-300 bg-slate-50 text-slate-900 text-sm font-semibold focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition"
                 />
               </div>
 
@@ -665,7 +665,7 @@ export default function CreateOrderPage({ onCreated }) {
                     onChange={(e) =>
                       setPackageInfo({ ...packageInfo, isFragile: e.target.checked })
                     }
-                    className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                    className="w-4 h-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
                   />
                   <span className="text-sm font-medium text-slate-800">
                     Hàng dễ vỡ (+15.000 đ bảo hiểm chuyên dụng)
@@ -678,7 +678,7 @@ export default function CreateOrderPage({ onCreated }) {
                     onChange={(e) =>
                       setPackageInfo({ ...packageInfo, isHazardous: e.target.checked })
                     }
-                    className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                    className="w-4 h-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
                   />
                   <span className="text-sm font-medium text-slate-800">Hàng nguy hiểm (Pin/Hóa chất)</span>
                 </label>
@@ -692,7 +692,7 @@ export default function CreateOrderPage({ onCreated }) {
                   type="file"
                   accept="image/*"
                   onChange={handlePhotoChange}
-                  className="block w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 transition cursor-pointer"
+                  className="block w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-emerald-50 file:text-emerald-800 hover:file:bg-emerald-100 transition cursor-pointer"
                 />
                 {photoName && <p className="text-xs text-slate-500 mt-1">Đã chọn: {photoName}</p>}
                 {photoDataUrl && (
@@ -711,11 +711,11 @@ export default function CreateOrderPage({ onCreated }) {
 
         {/* Right Column: Flight Calculation & Fee Summary (5 cols - Sticky) */}
         <div className="lg:col-span-5 space-y-6 lg:sticky lg:top-4">
-          <div className="bg-slate-900 text-white rounded-2xl p-6 shadow-xl space-y-6 border border-slate-800">
+          <div className="bg-[#0B1512] text-white rounded-2xl p-6 shadow-xl space-y-6 border border-emerald-950">
             <div>
               <div className="flex items-center justify-between">
-                <span className="text-xs font-mono tracking-widest text-blue-400 uppercase font-bold">
-                  FLIGHT ESTIMATE & SUMMARY
+                <span className="text-xs font-mono tracking-widest text-emerald-400 uppercase font-bold">
+                  FLIGHT ESTIMATE &amp; SUMMARY
                 </span>
                 <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
               </div>
@@ -723,26 +723,26 @@ export default function CreateOrderPage({ onCreated }) {
             </div>
 
             {/* Route visual */}
-            <div className="bg-slate-800/80 rounded-xl p-4 border border-slate-700 space-y-3">
+            <div className="bg-slate-900/80 rounded-xl p-4 border border-emerald-900/40 space-y-3">
               <div className="flex items-start gap-3">
-                <div className="w-2.5 h-2.5 rounded-full bg-blue-400 mt-1 shrink-0"></div>
+                <div className="w-2.5 h-2.5 rounded-full bg-emerald-400 mt-1 shrink-0"></div>
                 <div className="text-xs">
                   <div className="text-slate-400">Xuất phát:</div>
                   <div className="text-white font-medium line-clamp-1">{sender.addressText}</div>
-                  <div className="text-slate-400 font-mono text-[11px]">
+                  <div className="text-emerald-400 font-mono text-[11px]">
                     {sender.latitude.toFixed(4)}, {sender.longitude.toFixed(4)}
                   </div>
                 </div>
               </div>
 
-              <div className="border-l-2 border-dashed border-slate-600 ml-1.25 h-4"></div>
+              <div className="border-l-2 border-dashed border-emerald-700/60 ml-1.25 h-4"></div>
 
               <div className="flex items-start gap-3">
-                <div className="w-2.5 h-2.5 rounded-full bg-emerald-400 mt-1 shrink-0"></div>
+                <div className="w-2.5 h-2.5 rounded-full bg-teal-400 mt-1 shrink-0"></div>
                 <div className="text-xs">
                   <div className="text-slate-400">Đích đến:</div>
                   <div className="text-white font-medium line-clamp-1">{recipient.addressText}</div>
-                  <div className="text-slate-400 font-mono text-[11px]">
+                  <div className="text-teal-400 font-mono text-[11px]">
                     {recipient.latitude.toFixed(4)}, {recipient.longitude.toFixed(4)}
                   </div>
                 </div>
@@ -751,22 +751,22 @@ export default function CreateOrderPage({ onCreated }) {
 
             {/* Key Flight Stats */}
             <div className="grid grid-cols-2 gap-3 text-center">
-              <div className="bg-slate-800/60 rounded-xl p-3 border border-slate-700/60">
+              <div className="bg-slate-900/60 rounded-xl p-3 border border-emerald-900/40">
                 <div className="text-xs text-slate-400">Khoảng cách bay</div>
-                <div className="text-xl font-black text-blue-300 font-mono mt-0.5">
+                <div className="text-xl font-black text-emerald-300 font-mono mt-0.5">
                   {distanceKm} km
                 </div>
               </div>
-              <div className="bg-slate-800/60 rounded-xl p-3 border border-slate-700/60">
+              <div className="bg-slate-900/60 rounded-xl p-3 border border-emerald-900/40">
                 <div className="text-xs text-slate-400">Thời gian bay ước tính</div>
-                <div className="text-xl font-black text-emerald-300 font-mono mt-0.5">
+                <div className="text-xl font-black text-teal-300 font-mono mt-0.5">
                   ~{estimatedFlightMinutes} phút
                 </div>
               </div>
             </div>
 
             {/* Fee Breakdown */}
-            <div className="space-y-2.5 text-xs border-t border-slate-800 pt-4">
+            <div className="space-y-2.5 text-xs border-t border-emerald-950 pt-4">
               <div className="flex justify-between text-slate-300">
                 <span>Cước cơ bản cất cánh:</span>
                 <span className="font-mono">{calculatedFee.baseFee.toLocaleString('vi-VN')} đ</span>
@@ -785,9 +785,9 @@ export default function CreateOrderPage({ onCreated }) {
                   </span>
                 </div>
               )}
-              <div className="flex justify-between text-base font-bold text-white border-t border-slate-700 pt-3">
+              <div className="flex justify-between text-base font-bold text-white border-t border-emerald-900/60 pt-3">
                 <span>Tổng cước phí giao:</span>
-                <span className="text-emerald-400 font-mono">
+                <span className="text-emerald-400 font-mono text-lg">
                   {calculatedFee.total.toLocaleString('vi-VN')} đ
                 </span>
               </div>
@@ -797,7 +797,7 @@ export default function CreateOrderPage({ onCreated }) {
             <button
               type="submit"
               disabled={submitting || loadingData}
-              className="w-full py-3.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-500 disabled:bg-slate-700 disabled:text-slate-500 text-white font-bold text-sm tracking-wide shadow-lg shadow-blue-900/50 transition cursor-pointer flex items-center justify-center gap-2"
+              className="w-full py-3.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-800 disabled:text-slate-500 text-white font-bold text-sm tracking-wide shadow-lg shadow-emerald-950/60 transition cursor-pointer flex items-center justify-center gap-2"
             >
               {submitting ? 'Đang gửi yêu cầu đặt chuyến...' : 'Xác Nhận Tạo Đơn Giao Hàng'}
             </button>

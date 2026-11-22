@@ -24,13 +24,13 @@ export default function StationUtilizationTable({ stations = [] }) {
     <div className="overflow-x-auto">
       <table className="w-full text-left border-collapse text-xs">
         <thead>
-          <tr className="border-b border-slate-200 bg-slate-50/75 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-            <th className="py-3 px-4">Tên Trạm &amp; Mã</th>
-            <th className="py-3 px-4">Trạng Thái</th>
-            <th className="py-3 px-4 text-center">Slot Khả Dụng</th>
-            <th className="py-3 px-4 text-center">Đang Bận</th>
-            <th className="py-3 px-4 text-center">Bãi Đáp Bận</th>
-            <th className="py-3 px-4">Mức Sử Dụng (SQL View)</th>
+          <tr className="border-b border-emerald-100 bg-emerald-50/40 text-[11px] font-bold text-emerald-950 uppercase tracking-wider">
+            <th className="py-3.5 px-4">Tên Trạm &amp; Mã</th>
+            <th className="py-3.5 px-4">Trạng Thái</th>
+            <th className="py-3.5 px-4 text-center">Slot Khả Dụng</th>
+            <th className="py-3.5 px-4 text-center">Đang Bận</th>
+            <th className="py-3.5 px-4 text-center">Bãi Đáp Bận</th>
+            <th className="py-3.5 px-4">Mức Sử Dụng (SQL View)</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-slate-100">
@@ -41,27 +41,27 @@ export default function StationUtilizationTable({ stations = [] }) {
               dot: 'bg-slate-400',
             }
             return (
-              <tr key={s.stationId} className="hover:bg-slate-50 transition-colors">
-                <td className="py-3 px-4">
+              <tr key={s.stationId} className="hover:bg-slate-50/80 transition-colors">
+                <td className="py-3.5 px-4">
                   <div className="font-bold text-slate-900 text-sm">{s.stationName}</div>
-                  <div className="font-mono text-[11px] text-blue-700 font-semibold">{s.stationCode}</div>
+                  <div className="font-mono text-[11px] text-emerald-700 font-bold">{s.stationCode}</div>
                 </td>
-                <td className="py-3 px-4">
+                <td className="py-3.5 px-4">
                   <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${stCfg.color}`}>
                     <span className={`w-1.5 h-1.5 rounded-full ${stCfg.dot}`}></span>
                     {stCfg.label}
                   </span>
                 </td>
-                <td className="py-3 px-4 text-center font-mono font-bold text-slate-900 text-sm">
+                <td className="py-3.5 px-4 text-center font-mono font-bold text-slate-900 text-sm">
                   {s.usableSlots} / {s.actualSlots}
                 </td>
-                <td className="py-3 px-4 text-center font-mono font-semibold text-slate-700">
+                <td className="py-3.5 px-4 text-center font-mono font-semibold text-slate-700">
                   {s.busySlots}
                 </td>
-                <td className="py-3 px-4 text-center font-mono font-semibold text-slate-700">
+                <td className="py-3.5 px-4 text-center font-mono font-semibold text-slate-700">
                   {s.landingPadBusy} / {s.landingPadSlots}
                 </td>
-                <td className="py-3 px-4 min-w-[180px]">
+                <td className="py-3.5 px-4 min-w-[180px]">
                   <div className="flex items-center gap-2.5">
                     <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden border border-slate-200">
                       <div

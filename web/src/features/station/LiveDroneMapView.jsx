@@ -255,12 +255,12 @@ export default function LiveDroneMapView({ initialOrderId = "ORD-2026-0001" }) {
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-16">
       {/* Header */}
-      <div className="flex flex-wrap items-end justify-between gap-4 pb-5 border-b border-slate-200">
+      <div className="flex flex-wrap items-end justify-between gap-4 pb-5 border-b border-emerald-900/10">
         <div>
           <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-blue-600"></span>
-            <p className="text-[11px] font-extrabold uppercase tracking-widest text-blue-600 font-mono">
-              FLIGHT RADAR / LIVE TELEMETRY & PROOF OF DELIVERY
+            <span className="w-2 h-2 rounded-full bg-emerald-600"></span>
+            <p className="text-[11px] font-extrabold uppercase tracking-widest text-emerald-700 font-mono">
+              FLIGHT RADAR / LIVE TELEMETRY &amp; PROOF OF DELIVERY
             </p>
           </div>
           <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-slate-900 mt-1">
@@ -273,22 +273,22 @@ export default function LiveDroneMapView({ initialOrderId = "ORD-2026-0001" }) {
         </div>
 
         <div className="flex items-center gap-3 flex-wrap">
-          <div className="flex items-center gap-2 bg-white px-3.5 py-2 rounded-xl border border-slate-200 shadow-xs">
+          <div className="flex items-center gap-2 bg-white px-3.5 py-2 rounded-xl border border-emerald-200/80 shadow-xs">
             <span className="text-xs text-slate-500 font-medium">Mã đơn:</span>
             <input
               type="text"
               value={orderId}
               onChange={(e) => setOrderId(e.target.value)}
-              className="font-mono text-xs font-bold text-slate-900 bg-slate-100 px-2.5 py-1 rounded-md border border-slate-200 focus:outline-none focus:border-blue-500 w-44"
+              className="font-mono text-xs font-bold text-slate-900 bg-slate-100 px-2.5 py-1 rounded-md border border-slate-200 focus:outline-none focus:border-emerald-600 w-44"
             />
           </div>
 
           <span
             className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-extrabold border ${
               orderStatus === "DELIVERED"
-                ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                ? "bg-emerald-50 text-emerald-800 border-emerald-200"
                 : orderStatus === "IN_TRANSIT"
-                  ? "bg-blue-50 text-blue-700 border-blue-200"
+                  ? "bg-emerald-100 text-emerald-900 border-emerald-300"
                   : "bg-amber-50 text-amber-800 border-amber-200"
             }`}
           >
@@ -297,7 +297,7 @@ export default function LiveDroneMapView({ initialOrderId = "ORD-2026-0001" }) {
                 orderStatus === "DELIVERED"
                   ? "bg-emerald-500"
                   : orderStatus === "IN_TRANSIT"
-                    ? "bg-blue-500 animate-pulse"
+                    ? "bg-emerald-500 animate-pulse"
                     : "bg-amber-500"
               }`}
             ></span>
@@ -308,7 +308,7 @@ export default function LiveDroneMapView({ initialOrderId = "ORD-2026-0001" }) {
             className={`px-3 py-1.5 rounded-xl text-xs font-bold border ${
               signalrConnected
                 ? "bg-emerald-950 text-emerald-400 border-emerald-800"
-                : "bg-slate-900 text-sky-400 border-slate-800"
+                : "bg-[#0B1512] text-emerald-400 border-emerald-900"
             }`}
           >
             {signalrConnected
@@ -320,7 +320,7 @@ export default function LiveDroneMapView({ initialOrderId = "ORD-2026-0001" }) {
 
       {/* Quick Select Order Row */}
       {recentOrders.length > 0 && (
-        <div className="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-xs flex items-center gap-3 overflow-x-auto text-xs">
+        <div className="bg-white p-3.5 rounded-2xl border border-slate-200/90 shadow-xs flex items-center gap-3 overflow-x-auto text-xs">
           <span className="text-slate-500 font-bold shrink-0 uppercase tracking-wider text-[11px]">
             Chọn Đơn Bay Nhanh:
           </span>
@@ -336,8 +336,8 @@ export default function LiveDroneMapView({ initialOrderId = "ORD-2026-0001" }) {
                   onClick={() => selectOrder(o)}
                   className={`px-3 py-1.5 rounded-xl font-mono text-xs font-bold transition cursor-pointer whitespace-nowrap ${
                     isSelected
-                      ? "bg-blue-600 text-white shadow-xs"
-                      : "bg-slate-100 hover:bg-slate-200 text-slate-700"
+                      ? "bg-emerald-600 text-white shadow-xs"
+                      : "bg-slate-100 hover:bg-emerald-50 hover:text-emerald-800 text-slate-700"
                   }`}
                 >
                   {code} ({o.status || "PENDING"})
@@ -349,8 +349,8 @@ export default function LiveDroneMapView({ initialOrderId = "ORD-2026-0001" }) {
       )}
 
       {/* Radar Map & Telemetry Panel */}
-      <div className="bg-slate-950 border border-slate-800 rounded-2xl p-6 text-slate-100 shadow-xl space-y-5">
-        <div className="relative rounded-xl overflow-hidden border border-slate-800 bg-slate-900">
+      <div className="bg-[#0B1512] border border-emerald-950 rounded-2xl p-6 text-slate-100 shadow-xl space-y-5">
+        <div className="relative rounded-xl overflow-hidden border border-emerald-900/40 bg-slate-950">
           <svg viewBox="0 0 700 320" className="w-full h-80 block">
             <defs>
               <pattern
@@ -362,7 +362,7 @@ export default function LiveDroneMapView({ initialOrderId = "ORD-2026-0001" }) {
                 <path
                   d="M 35 0 L 0 0 0 35"
                   fill="none"
-                  stroke="rgba(148, 163, 184, 0.08)"
+                  stroke="rgba(16, 185, 129, 0.08)"
                   strokeWidth="1"
                 />
               </pattern>
@@ -375,7 +375,7 @@ export default function LiveDroneMapView({ initialOrderId = "ORD-2026-0001" }) {
               y1="250"
               x2="610"
               y2="85"
-              stroke="#334155"
+              stroke="#1e3a2f"
               strokeWidth="4"
             />
             <line
@@ -383,7 +383,7 @@ export default function LiveDroneMapView({ initialOrderId = "ORD-2026-0001" }) {
               y1="250"
               x2={markerX}
               y2={markerY}
-              stroke="#38bdf8"
+              stroke="#10b981"
               strokeWidth="4"
             />
             <line
@@ -391,18 +391,18 @@ export default function LiveDroneMapView({ initialOrderId = "ORD-2026-0001" }) {
               y1={markerY}
               x2="610"
               y2="85"
-              stroke="#38bdf8"
+              stroke="#34d399"
               strokeWidth="2.5"
               strokeDasharray="8 6"
             />
 
             {/* Origin Station */}
-            <circle cx="90" cy="250" r="14" fill="rgba(34, 197, 94, 0.2)" />
+            <circle cx="90" cy="250" r="14" fill="rgba(16, 185, 129, 0.2)" />
             <circle
               cx="90"
               cy="250"
               r="7"
-              fill="#22c55e"
+              fill="#10b981"
               stroke="#ffffff"
               strokeWidth="2"
             />
@@ -413,12 +413,12 @@ export default function LiveDroneMapView({ initialOrderId = "ORD-2026-0001" }) {
             </text>
 
             {/* Destination Point */}
-            <circle cx="610" cy="85" r="14" fill="rgba(239, 68, 68, 0.2)" />
+            <circle cx="610" cy="85" r="14" fill="rgba(244, 63, 94, 0.2)" />
             <circle
               cx="610"
               cy="85"
               r="7"
-              fill="#ef4444"
+              fill="#f43f5e"
               stroke="#ffffff"
               strokeWidth="2"
             />
@@ -436,12 +436,12 @@ export default function LiveDroneMapView({ initialOrderId = "ORD-2026-0001" }) {
 
             {/* Live Drone Marker */}
             <g transform={`translate(${markerX}, ${markerY})`}>
-              <circle cx="0" cy="0" r="22" fill="rgba(56, 189, 248, 0.18)" />
+              <circle cx="0" cy="0" r="22" fill="rgba(16, 185, 129, 0.2)" />
               <circle
                 cx="0"
                 cy="0"
                 r="9"
-                fill="#38bdf8"
+                fill="#10b981"
                 stroke="#ffffff"
                 strokeWidth="2.5"
               />
@@ -451,15 +451,15 @@ export default function LiveDroneMapView({ initialOrderId = "ORD-2026-0001" }) {
                 width="124"
                 height="24"
                 rx="6"
-                fill="#0f172a"
-                stroke="#38bdf8"
+                fill="#0B1512"
+                stroke="#10b981"
                 strokeWidth="1.2"
               />
               <text
                 x="0"
                 y="-26"
                 textAnchor="middle"
-                fill="#38bdf8"
+                fill="#34d399"
                 fontSize="11"
                 fontWeight="bold"
                 fontFamily="JetBrains Mono, monospace"
@@ -472,7 +472,7 @@ export default function LiveDroneMapView({ initialOrderId = "ORD-2026-0001" }) {
 
         {/* 4 Telemetry Readout Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="bg-slate-900/90 border border-slate-800 rounded-xl p-4">
+          <div className="bg-slate-900/90 border border-emerald-950 rounded-xl p-4">
             <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
               Tọa độ GPS Hiện Tại
             </div>
@@ -481,17 +481,17 @@ export default function LiveDroneMapView({ initialOrderId = "ORD-2026-0001" }) {
             </div>
           </div>
 
-          <div className="bg-slate-900/90 border border-slate-800 rounded-xl p-4">
+          <div className="bg-slate-900/90 border border-emerald-950 rounded-xl p-4">
             <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
               Độ Cao / Tốc Độ Bay
             </div>
-            <div className="mt-1.5 font-mono text-base font-bold text-sky-400 tabular-nums">
+            <div className="mt-1.5 font-mono text-base font-bold text-emerald-400 tabular-nums">
               {altitude} m <span className="text-slate-600">|</span> {speed}{" "}
               km/h
             </div>
           </div>
 
-          <div className="bg-slate-900/90 border border-slate-800 rounded-xl p-4">
+          <div className="bg-slate-900/90 border border-emerald-950 rounded-xl p-4">
             <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
               Dung Lượng Pin Drone
             </div>
@@ -500,11 +500,11 @@ export default function LiveDroneMapView({ initialOrderId = "ORD-2026-0001" }) {
             </div>
           </div>
 
-          <div className="bg-slate-900/90 border border-slate-800 rounded-xl p-4 flex items-center justify-between gap-2">
+          <div className="bg-slate-900/90 border border-emerald-950 rounded-xl p-4 flex items-center justify-between gap-2">
             <button
               type="button"
               onClick={() => setIsSimulating(!isSimulating)}
-              className="flex-1 py-2 px-3 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold transition cursor-pointer"
+              className="flex-1 py-2 px-3 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition cursor-pointer shadow-xs"
             >
               {isSimulating ? "Tạm dừng" : "Tiếp tục"}
             </button>
@@ -524,7 +524,7 @@ export default function LiveDroneMapView({ initialOrderId = "ORD-2026-0001" }) {
       </div>
 
       {/* OTP Proof of Delivery Card */}
-      <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs">
+      <div className="bg-white border border-slate-200/90 rounded-2xl p-6 shadow-xs">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
             <h3 className="text-base font-bold text-slate-900">
@@ -553,11 +553,11 @@ export default function LiveDroneMapView({ initialOrderId = "ORD-2026-0001" }) {
                 placeholder="Nhập OTP 6 số..."
                 value={otpInput}
                 onChange={(e) => setOtpInput(e.target.value)}
-                className="w-40 px-3.5 py-2 rounded-xl border border-slate-300 bg-slate-50 focus:bg-white font-mono text-sm font-bold tracking-widest text-center text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600"
+                className="w-40 px-3.5 py-2 rounded-xl border border-slate-300 bg-slate-50 focus:bg-white font-mono text-sm font-bold tracking-widest text-center text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600"
               />
               <button
                 type="submit"
-                className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs transition cursor-pointer"
+                className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs shadow-emerald-600/20 transition cursor-pointer"
               >
                 Xác thực giao hàng
               </button>
@@ -570,7 +570,7 @@ export default function LiveDroneMapView({ initialOrderId = "ORD-2026-0001" }) {
             className={`mt-4 p-3.5 rounded-xl border text-xs font-bold ${
               orderStatus === "DELIVERED"
                 ? "bg-emerald-50 border-emerald-200 text-emerald-800"
-                : "bg-blue-50 border-blue-200 text-blue-800"
+                : "bg-emerald-50/70 border-emerald-200 text-emerald-900"
             }`}
           >
             {otpMessage}

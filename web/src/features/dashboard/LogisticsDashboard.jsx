@@ -64,18 +64,18 @@ export default function LogisticsDashboard() {
   return (
     <div className="max-w-7xl mx-auto space-y-6 text-slate-900 pb-16">
       {/* Page Header */}
-      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 border-b border-slate-200 pb-5">
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 border-b border-emerald-900/10 pb-5">
         <div>
           <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-blue-600"></span>
-            <p className="text-xs font-bold tracking-widest text-blue-600 uppercase font-mono">
+            <span className="w-2 h-2 rounded-full bg-emerald-600"></span>
+            <p className="text-xs font-bold tracking-widest text-emerald-700 uppercase font-mono">
               LOGISTICS / REAL-TIME OPERATIONS ANALYTICS
             </p>
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 mt-1">
             Dashboard Vận Hành Logistics &amp; Trạm Tiếp Đất
           </h1>
-          <p className="text-sm text-slate-500 mt-0.5">
+          <p className="text-sm text-slate-600 mt-0.5">
             Tổng hợp dữ liệu hiệu suất chuyến bay, tỷ lệ đúng giờ và mức độ sử dụng trạm từ SQL Views.
           </p>
         </div>
@@ -83,13 +83,13 @@ export default function LogisticsDashboard() {
         {/* Date Filter & Actions Controls */}
         <div className="flex flex-wrap items-center gap-3">
           {/* Quick Presets */}
-          <div className="flex rounded-xl bg-slate-100 p-1 text-xs font-semibold">
+          <div className="flex rounded-xl bg-slate-100/90 p-1 text-xs font-semibold border border-slate-200/80">
             {PRESETS.map((p) => (
               <button
                 key={p.days}
                 type="button"
                 onClick={() => applyPreset(p.days)}
-                className="px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-white/60 transition cursor-pointer"
+                className="px-3 py-1.5 rounded-lg text-slate-600 hover:text-emerald-800 hover:bg-white transition cursor-pointer"
               >
                 {p.label}
               </button>
@@ -103,7 +103,7 @@ export default function LogisticsDashboard() {
               value={from}
               max={to}
               onChange={(e) => setFrom(e.target.value)}
-              className="px-3 py-1.5 rounded-xl border border-slate-300 bg-white text-slate-900 font-mono focus:outline-none focus:ring-2 focus:ring-blue-600 transition"
+              className="px-3 py-1.5 rounded-xl border border-slate-300 bg-white text-slate-900 font-mono focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition"
             />
             <span className="text-slate-400 font-bold">→</span>
             <input
@@ -111,7 +111,7 @@ export default function LogisticsDashboard() {
               value={to}
               min={from}
               onChange={(e) => setTo(e.target.value)}
-              className="px-3 py-1.5 rounded-xl border border-slate-300 bg-white text-slate-900 font-mono focus:outline-none focus:ring-2 focus:ring-blue-600 transition"
+              className="px-3 py-1.5 rounded-xl border border-slate-300 bg-white text-slate-900 font-mono focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition"
             />
           </div>
 
@@ -120,7 +120,7 @@ export default function LogisticsDashboard() {
             type="button"
             onClick={reload}
             disabled={loading || rangeInvalid}
-            className="px-4 py-2 rounded-xl text-xs font-bold bg-white border border-slate-300 hover:border-blue-500 hover:text-blue-600 shadow-xs transition cursor-pointer disabled:opacity-50"
+            className="px-4 py-2 rounded-xl text-xs font-bold bg-white border border-slate-300 hover:border-emerald-500 hover:text-emerald-700 shadow-xs transition cursor-pointer disabled:opacity-50"
           >
             {loading ? 'Đang tải...' : 'Làm Mới'}
           </button>
@@ -130,7 +130,7 @@ export default function LogisticsDashboard() {
             <button
               type="button"
               onClick={() => exportToCsv(data, from, to)}
-              className="px-4 py-2 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-500 text-white shadow-xs transition cursor-pointer"
+              className="px-4 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs shadow-emerald-600/20 transition cursor-pointer"
             >
               Xuất Báo Cáo CSV
             </button>
@@ -159,7 +159,7 @@ export default function LogisticsDashboard() {
 
       {loading && !data && (
         <div className="py-16 text-center text-slate-400 text-sm">
-          <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
+          <div className="w-6 h-6 border-2 border-emerald-600 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
           Đang tổng hợp số liệu vận hành từ máy chủ...
         </div>
       )}
@@ -170,7 +170,7 @@ export default function LogisticsDashboard() {
           <KpiCards summary={data.summary} orders={data.orders} />
 
           {/* Daily Flight Chart Card */}
-          <section className="bg-white rounded-2xl border border-slate-200 shadow-xs p-6 space-y-4">
+          <section className="bg-white rounded-2xl border border-slate-200/90 shadow-xs p-6 space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-slate-100 pb-3">
               <div>
                 <h2 className="text-base font-bold text-slate-900">
@@ -180,7 +180,7 @@ export default function LogisticsDashboard() {
                   Phân bố số lượng chuyến hoàn thành, chuyến bị hủy và chuyến đang điều phối.
                 </p>
               </div>
-              <span className="font-mono text-xs text-slate-400 font-semibold">
+              <span className="font-mono text-xs text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-200 font-semibold">
                 Khoảng: {from} đến {to}
               </span>
             </div>
@@ -188,7 +188,7 @@ export default function LogisticsDashboard() {
           </section>
 
           {/* Station Utilization Table Card */}
-          <section className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+          <section className="bg-white rounded-2xl border border-slate-200/90 shadow-xs overflow-hidden">
             <div className="p-5 border-b border-slate-100">
               <h2 className="text-base font-bold text-slate-900">
                 Hiệu Suất Sử Dụng Slot Tại Các Trạm Tiếp Đất

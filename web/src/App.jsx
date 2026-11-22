@@ -108,11 +108,11 @@ function SavedAddressesPage() {
 
   return (
     <section className="max-w-6xl mx-auto space-y-6 text-slate-900 pb-16">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-200 pb-5">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-emerald-900/10 pb-5">
         <div>
           <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-blue-600"></span>
-            <p className="text-xs font-bold tracking-widest text-blue-600 uppercase font-mono">
+            <span className="w-2 h-2 rounded-full bg-emerald-600"></span>
+            <p className="text-xs font-bold tracking-widest text-emerald-700 uppercase font-mono">
               CUSTOMER / ADDRESS BOOK
             </p>
           </div>
@@ -137,7 +137,7 @@ function SavedAddressesPage() {
       )}
 
       {/* New Address Form */}
-      <form onSubmit={handleAdd} className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-4 text-xs">
+      <form onSubmit={handleAdd} className="bg-white p-6 rounded-2xl border border-slate-200/90 shadow-xs space-y-4 text-xs">
         <h2 className="text-base font-bold text-slate-900 border-b border-slate-100 pb-3">Thêm Địa Chỉ Mới</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="md:col-span-2">
@@ -149,7 +149,7 @@ function SavedAddressesPage() {
               onChange={(e) => setForm({ ...form, addressLine: e.target.value })}
               placeholder="Ví dụ: Số 2 Hải Triều, Tòa Bitexco Financial Tower"
               required
-              className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-slate-50 text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-600 transition"
+              className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-slate-50 text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition"
             />
           </div>
           <div>
@@ -160,7 +160,7 @@ function SavedAddressesPage() {
               value={form.ward}
               onChange={(e) => setForm({ ...form, ward: e.target.value })}
               placeholder="Bến Nghé"
-              className="w-full px-3.5 py-2 rounded-xl border border-slate-300 bg-slate-50 text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-600 transition"
+              className="w-full px-3.5 py-2 rounded-xl border border-slate-300 bg-slate-50 text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition"
             />
           </div>
           <div>
@@ -171,7 +171,7 @@ function SavedAddressesPage() {
               value={form.district}
               onChange={(e) => setForm({ ...form, district: e.target.value })}
               placeholder="Quận 1"
-              className="w-full px-3.5 py-2 rounded-xl border border-slate-300 bg-slate-50 text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-600 transition"
+              className="w-full px-3.5 py-2 rounded-xl border border-slate-300 bg-slate-50 text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition"
             />
           </div>
           <div>
@@ -183,7 +183,7 @@ function SavedAddressesPage() {
               step="any"
               value={form.latitude}
               onChange={(e) => setForm({ ...form, latitude: e.target.value })}
-              className="w-full px-3.5 py-2 rounded-xl border border-slate-300 bg-slate-50 text-slate-900 font-mono text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-600 transition"
+              className="w-full px-3.5 py-2 rounded-xl border border-slate-300 bg-slate-50 text-slate-900 font-mono text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition"
             />
           </div>
           <div>
@@ -195,7 +195,7 @@ function SavedAddressesPage() {
               step="any"
               value={form.longitude}
               onChange={(e) => setForm({ ...form, longitude: e.target.value })}
-              className="w-full px-3.5 py-2 rounded-xl border border-slate-300 bg-slate-50 text-slate-900 font-mono text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-600 transition"
+              className="w-full px-3.5 py-2 rounded-xl border border-slate-300 bg-slate-50 text-slate-900 font-mono text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition"
             />
           </div>
           <div className="md:col-span-2 pt-1">
@@ -204,7 +204,7 @@ function SavedAddressesPage() {
                 type="checkbox"
                 checked={form.isDefault}
                 onChange={(e) => setForm({ ...form, isDefault: e.target.checked })}
-                className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                className="w-4 h-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
               />
               <span className="font-semibold text-slate-800">Đặt làm địa chỉ nhận hàng mặc định</span>
             </label>
@@ -214,7 +214,7 @@ function SavedAddressesPage() {
         <div className="flex justify-end pt-2 border-t border-slate-100">
           <button
             type="submit"
-            className="px-5 py-2.5 rounded-xl font-bold text-white bg-blue-600 hover:bg-blue-500 shadow-md transition cursor-pointer text-xs"
+            className="px-5 py-2.5 rounded-xl font-bold text-white bg-emerald-600 hover:bg-emerald-700 shadow-md shadow-emerald-600/20 transition cursor-pointer text-xs"
           >
             Lưu Địa Chỉ Mới
           </button>
@@ -222,7 +222,7 @@ function SavedAddressesPage() {
       </form>
 
       {/* Address Table */}
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+      <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs overflow-hidden">
         <div className="p-5 border-b border-slate-100">
           <h2 className="text-base font-bold text-slate-900">Danh Sách Địa Chỉ Đã Lưu ({addresses.length})</h2>
           <p className="text-xs text-slate-500 mt-0.5">Sử dụng tọa độ này để điều hướng Drone đến đúng điểm nhận.</p>
@@ -231,7 +231,7 @@ function SavedAddressesPage() {
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse text-xs">
             <thead>
-              <tr className="border-b border-slate-200 bg-slate-50/75 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+              <tr className="border-b border-emerald-100 bg-emerald-50/40 text-[11px] font-bold text-emerald-950 uppercase tracking-wider">
                 <th className="py-3 px-4">Địa Chỉ</th>
                 <th className="py-3 px-4">Khu Vực</th>
                 <th className="py-3 px-4">Tọa Độ GPS</th>
@@ -251,7 +251,7 @@ function SavedAddressesPage() {
                   </td>
                   <td className="py-3 px-4">
                     {a.isDefault ? (
-                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
                         <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
                         Mặc định
                       </span>
@@ -263,14 +263,14 @@ function SavedAddressesPage() {
                     <button
                       type="button"
                       onClick={() => setEditingAddress({ ...a })}
-                      className="px-2.5 py-1 rounded-lg text-xs font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 transition cursor-pointer"
+                      className="px-2.5 py-1 rounded-lg text-xs font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 transition cursor-pointer"
                     >
                       Sửa
                     </button>
                     <button
                       type="button"
                       onClick={() => setDeletingAddress(a)}
-                      className="px-2.5 py-1 rounded-lg text-xs font-bold text-rose-700 bg-rose-50 hover:bg-rose-100 transition cursor-pointer"
+                      className="px-2.5 py-1 rounded-lg text-xs font-bold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 transition cursor-pointer"
                     >
                       Xóa
                     </button>
@@ -309,7 +309,7 @@ function SavedAddressesPage() {
                   value={editingAddress.addressLine}
                   onChange={(e) => setEditingAddress({ ...editingAddress, addressLine: e.target.value })}
                   required
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-slate-50 text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-600 transition"
+                  className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-slate-50 text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition"
                 />
               </div>
               <div className="grid grid-cols-2 gap-3">
@@ -320,7 +320,7 @@ function SavedAddressesPage() {
                   <input
                     value={editingAddress.ward || ''}
                     onChange={(e) => setEditingAddress({ ...editingAddress, ward: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-slate-50 text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-600 transition"
+                    className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-slate-50 text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition"
                   />
                 </div>
                 <div>
@@ -330,7 +330,7 @@ function SavedAddressesPage() {
                   <input
                     value={editingAddress.district || ''}
                     onChange={(e) => setEditingAddress({ ...editingAddress, district: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-slate-50 text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-600 transition"
+                    className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-slate-50 text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition"
                   />
                 </div>
               </div>
@@ -344,7 +344,7 @@ function SavedAddressesPage() {
                     step="any"
                     value={editingAddress.latitude}
                     onChange={(e) => setEditingAddress({ ...editingAddress, latitude: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-slate-50 text-slate-900 font-mono text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-600 transition"
+                    className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-slate-50 text-slate-900 font-mono text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition"
                   />
                 </div>
                 <div>
@@ -356,7 +356,7 @@ function SavedAddressesPage() {
                     step="any"
                     value={editingAddress.longitude}
                     onChange={(e) => setEditingAddress({ ...editingAddress, longitude: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-slate-50 text-slate-900 font-mono text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-600 transition"
+                    className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-slate-50 text-slate-900 font-mono text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition"
                   />
                 </div>
               </div>
@@ -366,7 +366,7 @@ function SavedAddressesPage() {
                     type="checkbox"
                     checked={editingAddress.isDefault}
                     onChange={(e) => setEditingAddress({ ...editingAddress, isDefault: e.target.checked })}
-                    className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                    className="w-4 h-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
                   />
                   <span className="font-semibold text-slate-800">Đặt làm địa chỉ nhận hàng mặc định</span>
                 </label>
@@ -383,7 +383,7 @@ function SavedAddressesPage() {
               </button>
               <button
                 type="submit"
-                className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-blue-600 hover:bg-blue-500 shadow-md transition cursor-pointer"
+                className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 shadow-md shadow-emerald-600/20 transition cursor-pointer"
               >
                 Lưu Thay Đổi
               </button>
@@ -411,7 +411,7 @@ function SavedAddressesPage() {
               <button
                 type="button"
                 onClick={() => handleDelete(deletingAddress.id)}
-                className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-rose-600 hover:bg-rose-500 shadow-md transition cursor-pointer"
+                className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 shadow-md transition cursor-pointer"
               >
                 Đồng Ý Xóa
               </button>
@@ -568,11 +568,11 @@ function AdminUsersPage({ currentUser, onSwitchAccount }) {
   return (
     <section className="max-w-7xl mx-auto space-y-6 text-slate-900 pb-16">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-200 pb-5">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-emerald-900/10 pb-5">
         <div>
           <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-blue-600"></span>
-            <p className="text-xs font-bold tracking-widest text-blue-600 uppercase font-mono">
+            <span className="w-2 h-2 rounded-full bg-emerald-600"></span>
+            <p className="text-xs font-bold tracking-widest text-emerald-700 uppercase font-mono">
               ADMIN / RBAC &amp; DATABASE OPERATIONS
             </p>
           </div>
@@ -591,7 +591,7 @@ function AdminUsersPage({ currentUser, onSwitchAccount }) {
                 setModalError('')
                 setShowCreateModal(true)
               }}
-              className="px-4 py-2 rounded-xl text-xs font-bold bg-blue-600 text-white hover:bg-blue-700 shadow-xs transition cursor-pointer"
+              className="px-4 py-2 rounded-xl text-xs font-bold bg-emerald-600 text-white hover:bg-emerald-700 shadow-xs shadow-emerald-600/20 transition cursor-pointer"
             >
               + Tạo Người Dùng Mới
             </button>
@@ -599,7 +599,7 @@ function AdminUsersPage({ currentUser, onSwitchAccount }) {
           <button
             type="button"
             onClick={loadAdminData}
-            className="px-4 py-2 rounded-xl text-xs font-bold bg-white border border-slate-300 hover:border-blue-500 hover:text-blue-600 shadow-xs transition cursor-pointer"
+            className="px-4 py-2 rounded-xl text-xs font-bold bg-white border border-slate-300 hover:border-emerald-500 hover:text-emerald-700 shadow-xs transition cursor-pointer"
           >
             {loading ? 'Đang tải...' : 'Làm Mới'}
           </button>
@@ -622,7 +622,7 @@ function AdminUsersPage({ currentUser, onSwitchAccount }) {
           onClick={() => setAdminTab('USERS')}
           className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
             adminTab === 'USERS'
-              ? 'bg-blue-600 text-white shadow-xs'
+              ? 'bg-emerald-600 text-white shadow-xs shadow-emerald-600/20'
               : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
           }`}
         >
@@ -633,7 +633,7 @@ function AdminUsersPage({ currentUser, onSwitchAccount }) {
           onClick={() => setAdminTab('DB_HEALTH')}
           className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
             adminTab === 'DB_HEALTH'
-              ? 'bg-blue-600 text-white shadow-xs'
+              ? 'bg-emerald-600 text-white shadow-xs shadow-emerald-600/20'
               : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
           }`}
         >
@@ -644,7 +644,7 @@ function AdminUsersPage({ currentUser, onSwitchAccount }) {
           onClick={() => setAdminTab('AUDIT_LOGS')}
           className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
             adminTab === 'AUDIT_LOGS'
-              ? 'bg-blue-600 text-white shadow-xs'
+              ? 'bg-emerald-600 text-white shadow-xs shadow-emerald-600/20'
               : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
           }`}
         >
@@ -656,7 +656,7 @@ function AdminUsersPage({ currentUser, onSwitchAccount }) {
       {adminTab === 'USERS' && (
         <div className="space-y-6">
           {/* JWT Login Simulator Card */}
-          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
+          <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-xs space-y-4">
             <div>
               <h2 className="text-sm font-bold text-slate-900">Kiểm Tra Đăng Nhập JWT (`POST /api/auth/login`)</h2>
               <p className="text-xs text-slate-500 mt-0.5">
@@ -674,7 +674,7 @@ function AdminUsersPage({ currentUser, onSwitchAccount }) {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="w-full px-3.5 py-2 rounded-xl border border-slate-300 bg-slate-50 text-slate-900 text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-600 transition"
+                  className="w-full px-3.5 py-2 rounded-xl border border-slate-300 bg-slate-50 text-slate-900 text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition"
                 />
               </div>
               <div className="sm:col-span-4">
@@ -686,30 +686,30 @@ function AdminUsersPage({ currentUser, onSwitchAccount }) {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  className="w-full px-3.5 py-2 rounded-xl border border-slate-300 bg-slate-50 text-slate-900 text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-600 transition"
+                  className="w-full px-3.5 py-2 rounded-xl border border-slate-300 bg-slate-50 text-slate-900 text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition"
                 />
               </div>
               <div className="sm:col-span-3">
                 <button
                   type="submit"
-                  className="w-full py-2 px-4 rounded-xl font-bold text-white bg-blue-600 hover:bg-blue-500 shadow-xs transition cursor-pointer text-xs"
+                  className="w-full py-2 px-4 rounded-xl font-bold text-white bg-emerald-600 hover:bg-emerald-700 shadow-xs shadow-emerald-600/20 transition cursor-pointer text-xs"
                 >
                   Đăng Nhập &amp; Cấp JWT
                 </button>
               </div>
             </form>
 
-            <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between text-xs text-slate-700">
+            <div className="p-3 bg-emerald-50/50 rounded-xl border border-emerald-100 flex items-center justify-between text-xs text-slate-700">
               <div>
-                Trạng thái Token: <strong className="font-semibold text-slate-900">{hasToken ? 'Đã cấp JWT Bearer' : 'Chưa có Token'}</strong>
+                Trạng thái Token: <strong className="font-semibold text-emerald-800">{hasToken ? 'Đã cấp JWT Bearer' : 'Chưa có Token'}</strong>
                 {currentUser?.email ? ` — Đang đăng nhập: ${currentUser.email}` : ''}
               </div>
-              <span className="font-mono text-[11px] text-blue-700 font-bold">SHA-256 HMAC</span>
+              <span className="font-mono text-[11px] text-emerald-700 font-bold">SHA-256 HMAC</span>
             </div>
           </div>
 
           {/* Users RBAC Table with Search & Filters */}
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+          <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs overflow-hidden">
             <div className="p-4 border-b border-slate-100 flex flex-wrap items-center justify-between gap-3">
               <div className="flex items-center gap-2 flex-1 min-w-[240px]">
                 <input
@@ -717,12 +717,12 @@ function AdminUsersPage({ currentUser, onSwitchAccount }) {
                   placeholder="Tìm theo họ tên hoặc email..."
                   value={userSearch}
                   onChange={(e) => setUserSearch(e.target.value)}
-                  className="w-full max-w-xs px-3 py-1.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                  className="w-full max-w-xs px-3 py-1.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600"
                 />
                 <select
                   value={roleFilter}
                   onChange={(e) => setRoleFilter(e.target.value)}
-                  className="px-3 py-1.5 rounded-xl border border-slate-200 text-xs bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                  className="px-3 py-1.5 rounded-xl border border-slate-200 text-xs bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
                 >
                   <option value="ALL">Tất Cả Vai Trò</option>
                   <option value="ADMIN">ADMIN</option>
@@ -733,7 +733,7 @@ function AdminUsersPage({ currentUser, onSwitchAccount }) {
                 </select>
               </div>
 
-              <span className="px-2.5 py-1 rounded-full text-xs font-mono font-bold bg-blue-50 text-blue-700 border border-blue-200">
+              <span className="px-2.5 py-1 rounded-full text-xs font-mono font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
                 {filteredUsers.length} tài khoản
               </span>
             </div>
@@ -741,7 +741,7 @@ function AdminUsersPage({ currentUser, onSwitchAccount }) {
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse text-xs">
                 <thead>
-                  <tr className="border-b border-slate-200 bg-slate-50/75 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                  <tr className="border-b border-emerald-100 bg-emerald-50/40 text-[11px] font-bold text-emerald-950 uppercase tracking-wider">
                     <th className="py-3 px-4">Vai Trò (RBAC)</th>
                     <th className="py-3 px-4">Họ Và Tên</th>
                     <th className="py-3 px-4">Email Đăng Nhập</th>
@@ -767,26 +767,26 @@ function AdminUsersPage({ currentUser, onSwitchAccount }) {
                             <span
                               className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full font-mono text-[10px] font-bold border ${
                                 roleName === 'ADMIN'
-                                  ? 'bg-purple-50 text-purple-800 border-purple-200'
+                                  ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
                                   : roleName === 'DISPATCHER'
-                                    ? 'bg-blue-50 text-blue-800 border-blue-200'
+                                    ? 'bg-cyan-50 text-cyan-800 border-cyan-200'
                                     : roleName === 'STATION_OPERATOR'
                                       ? 'bg-amber-50 text-amber-800 border-amber-200'
                                       : roleName === 'LOGISTICS_MANAGER'
-                                        ? 'bg-indigo-50 text-indigo-800 border-indigo-200'
+                                        ? 'bg-teal-50 text-teal-800 border-teal-200'
                                         : 'bg-emerald-50 text-emerald-800 border-emerald-200'
                               }`}
                             >
                               <span
                                 className={`w-1.5 h-1.5 rounded-full ${
                                   roleName === 'ADMIN'
-                                    ? 'bg-purple-600'
+                                    ? 'bg-emerald-700'
                                     : roleName === 'DISPATCHER'
-                                      ? 'bg-blue-600'
+                                      ? 'bg-cyan-600'
                                       : roleName === 'STATION_OPERATOR'
                                         ? 'bg-amber-600'
                                         : roleName === 'LOGISTICS_MANAGER'
-                                          ? 'bg-indigo-600'
+                                          ? 'bg-teal-600'
                                           : 'bg-emerald-600'
                                 }`}
                               ></span>
@@ -830,7 +830,7 @@ function AdminUsersPage({ currentUser, onSwitchAccount }) {
                                 setEmail(u.email)
                                 setPassword('P@ssword123!')
                               }}
-                              className="px-2.5 py-1 rounded-lg font-bold text-[11px] text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 transition cursor-pointer"
+                              className="px-2.5 py-1 rounded-lg font-bold text-[11px] text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 transition cursor-pointer"
                             >
                               Điền Đăng Nhập
                             </button>
@@ -850,10 +850,10 @@ function AdminUsersPage({ currentUser, onSwitchAccount }) {
       {adminTab === 'DB_HEALTH' && (
         <div className="space-y-6">
           {/* Card: Engine Status */}
-          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
+          <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-xs">
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div>
-                <span className="text-[10px] font-mono font-black text-blue-700 uppercase tracking-widest">
+                <span className="text-[10px] font-mono font-black text-emerald-700 uppercase tracking-widest">
                   RELATIONAL DATABASE ENGINE
                 </span>
                 <h2 className="text-base font-extrabold text-slate-900 mt-0.5">
@@ -885,9 +885,9 @@ function AdminUsersPage({ currentUser, onSwitchAccount }) {
                 { name: 'landing_stations', displayName: 'Trạm tiếp đất & Khay sạc', rowCount: 3, status: 'SYNCED' },
                 { name: 'audit_logs', displayName: 'Nhật ký kiểm toán truy vết', rowCount: auditLogs.length || 15, status: 'SYNCED' },
               ]).map((tbl) => (
-                <div key={tbl.name} className="p-4 rounded-xl border border-slate-200 bg-white shadow-2xs">
+                <div key={tbl.name} className="p-4 rounded-xl border border-slate-200/90 bg-white shadow-2xs hover:border-emerald-200 transition">
                   <div className="flex items-center justify-between mb-1.5">
-                    <span className="font-mono font-bold text-xs text-blue-700">dbo.{tbl.name}</span>
+                    <span className="font-mono font-bold text-xs text-emerald-800">dbo.{tbl.name}</span>
                     <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
                       {tbl.status}
                     </span>
@@ -903,7 +903,7 @@ function AdminUsersPage({ currentUser, onSwitchAccount }) {
           </div>
 
           {/* Table: SQL Views Monitor */}
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+          <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs overflow-hidden">
             <div className="p-4 border-b border-slate-100">
               <h3 className="text-sm font-bold text-slate-900">Danh Mục SQL Views Tối Ưu Hóa Báo Cáo</h3>
               <p className="text-xs text-slate-500 mt-0.5">
@@ -914,7 +914,7 @@ function AdminUsersPage({ currentUser, onSwitchAccount }) {
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse text-xs">
                 <thead>
-                  <tr className="border-b border-slate-200 bg-slate-50/75 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                  <tr className="border-b border-emerald-100 bg-emerald-50/40 text-[11px] font-bold text-emerald-950 uppercase tracking-wider">
                     <th className="py-3 px-4">Tên SQL View</th>
                     <th className="py-3 px-4">Mô Tả Nghiệp Vụ</th>
                     <th className="py-3 px-4">Trạng Thái View</th>
@@ -943,7 +943,7 @@ function AdminUsersPage({ currentUser, onSwitchAccount }) {
                     },
                   ]).map((vw) => (
                     <tr key={vw.viewName} className="hover:bg-slate-50 transition-colors">
-                      <td className="py-3 px-4 font-mono font-bold text-purple-700">dbo.{vw.viewName}</td>
+                      <td className="py-3 px-4 font-mono font-bold text-emerald-800">dbo.{vw.viewName}</td>
                       <td className="py-3 px-4 text-slate-700">{vw.description}</td>
                       <td className="py-3 px-4">
                         <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
@@ -963,7 +963,7 @@ function AdminUsersPage({ currentUser, onSwitchAccount }) {
 
       {/* TAB 3: AUDIT LOGS */}
       {adminTab === 'AUDIT_LOGS' && (
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+        <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs overflow-hidden">
           <div className="p-4 border-b border-slate-100 flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-2 flex-1 min-w-[240px]">
               <input
@@ -971,10 +971,10 @@ function AdminUsersPage({ currentUser, onSwitchAccount }) {
                 placeholder="Lọc nhật ký theo hành động hoặc email..."
                 value={auditSearch}
                 onChange={(e) => setAuditSearch(e.target.value)}
-                className="w-full max-w-sm px-3 py-1.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                className="w-full max-w-sm px-3 py-1.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600"
               />
             </div>
-            <span className="px-2.5 py-1 rounded-full text-xs font-mono font-bold bg-slate-100 text-slate-700 border border-slate-300">
+            <span className="px-2.5 py-1 rounded-full text-xs font-mono font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
               {filteredLogs.length} sự kiện
             </span>
           </div>
@@ -982,7 +982,7 @@ function AdminUsersPage({ currentUser, onSwitchAccount }) {
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse text-xs">
               <thead>
-                <tr className="border-b border-slate-200 bg-slate-50/75 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                <tr className="border-b border-emerald-100 bg-emerald-50/40 text-[10px] font-bold text-emerald-950 uppercase tracking-wider">
                   <th className="py-2.5 px-4">Hành Động</th>
                   <th className="py-2.5 px-4">Người Thực Hiện</th>
                   <th className="py-2.5 px-4">Thực Thể</th>
@@ -1002,8 +1002,8 @@ function AdminUsersPage({ currentUser, onSwitchAccount }) {
                   filteredLogs.map((log) => (
                     <tr key={log.auditLogId} className="hover:bg-slate-50 transition-colors">
                       <td className="py-2.5 px-4">
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full font-mono text-[10px] font-bold bg-slate-100 text-slate-800 border border-slate-200">
-                          <span className="w-1 h-1 rounded-full bg-blue-500"></span>
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full font-mono text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                          <span className="w-1 h-1 rounded-full bg-emerald-600"></span>
                           {log.action}
                         </span>
                       </td>
@@ -1031,7 +1031,7 @@ function AdminUsersPage({ currentUser, onSwitchAccount }) {
           <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-md w-full overflow-hidden animate-in fade-in zoom-in-95 duration-150">
             <div className="p-5 border-b border-slate-100 flex items-center justify-between">
               <div>
-                <span className="text-[10px] font-mono font-black text-blue-600 uppercase tracking-widest">
+                <span className="text-[10px] font-mono font-black text-emerald-700 uppercase tracking-widest">
                   NEW RBAC ACCOUNT
                 </span>
                 <h3 className="text-base font-extrabold text-slate-900 mt-0.5">Tạo Người Dùng Mới</h3>
@@ -1062,7 +1062,7 @@ function AdminUsersPage({ currentUser, onSwitchAccount }) {
                   placeholder="Ví dụ: Lê Thị Hồng"
                   value={newFullName}
                   onChange={(e) => setNewFullName(e.target.value)}
-                  className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs focus:outline-none focus:ring-2 focus:ring-blue-600"
+                  className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600"
                 />
               </div>
 
@@ -1076,7 +1076,7 @@ function AdminUsersPage({ currentUser, onSwitchAccount }) {
                   placeholder="name@smartdrone.vn"
                   value={newEmail}
                   onChange={(e) => setNewEmail(e.target.value)}
-                  className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs focus:outline-none focus:ring-2 focus:ring-blue-600"
+                  className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600"
                 />
               </div>
 
@@ -1090,7 +1090,7 @@ function AdminUsersPage({ currentUser, onSwitchAccount }) {
                     placeholder="0901234567"
                     value={newPhone}
                     onChange={(e) => setNewPhone(e.target.value)}
-                    className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs focus:outline-none focus:ring-2 focus:ring-blue-600"
+                    className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600"
                   />
                 </div>
                 <div>
@@ -1100,7 +1100,7 @@ function AdminUsersPage({ currentUser, onSwitchAccount }) {
                   <select
                     value={newRole}
                     onChange={(e) => setNewRole(e.target.value)}
-                    className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-blue-600"
+                    className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600"
                   >
                     <option value="CUSTOMER">CUSTOMER</option>
                     <option value="DISPATCHER">DISPATCHER</option>
@@ -1120,7 +1120,7 @@ function AdminUsersPage({ currentUser, onSwitchAccount }) {
                   required
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
-                  className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs focus:outline-none focus:ring-2 focus:ring-blue-600"
+                  className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600"
                 />
               </div>
 
@@ -1136,7 +1136,7 @@ function AdminUsersPage({ currentUser, onSwitchAccount }) {
                 <button
                   type="submit"
                   disabled={isSubmittingUser}
-                  className="px-4 py-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-xs transition cursor-pointer disabled:opacity-50"
+                  className="px-4 py-2 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow-xs shadow-emerald-600/20 transition cursor-pointer disabled:opacity-50"
                 >
                   {isSubmittingUser ? 'Đang Tạo...' : 'Tạo Tài Khoản'}
                 </button>
