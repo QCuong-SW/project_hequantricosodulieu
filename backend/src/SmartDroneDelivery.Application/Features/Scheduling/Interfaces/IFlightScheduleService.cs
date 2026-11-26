@@ -23,4 +23,13 @@ public interface IFlightScheduleService
         Guid scheduleId,
         string? abortReason,
         CancellationToken cancellationToken = default);
+
+    Task<string?> AutoDispatchForNewOrderAsync(
+        Guid orderId,
+        decimal distanceKm,
+        CancellationToken cancellationToken = default);
+
+    Task<string?> CompleteFlightByOrderIdAsync(
+        Guid orderId,
+        CancellationToken cancellationToken = default);
 }

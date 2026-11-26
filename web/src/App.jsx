@@ -13,6 +13,7 @@ import StationOperatorView from './features/station/StationOperatorView'
 import LiveDroneMapView from './features/station/LiveDroneMapView'
 import AdminProductsPage from './features/products/AdminProductsPage'
 import AdminFeedbacksPage from './features/feedbacks/AdminFeedbacksPage'
+import AiAssistantPage from './features/ai/AiAssistantPage'
 import './App.css'
 
 function SavedAddressesPage() {
@@ -695,9 +696,9 @@ function AdminUsersPage({ currentUser, onSwitchAccount }) {
                       const roleName = u.role || u.roles?.[0] || 'CUSTOMER'
                       return (
                         <tr key={u.id || u.email} className="hover:bg-slate-50 transition-colors">
-                          <td className="py-3 px-4">
+                          <td className="py-3 px-4 whitespace-nowrap">
                             <span
-                              className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full font-mono text-[10px] font-bold border ${
+                              className={`inline-flex items-center gap-1.5 whitespace-nowrap px-2.5 py-0.5 rounded-full font-mono text-[10px] font-bold border ${
                                 roleName === 'ADMIN'
                                   ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
                                   : roleName === 'DISPATCHER'
@@ -728,9 +729,9 @@ function AdminUsersPage({ currentUser, onSwitchAccount }) {
                           <td className="py-3 px-4 font-bold text-slate-900">{u.fullName}</td>
                           <td className="py-3 px-4 font-mono text-slate-700">{u.email}</td>
                           <td className="py-3 px-4 font-mono text-slate-600">{u.phone || '—'}</td>
-                          <td className="py-3 px-4">
+                          <td className="py-3 px-4 whitespace-nowrap">
                             <span
-                              className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold border ${
+                              className={`inline-flex items-center gap-1 whitespace-nowrap px-2 py-0.5 rounded-full text-[10px] font-bold border ${
                                 isLocked
                                   ? 'bg-rose-50 text-rose-700 border-rose-200'
                                   : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
@@ -1155,6 +1156,8 @@ export default function App() {
         return <StationOperatorView />
       case '/tracking':
         return <LiveDroneMapView key={trackingOrderId} initialOrderId={trackingOrderId} />
+      case '/ai-assistant':
+        return <AiAssistantPage currentUser={currentUser} />
       case '/admin/products':
         return <AdminProductsPage />
       case '/admin/feedbacks':

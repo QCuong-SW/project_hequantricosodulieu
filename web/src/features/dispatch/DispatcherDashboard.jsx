@@ -53,6 +53,36 @@ export function DispatcherDashboard() {
 
   useEffect(() => {
     refreshData()
+
+    const handleOrderDelivered = (e) => {
+      const fresh = Array.isArray(e?.detail) ? e.detail : []
+      if (fresh.length > 0) {
+        setActionMessage(
+          `Khách hàng vừa xác nhận nhận hàng (${fresh[0].trackingNumber}) — Đã hoàn thành đơn & giải phóng Drone ${fresh[0].releasedDroneCode || 'DRN-VN-04'} về trạng thái IDLE.`
+        )
+      }
+      refreshData()
+    }
+
+    window.addEventListener('sdd-order-delivered', handleOrderDelivered)
+    const autoSync = setInterval(() => {
+      Promise.all([
+        fetchAllOrdersApi(),
+        fetchAvailableDronesApi(),
+        fetchFlightSchedulesApi(),
+      ])
+        .then(([latestOrders, latestDrones, latestSchedules]) => {
+          setOrders(latestOrders)
+          setDrones(latestDrones)
+          setFlightSchedules(latestSchedules)
+        })
+        .catch(() => {})
+    }, 5000)
+
+    return () => {
+      window.removeEventListener('sdd-order-delivered', handleOrderDelivered)
+      clearInterval(autoSync)
+    }
   }, [])
 
   const handlePredictEta = async (orderId) => {
@@ -62,13 +92,13 @@ export function DispatcherDashboard() {
       if (eta) {
         setEtaMap((prev) => ({ ...prev, [orderId]: eta }))
         setActionMessage(
-          `AI ETA [${eta.source}]: ~${eta.estimatedMinutes} phút (${eta.distanceKm} km) — ${eta.note || 'Dự báo thành công'}`
+          `Thời gian dự kiến đến nơi [${eta.source}]: ~${eta.estimatedMinutes} phút (${eta.distanceKm} km) — ${eta.note || 'Dự báo thành công'}`
         )
       } else {
-        setActionMessage(`Ước tính ETA: ~20 phút cho đơn ${String(orderId).slice(-6)}.`)
+        setActionMessage(`Thời gian dự kiến đến nơi: ~20 phút cho đơn ${String(orderId).slice(-6)}.`)
       }
     } catch (err) {
-      setErrorMessage(`Lỗi tính AI ETA: ${err.message}`)
+      setErrorMessage(`Lỗi tính thời gian dự kiến đến nơi: ${err.message}`)
     }
   }
 
@@ -295,23 +325,18 @@ export function DispatcherDashboard() {
                         Nhận: {order.recipientName} ({order.recipientAddress})
                       </div>
                     </td>
-                    <td className="py-3 px-4 font-mono">
+                    <td className="py-3 px-4 font-mono whitespace-nowrap">
                       <span className="font-bold text-slate-900">
                         {order.totalWeightKg.toFixed(2)} kg
                       </span>
-                      {order.isFragile && (
-                        <span className="ml-1.5 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-amber-100 text-amber-800">
-                          Dễ vỡ
-                        </span>
-                      )}
                     </td>
-                    <td className="py-3 px-4 text-slate-600 font-mono text-[11px]">
+                    <td className="py-3 px-4 text-slate-600 font-mono text-[11px] whitespace-nowrap">
                       <div>{order.pickupMethod}</div>
                       <div className="text-slate-400">→ {order.deliveryMethod}</div>
                     </td>
-                    <td className="py-3 px-4">
+                    <td className="py-3 px-4 whitespace-nowrap">
                       <span
-                        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold border ${
+                        className={`inline-flex items-center gap-1.5 whitespace-nowrap px-2.5 py-1 rounded-full text-[11px] font-bold border ${
                           order.status === 'PENDING_APPROVAL'
                             ? 'bg-amber-50 text-amber-800 border-amber-200'
                             : order.status === 'APPROVED'
@@ -374,9 +399,11 @@ export function DispatcherDashboard() {
                       <button
                         type="button"
                         onClick={() => handlePredictEta(order.id)}
-                        className="px-2.5 py-1 rounded-lg font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 transition cursor-pointer"
+                        className="px-2.5 py-1 rounded-lg font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 transition cursor-pointer whitespace-nowrap"
                       >
-                        {etaMap[order.id] ? `${etaMap[order.id].estimatedMinutes}p` : 'Dự Báo ETA'}
+                        {etaMap[order.id]
+                          ? `Dự kiến: ${etaMap[order.id].estimatedMinutes} phút`
+                          : 'Thời gian dự kiến đến nơi'}
                       </button>
                     </td>
                   </tr>
@@ -392,7 +419,7 @@ export function DispatcherDashboard() {
         <div className="p-5 border-b border-slate-100 flex items-center justify-between">
           <div>
             <h2 className="text-base font-bold text-slate-900">
-              Lịch Trình Chuyến Bay Đã Xếp (Flight Missions)
+              Lịch Trình Chuyến Bay Đã Xếp
             </h2>
             <p className="text-xs text-slate-500 mt-0.5">
               Danh sách các chuyến bay đã điều phối thành công và trạng thái thực hiện hành lang bay.

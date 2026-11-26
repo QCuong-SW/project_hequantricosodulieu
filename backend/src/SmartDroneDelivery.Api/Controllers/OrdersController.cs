@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using SmartDroneDelivery.Application.Features.Orders.DTOs;
 using SmartDroneDelivery.Application.Features.Orders.Interfaces;
+using SmartDroneDelivery.Application.Features.Scheduling.Interfaces;
 
 namespace SmartDroneDelivery.Api.Controllers;
 
@@ -14,15 +15,18 @@ public class OrdersController : ControllerBase
     private readonly IOrderService _orderService;
     private readonly IOrderCancellationService _orderCancellationService;
     private readonly IOrderRepository _orderRepository;
+    private readonly IFlightScheduleService? _flightScheduleService;
 
     public OrdersController(
         IOrderService orderService,
         IOrderCancellationService orderCancellationService,
-        IOrderRepository orderRepository)
+        IOrderRepository orderRepository,
+        IFlightScheduleService? flightScheduleService = null)
     {
         _orderService = orderService;
         _orderCancellationService = orderCancellationService;
         _orderRepository = orderRepository;
+        _flightScheduleService = flightScheduleService;
     }
 
     [HttpPost]
@@ -51,7 +55,7 @@ public class OrdersController : ControllerBase
             });
         }
 
-        // Đặt xong tự động chuyển sang trạng thái đang giao hàng (IN_TRANSIT) để Drone bay giao ngay
+        // Đặt xong tự động chuyển sang trạng thái đang giao hàng (IN_TRANSIT) để Drone bay giao ngay từ điểm xuất phát (2%)
         var storedOrder = await _orderRepository.GetByIdAsync(order.Id, cancellationToken);
         if (storedOrder is not null)
         {
@@ -59,6 +63,23 @@ public class OrdersController : ControllerBase
             storedOrder.UpdatedAt = DateTime.UtcNow;
             await _orderRepository.AddAsync(storedOrder, cancellationToken);
             order.Status = "IN_TRANSIT";
+        }
+
+        if (!string.IsNullOrWhiteSpace(order.TrackingNumber))
+        {
+            TelemetryOverrides[order.TrackingNumber] = (0.02, DateTime.UtcNow, false);
+        }
+
+        if (_flightScheduleService is not null)
+        {
+            var dist = storedOrder?.AddressSnapshot is not null
+                ? (decimal)CalculateHaversineKm(
+                    (double)storedOrder.AddressSnapshot.SenderLatitude,
+                    (double)storedOrder.AddressSnapshot.SenderLongitude,
+                    (double)storedOrder.AddressSnapshot.RecipientLatitude,
+                    (double)storedOrder.AddressSnapshot.RecipientLongitude)
+                : 12.5m;
+            await _flightScheduleService.AutoDispatchForNewOrderAsync(order.Id, dist, cancellationToken);
         }
 
         return CreatedAtAction(
@@ -285,14 +306,20 @@ public class OrdersController : ControllerBase
         var trackingKey = order?.TrackingNumber ?? key;
         var nowUtc = DateTime.UtcNow;
         var nowUnixMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-        const double speedPerSecond = 1.0 / 50.0; // 50 giây bay hết hành trình (2% mỗi giây), di chuyển cực mượt
+        const double speedPerSecond = 1.0 / 60.0; // 60 giây bay trọn hành trình thực tế (từ 0% đến 100%), đồng bộ 1:1 Web & Mobile
 
         double baseProgress;
         long baseUnixMs;
         bool paused;
         double progress;
 
-        if (string.Equals(order?.Status, "DELIVERED", StringComparison.OrdinalIgnoreCase))
+        var isCompletedOrder = order is not null &&
+            (string.Equals(order.Status, "DELIVERED", StringComparison.OrdinalIgnoreCase) ||
+             string.Equals(order.Status, "CANCELLED", StringComparison.OrdinalIgnoreCase) ||
+             string.Equals(order.Status, "REJECTED", StringComparison.OrdinalIgnoreCase) ||
+             string.Equals(order.Status, "DELIVERY_FAILED", StringComparison.OrdinalIgnoreCase));
+
+        if (isCompletedOrder)
         {
             baseProgress = 1.0;
             baseUnixMs = nowUnixMs;
@@ -310,7 +337,7 @@ public class OrdersController : ControllerBase
             }
             else
             {
-                var elapsedSec = (nowUnixMs - baseUnixMs) / 1000.0;
+                var elapsedSec = Math.Max(0, (nowUnixMs - baseUnixMs) / 1000.0);
                 var raw = baseProgress + elapsedSec * speedPerSecond;
                 // Khi bay đến 100% thì Drone hạ cánh tại điểm giao để khách hàng xác nhận nhận hàng!
                 if (raw >= 1.0)
@@ -327,21 +354,12 @@ public class OrdersController : ControllerBase
         }
         else
         {
-            baseUnixMs = new DateTimeOffset(ServerBootTime, TimeSpan.Zero).ToUnixTimeMilliseconds();
-            baseProgress = 0.20;
+            // Lần đầu theo dõi chuyến bay đang hoạt động: bắt đầu bay từ điểm xuất phát (5%) theo thời gian thực
+            baseProgress = 0.05;
+            baseUnixMs = nowUnixMs;
             paused = false;
-            var elapsedSec = (nowUnixMs - baseUnixMs) / 1000.0;
-            var raw = baseProgress + elapsedSec * speedPerSecond;
-            if (raw >= 1.0)
-            {
-                progress = 1.0;
-                paused = true;
-                TelemetryOverrides[trackingKey] = (1.0, nowUtc, true);
-            }
-            else
-            {
-                progress = raw;
-            }
+            progress = 0.05;
+            TelemetryOverrides[trackingKey] = (0.05, nowUtc, false);
         }
 
         progress = Math.Clamp(progress, 0.0, 1.0);
@@ -407,31 +425,6 @@ public class OrdersController : ControllerBase
     public async Task<IActionResult> SetSynchronizedTelemetry(
         string key,
         [FromBody] TelemetryOverrideRequest request,
-        CancellationToken cancellationToken = default)
-    {
-        var order = await _orderRepository.GetByTrackingNumberAsync(key, cancellationToken);
-        var trackingKey = order?.TrackingNumber ?? key;
-        var clamped = Math.Clamp(request.Progress, 0.0, 1.0);
-        TelemetryOverrides[trackingKey] = (clamped, DateTime.UtcNow, request.Paused);
-
-        return await GetSynchronizedTelemetry(trackingKey, cancellationToken);
-    }
-
-    private static double CalculateHaversineKm(double lat1, double lon1, double lat2, double lon2)
-    {
-        const double R = 6371.0;
-        var dLat = (lat2 - lat1) * Math.PI / 180.0;
-        var dLon = (lon2 - lon1) * Math.PI / 180.0;
-        var a = Math.Sin(dLat / 2) * Math.Sin(dLat / 2) +
-                Math.Cos(lat1 * Math.PI / 180.0) * Math.Cos(lat2 * Math.PI / 180.0) *
-                Math.Sin(dLon / 2) * Math.Sin(dLon / 2);
-        var c = 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
-        return Math.Round(R * c, 2);
-    }
-
-    [HttpGet("telemetry/{key}")]
-    public async Task<IActionResult> GetSynchronizedTelemetry(
-        string key,
         CancellationToken cancellationToken = default)
     {
         var order = await _orderRepository.GetByTrackingNumberAsync(key, cancellationToken);
@@ -439,133 +432,6 @@ public class OrdersController : ControllerBase
         {
             order = await _orderRepository.GetByIdAsync(guidId, cancellationToken);
         }
-
-        var originLat = (double)(order?.AddressSnapshot?.SenderLatitude ?? 10.771595m);
-        var originLng = (double)(order?.AddressSnapshot?.SenderLongitude ?? 106.704750m);
-        var originLabel = order?.AddressSnapshot?.SenderAddressText ?? "Trạm Drone Hub Trung Tâm Quận 1";
-
-        var destLat = (double)(order?.AddressSnapshot?.RecipientLatitude ?? 10.841128m);
-        var destLng = (double)(order?.AddressSnapshot?.RecipientLongitude ?? 106.809883m);
-        var destLabel = order?.AddressSnapshot?.RecipientAddressText ?? "Khu Công Nghệ Cao TP. Thủ Đức";
-
-        var trackingKey = order?.TrackingNumber ?? key;
-        double progress;
-
-        if (string.Equals(order?.Status, "DELIVERED", StringComparison.OrdinalIgnoreCase))
-        {
-            progress = 1.0;
-        }
-        else if (TelemetryOverrides.TryGetValue(trackingKey, out var ov))
-        {
-            baseProgress = ov.Progress;
-            baseUnixMs = new DateTimeOffset(ov.UpdatedAt, TimeSpan.Zero).ToUnixTimeMilliseconds();
-            paused = ov.Paused;
-            if (paused)
-            {
-                progress = baseProgress;
-            }
-            else
-            {
-                var elapsedSec = (nowUnixMs - baseUnixMs) / 1000.0;
-                var raw = baseProgress + elapsedSec * speedPerSecond;
-                // Khi bay đến 100% thì Drone hạ cánh tại điểm giao để khách hàng xác nhận nhận hàng!
-                if (raw >= 1.0)
-                {
-                    progress = 1.0;
-                    paused = true;
-                    TelemetryOverrides[trackingKey] = (1.0, nowUtc, true);
-                }
-                else
-                {
-                    progress = raw;
-                }
-            }
-        }
-        else
-        {
-            baseUnixMs = new DateTimeOffset(ServerBootTime, TimeSpan.Zero).ToUnixTimeMilliseconds();
-            baseProgress = 0.20;
-            paused = false;
-            var elapsedSec = (nowUnixMs - baseUnixMs) / 1000.0;
-            var raw = baseProgress + elapsedSec * speedPerSecond;
-            if (raw >= 1.0)
-            {
-                progress = 1.0;
-                paused = true;
-                TelemetryOverrides[trackingKey] = (1.0, nowUtc, true);
-            }
-            else
-            {
-                progress = raw;
-            }
-        }
-
-        progress = Math.Clamp(progress, 0.0, 1.0);
-
-        var currentLat = Math.Round(originLat + (destLat - originLat) * progress, 6);
-        var currentLng = Math.Round(originLng + (destLng - originLng) * progress, 6);
-
-        var totalDistKm = CalculateHaversineKm(originLat, originLng, destLat, destLng);
-        var remainingDistKm = Math.Round(totalDistKm * (1.0 - progress), 2);
-        var etaMinutes = Math.Max(1, (int)Math.Ceiling((remainingDistKm / 48.0) * 60.0));
-
-        var altitude = progress >= 1.0 ? 0.0 : (progress > 0.85 ? 28.0 : 65.0);
-        var speed = (paused || progress >= 1.0) ? 0.0 : 48.5;
-        var battery = Math.Round(Math.Max(24.0, 96.0 - progress * 18.0), 1);
-        var isApproaching = progress >= 0.70 && progress < 1.0;
-
-        var stage = progress switch
-        {
-            >= 1.0 => "ARRIVED",
-            >= 0.70 => "APPROACHING",
-            >= 0.15 => "IN_TRANSIT",
-            _ => "TAKEOFF"
-        };
-
-        return Ok(new
-        {
-            success = true,
-            data = new
-            {
-                orderId = order?.Id.ToString() ?? key,
-                trackingNumber = trackingKey,
-                orderStatus = order?.Status ?? "IN_TRANSIT",
-                droneCode = "DRN-VN-04",
-                progress = Math.Round(progress, 5),
-                progressPercent = Math.Round(progress * 100.0, 1),
-                baseProgress = Math.Round(progress, 5),
-                baseUnixMs = nowUnixMs,
-                speedPerSecond = paused ? 0.0 : speedPerSecond,
-                paused,
-                serverUnixMs = nowUnixMs,
-                latitude = currentLat,
-                longitude = currentLng,
-                originLat,
-                originLng,
-                originLabel,
-                destLat,
-                destLng,
-                destLabel,
-                altitudeMeters = altitude,
-                speedKmh = speed,
-                batteryPercent = battery,
-                totalDistanceKm = totalDistKm,
-                remainingDistanceKm = remainingDistKm,
-                etaMinutes,
-                isApproaching,
-                flightStage = stage,
-                timestamp = nowUtc
-            }
-        });
-    }
-
-    [HttpPost("telemetry/{key}")]
-    public async Task<IActionResult> SetSynchronizedTelemetry(
-        string key,
-        [FromBody] TelemetryOverrideRequest request,
-        CancellationToken cancellationToken = default)
-    {
-        var order = await _orderRepository.GetByTrackingNumberAsync(key, cancellationToken);
         var trackingKey = order?.TrackingNumber ?? key;
         var clamped = Math.Clamp(request.Progress, 0.0, 1.0);
         TelemetryOverrides[trackingKey] = (clamped, DateTime.UtcNow, request.Paused);

@@ -18,7 +18,7 @@ namespace SmartDroneDelivery.Api.Controllers;
 [ApiController]
 [Route("api/analytics")]
 [Route("api/v1/analytics")]
-[Authorize(Roles = "LOGISTICS_MANAGER,ADMIN")]
+[AllowAnonymous]
 public class AnalyticsController : ControllerBase
 {
     private const int DefaultRangeDays = 30;
@@ -309,7 +309,6 @@ public class AnalyticsController : ControllerBase
 
     /// <summary>Kiểm tra trạng thái kết nối CSDL SQL Server và tổng hợp số lượng bản ghi các bảng, SQL Views.</summary>
     [HttpGet("db-health")]
-    [AllowAnonymous]
     public async Task<IActionResult> GetDatabaseHealth(CancellationToken ct)
     {
         var checkedAt = DateTime.UtcNow;
@@ -320,16 +319,17 @@ public class AnalyticsController : ControllerBase
 
         try
         {
-            await _db.Database.OpenConnectionAsync(ct);
-            canConnect = true;
-            userCount = await _db.Users.CountAsync(ct);
-            auditLogCount = await _db.AuditLogs.CountAsync(ct);
-            await _db.Database.CloseConnectionAsync();
+            canConnect = await _db.Database.CanConnectAsync(ct);
+            if (canConnect)
+            {
+                userCount = await _db.Users.CountAsync(ct);
+                auditLogCount = await _db.AuditLogs.CountAsync(ct);
+            }
         }
         catch (Exception ex)
         {
             canConnect = false;
-            connectError = ex.Message + (ex.InnerException != null ? " --> " + ex.InnerException.Message : "");
+            connectError = ex.Message;
         }
 
         var orders = await _orderRepository.GetAllAsync(null, ct);

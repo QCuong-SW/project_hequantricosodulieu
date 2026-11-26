@@ -339,110 +339,10 @@ export default function RealGoogleMapView({
         </g>
       </svg>
 
-      {/* 3. TOP MAP TOOLBAR */}
+      {/* 3. TOP MAP TOOLBAR (Tối giản — chỉ giữ Zoom & Mở Google Maps) */}
       {showControls && (
-        <div className="absolute top-3 left-3 right-3 z-10 flex flex-wrap items-center justify-between gap-2 pointer-events-none">
-          <div className="pointer-events-auto flex items-center gap-1 bg-white/95 backdrop-blur-md px-2 py-1.5 rounded-xl border border-emerald-200/80 shadow-xs text-xs font-semibold">
-            <span className="text-slate-400 px-1 text-[11px] uppercase font-bold">Ống kính:</span>
-            <button
-              type="button"
-              onClick={() => {
-                setViewTarget('ROUTE');
-                setZoom(13);
-                setPanOffset({ x: 0, y: 0 });
-              }}
-              className={`px-2.5 py-1 rounded-lg transition cursor-pointer ${
-                viewTarget === 'ROUTE'
-                  ? 'bg-emerald-600 text-white shadow-xs'
-                  : 'text-slate-700 hover:bg-emerald-50'
-              }`}
-            >
-              📐 Toàn Tuyến
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setViewTarget('DRONE');
-                setZoom(15);
-                setPanOffset({ x: 0, y: 0 });
-              }}
-              className={`px-2.5 py-1 rounded-lg transition cursor-pointer ${
-                viewTarget === 'DRONE'
-                  ? 'bg-emerald-600 text-white shadow-xs'
-                  : 'text-slate-700 hover:bg-emerald-50'
-              }`}
-            >
-              🛸 Bám Drone
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setViewTarget('ORIGIN');
-                setZoom(15);
-                setPanOffset({ x: 0, y: 0 });
-              }}
-              className={`px-2.5 py-1 rounded-lg transition cursor-pointer ${
-                viewTarget === 'ORIGIN'
-                  ? 'bg-emerald-600 text-white shadow-xs'
-                  : 'text-slate-700 hover:bg-emerald-50'
-              }`}
-            >
-              🛫 Trạm Xuất Phát
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setViewTarget('DESTINATION');
-                setZoom(15);
-                setPanOffset({ x: 0, y: 0 });
-              }}
-              className={`px-2.5 py-1 rounded-lg transition cursor-pointer ${
-                viewTarget === 'DESTINATION'
-                  ? 'bg-emerald-600 text-white shadow-xs'
-                  : 'text-slate-700 hover:bg-emerald-50'
-              }`}
-            >
-              🛬 Điểm Nhận
-            </button>
-          </div>
-
+        <div className="absolute top-3 right-3 z-10 flex items-center gap-2 pointer-events-none">
           <div className="pointer-events-auto flex items-center gap-2">
-            <div className="flex items-center bg-white/95 backdrop-blur-md p-1 rounded-xl border border-emerald-200/80 shadow-xs text-xs">
-              <button
-                type="button"
-                onClick={() => setMapType('m')}
-                className={`px-2.5 py-1 rounded-lg font-semibold transition cursor-pointer ${
-                  mapType === 'm'
-                    ? 'bg-emerald-600 text-white shadow-xs'
-                    : 'text-slate-700 hover:bg-emerald-50'
-                }`}
-              >
-                Đường phố
-              </button>
-              <button
-                type="button"
-                onClick={() => setMapType('k')}
-                className={`px-2.5 py-1 rounded-lg font-semibold transition cursor-pointer ${
-                  mapType === 'k'
-                    ? 'bg-emerald-600 text-white shadow-xs'
-                    : 'text-slate-700 hover:bg-emerald-50'
-                }`}
-              >
-                Vệ tinh
-              </button>
-              <button
-                type="button"
-                onClick={() => setMapType('h')}
-                className={`px-2.5 py-1 rounded-lg font-semibold transition cursor-pointer ${
-                  mapType === 'h'
-                    ? 'bg-emerald-600 text-white shadow-xs'
-                    : 'text-slate-700 hover:bg-emerald-50'
-                }`}
-              >
-                Hỗn hợp
-              </button>
-            </div>
-
             <div className="flex items-center bg-white/95 backdrop-blur-md p-1 rounded-xl border border-emerald-200/80 shadow-xs text-xs font-bold">
               <button
                 type="button"
@@ -465,69 +365,10 @@ export default function RealGoogleMapView({
               href={externalMapLink}
               target="_blank"
               rel="noopener noreferrer"
-              className="bg-white/95 backdrop-blur-md hover:bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-xl border border-emerald-200 shadow-xs text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
+              className="bg-white/95 backdrop-blur-md hover:bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-xl border border-emerald-200 shadow-xs text-xs font-bold transition flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
             >
               <span>Mở Google Maps</span>
             </a>
-
-            <button
-              type="button"
-              onClick={() => setShowKeyModal(true)}
-              title="Cấu hình Google Maps API Key"
-              className="bg-white/95 backdrop-blur-md p-2 rounded-xl border border-emerald-200/80 shadow-xs text-slate-600 hover:text-emerald-600 transition cursor-pointer"
-            >
-              ⚙
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* 4. TELEMETRY OVERLAY HUD */}
-      {showTelemetryOverlay && (
-        <div className="absolute bottom-3 left-3 right-3 z-10 pointer-events-none">
-          <div className="bg-white/95 backdrop-blur-md rounded-xl p-3.5 border border-emerald-200 shadow-lg text-slate-900 flex flex-wrap items-center justify-between gap-3 pointer-events-auto">
-            <div className="flex items-center gap-3">
-              <div className="h-9 w-9 rounded-lg bg-emerald-100 border border-emerald-200 flex items-center justify-center text-emerald-700 font-mono font-bold text-xs animate-pulse">
-                GPS
-              </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-bold text-slate-900 tracking-wide">
-                    {droneCode}
-                  </span>
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                    REALTIME SYNC (WEB &amp; MOBILE)
-                  </span>
-                </div>
-                <div className="font-mono text-[11px] text-slate-500 mt-0.5">
-                  Tọa độ thật: <strong className="text-emerald-700">{Number(droneLat).toFixed(6)}, {Number(droneLng).toFixed(6)}</strong>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-4 text-xs font-mono">
-              <div>
-                <span className="text-slate-400 text-[10px] block uppercase">Độ cao</span>
-                <span className="text-emerald-700 font-bold">{droneCurrent?.altitude ?? 65} m</span>
-              </div>
-              <div className="h-6 w-px bg-emerald-100"></div>
-              <div>
-                <span className="text-slate-400 text-[10px] block uppercase">Tốc độ</span>
-                <span className="text-emerald-700 font-bold">{droneCurrent?.speed ?? 48.5} km/h</span>
-              </div>
-              <div className="h-6 w-px bg-emerald-100"></div>
-              <div>
-                <span className="text-slate-400 text-[10px] block uppercase">Dung lượng Pin</span>
-                <span className="text-emerald-700 font-bold">{droneCurrent?.battery ?? 88}%</span>
-              </div>
-              <div className="h-6 w-px bg-emerald-100"></div>
-              <div>
-                <span className="text-slate-400 text-[10px] block uppercase">Tiến trình</span>
-                <span className="text-emerald-700 font-bold">
-                  {Math.round(progress * 100)}%
-                </span>
-              </div>
-            </div>
           </div>
         </div>
       )}

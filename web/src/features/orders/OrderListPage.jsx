@@ -317,15 +317,15 @@ export default function OrderListPage({ onViewOrder }) {
                           {order.addressSnapshot?.recipientAddressText || '—'}
                         </div>
                       </td>
-                      <td className="py-3.5 px-4 text-xs font-mono font-semibold text-slate-700">
+                      <td className="py-3.5 px-4 text-xs font-mono font-semibold text-slate-700 whitespace-nowrap">
                         {order.totalWeightKg ?? totalWeight(order)} kg
                       </td>
-                      <td className="py-3.5 px-4 text-xs">
+                      <td className="py-3.5 px-4 text-xs whitespace-nowrap">
                         <div className="font-mono font-bold text-slate-900">
                           {formatCurrency(order.shippingFee)}
                         </div>
                         <span
-                          className={`inline-block mt-0.5 px-2 py-0.5 rounded text-[10px] font-bold font-mono ${
+                          className={`inline-flex items-center whitespace-nowrap mt-0.5 px-2 py-0.5 rounded text-[10px] font-bold font-mono ${
                             isPaid
                               ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
                               : 'bg-amber-50 text-amber-700 border border-amber-200'
@@ -334,7 +334,7 @@ export default function OrderListPage({ onViewOrder }) {
                           {isPaid ? 'ĐÃ THANH TOÁN' : 'CHƯA THANH TOÁN'}
                         </span>
                       </td>
-                      <td className="py-3.5 px-4">
+                      <td className="py-3.5 px-4 whitespace-nowrap">
                         <StatusBadge status={order.status} />
                       </td>
                       <td className="py-3.5 px-4 text-right space-x-1.5 whitespace-nowrap">
@@ -741,9 +741,9 @@ function StatusBadge({ status }) {
 
   return (
     <span
-      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold border ${badgeColor}`}
+      className={`inline-flex items-center gap-1.5 whitespace-nowrap shrink-0 px-2.5 py-1 rounded-full text-[11px] font-bold border ${badgeColor}`}
     >
-      <span className={`w-1.5 h-1.5 rounded-full ${dotColor}`}></span>
+      <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${dotColor}`}></span>
       {label}
     </span>
   )

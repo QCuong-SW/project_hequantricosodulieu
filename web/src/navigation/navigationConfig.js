@@ -38,6 +38,17 @@ export const NAVIGATION_ITEMS = [
     ],
   },
   {
+    key: 'ai-assistant',
+    label: 'Trợ Lý AI',
+    path: '/ai-assistant',
+    roles: [
+      ROLES.ADMIN,
+      ROLES.DISPATCHER,
+      ROLES.LOGISTICS_MANAGER,
+      ROLES.CUSTOMER,
+    ],
+  },
+  {
     key: 'user-management',
     label: 'Quản Lý Tài Khoản',
     path: '/admin/users',

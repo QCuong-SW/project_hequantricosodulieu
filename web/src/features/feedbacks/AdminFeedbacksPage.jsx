@@ -156,11 +156,11 @@ export default function AdminFeedbacksPage() {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2">
-                  <span className="px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200 font-mono text-xs font-bold">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="inline-flex items-center whitespace-nowrap px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200 font-mono text-xs font-bold">
                     Đơn: {fb.trackingNumber || 'SDD-ORDER'}
                   </span>
-                  <span className="px-2.5 py-1 rounded-lg bg-amber-50 text-amber-700 border border-amber-200 font-bold text-xs">
+                  <span className="inline-flex items-center whitespace-nowrap px-2.5 py-1 rounded-lg bg-amber-50 text-amber-700 border border-amber-200 font-bold text-xs">
                     {'★'.repeat(Math.max(1, Math.min(5, Number(fb.rating) || 5)))} ({fb.rating}/5)
                   </span>
                 </div>

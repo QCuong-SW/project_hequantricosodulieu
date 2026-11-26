@@ -52,6 +52,7 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
   String _orderStatusTab = 'ALL'; // ALL | PENDING | SHIPPING | DELIVERED | CANCELLED
   Map<String, dynamic>? _activeTrackingOrder;
   Map<String, dynamic>? _syncedTelemetry;
+  Map<String, dynamic>? _aiEtaPrediction;
   int _clientReceivedTelemetryMs = DateTime.now().millisecondsSinceEpoch;
   double _droneProgress = 0.35;
   Timer? _telemetrySyncTimer;
@@ -89,7 +90,7 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
           if (_droneProgress != baseP) setState(() => _droneProgress = baseP);
           return;
         }
-        final speedPerSec = double.tryParse(_syncedTelemetry!['speedPerSecond']?.toString() ?? '') ?? 0.02;
+        final speedPerSec = double.tryParse(_syncedTelemetry!['speedPerSecond']?.toString() ?? '') ?? (1.0 / 60.0);
         final elapsedSec = (DateTime.now().millisecondsSinceEpoch - _clientReceivedTelemetryMs) / 1000.0;
         final raw = baseP + elapsedSec * speedPerSec;
         final nextP = raw.clamp(0.0, 1.0);
@@ -98,7 +99,7 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
         });
       } else {
         setState(() {
-          _droneProgress = (_droneProgress + 0.001).clamp(0.0, 1.0);
+          _droneProgress = (_droneProgress + (0.05 / 60.0)).clamp(0.0, 1.0);
         });
       }
     });
@@ -132,6 +133,7 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
       _fetchFeedbacks(),
     ]);
     await _fetchSyncedTelemetry();
+    await _fetchAiEtaPrediction();
   }
 
   String get _customerId =>
@@ -164,6 +166,11 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
     }
   }
 
+  bool _isCompletedStatus(String? st) {
+    final s = (st ?? '').toUpperCase();
+    return s == 'DELIVERED' || s == 'CANCELLED' || s == 'REJECTED' || s == 'DELIVERY_FAILED';
+  }
+
   Future<void> _fetchMyOrders() async {
     setState(() => _loadingOrders = true);
     try {
@@ -179,6 +186,15 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
       final list = decoded is Map ? decoded['data'] : decoded;
       if (list is List && mounted) {
         final parsed = list.map((e) => Map<String, dynamic>.from(e)).toList();
+        // Ưu tiên sắp xếp các đơn ĐANG DIỄN RA / MỚI ĐẶT lên đầu, đơn đã giao xuống cuối
+        parsed.sort((a, b) {
+          final aDone = _isCompletedStatus(a['status']?.toString()) ? 1 : 0;
+          final bDone = _isCompletedStatus(b['status']?.toString()) ? 1 : 0;
+          if (aDone != bDone) return aDone.compareTo(bDone);
+          final aTime = DateTime.tryParse(a['createdAt']?.toString() ?? '')?.millisecondsSinceEpoch ?? 0;
+          final bTime = DateTime.tryParse(b['createdAt']?.toString() ?? '')?.millisecondsSinceEpoch ?? 0;
+          return bTime.compareTo(aTime);
+        });
         setState(() {
           _orders = parsed;
           if (_activeTrackingOrder == null && parsed.isNotEmpty) {
@@ -197,10 +213,40 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
     }
   }
 
-  // Gọi API Telemetry đồng bộ 1:1 với Web Portal
+  // Gọi API AI ETA Prediction (Module M5 của Nhân: /api/v1/ai/eta/{orderKey})
+  Future<void> _fetchAiEtaPrediction() async {
+    final order = _activeTrackingOrder ?? (_orders.isNotEmpty ? _orders.first : null);
+    final key = order?['id']?.toString() ??
+        order?['trackingNumber']?.toString() ??
+        'a1111111-1111-1111-1111-111111111001';
+    try {
+      final token = await SessionManager.getAccessToken();
+      final res = await http.get(
+        Uri.parse('${AuthService.baseUrl}/api/v1/ai/eta/$key?windSpeedKmh=10'),
+        headers: {
+          'Accept': 'application/json',
+          if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
+        },
+      );
+      if (res.statusCode == 200) {
+        final decoded = jsonDecode(res.body);
+        final data = (decoded is Map && decoded['data'] is Map) ? decoded['data'] : decoded;
+        if (data is Map && mounted) {
+          setState(() {
+            _aiEtaPrediction = Map<String, dynamic>.from(data);
+          });
+        }
+      }
+    } catch (_) {}
+  }
+
+  // Gọi API Telemetry đồng bộ 1:1 với Web Portal (Chỉ theo dõi các chuyến chưa hoàn tất)
   Future<void> _fetchSyncedTelemetry() async {
     final order = _activeTrackingOrder ?? (_orders.isNotEmpty ? _orders.first : null);
-    final key = order?['trackingNumber']?.toString() ?? 'SDD-20261108-482910';
+    if (order == null || _isCompletedStatus(order['status']?.toString())) {
+      return;
+    }
+    final key = order['trackingNumber']?.toString() ?? 'SDD-20261108-482910';
     try {
       final res = await http.get(
         Uri.parse('${AuthService.baseUrl}/api/v1/delivery-orders/telemetry/$key'),
@@ -457,10 +503,13 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
           _cart.clear();
           _activeTrackingOrder = createdOrder;
           _orderStatusTab = 'SHIPPING';
+          _droneProgress = 0.02;
+          _syncedTelemetry = null;
           _currentTab = 2; // Đặt xong chuyển thẳng sang màn hình Trạng thái đơn & Bản đồ Drone!
         });
 
-        await _setSyncedProgress(0.75); // Đặt Drone vào trạng thái đang bay gần tới để hiển thị bản đồ trực quan ngay
+        await _setSyncedProgress(0.02, paused: false); // Khởi hành từ đúng điểm xuất phát (2%) đồng bộ 1:1 giữa Mobile & Web!
+        await _fetchAiEtaPrediction();
 
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
@@ -743,6 +792,219 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
     }
   }
 
+  void _openMobileAiAssistantSheet() {
+    final inputCtrl = TextEditingController();
+    final messages = <Map<String, String>>[
+      {
+        'sender': 'ai',
+        'text': 'Xin chào $_customerName! Mình là Trợ lý AI SmartDrone. Bạn cần kiểm tra đơn đang bay, gợi ý món ăn giao nóng hay ước tính thời gian giao hàng?',
+      },
+    ];
+    bool sending = false;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (sheetCtx) {
+        return StatefulBuilder(
+          builder: (ctx, setSheetState) {
+            Future<void> askAi(String text) async {
+              final q = text.trim();
+              if (q.isEmpty || sending) return;
+              setSheetState(() {
+                messages.add({'sender': 'user', 'text': q});
+                sending = true;
+              });
+              inputCtrl.clear();
+              try {
+                final res = await http.post(
+                  Uri.parse('${AuthService.baseUrl}/api/v1/ai/chat'),
+                  headers: {'Content-Type': 'application/json', 'Accept': 'application/json'},
+                  body: jsonEncode({
+                    'message': q,
+                    'role': 'CUSTOMER',
+                    'customerId': _customerId,
+                  }),
+                );
+                final decoded = jsonDecode(res.body);
+                final reply = (decoded is Map && decoded['data'] is Map)
+                    ? decoded['data']['reply']?.toString()
+                    : null;
+                setSheetState(() {
+                  messages.add({
+                    'sender': 'ai',
+                    'text': reply ?? 'Mình đã tiếp nhận câu hỏi của bạn!',
+                  });
+                });
+              } catch (_) {
+                setSheetState(() {
+                  messages.add({
+                    'sender': 'ai',
+                    'text': 'Hiện không thể kết nối tới máy chủ AI. Vui lòng thử lại sau.',
+                  });
+                });
+              } finally {
+                setSheetState(() => sending = false);
+              }
+            }
+
+            return Padding(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(ctx).viewInsets.bottom,
+              ),
+              child: SizedBox(
+                height: MediaQuery.of(ctx).size.height * 0.72,
+                child: Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(18, 14, 12, 10),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 36,
+                            height: 36,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFECFDF5),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: const Icon(Icons.auto_awesome_rounded, color: Color(0xFF059669), size: 20),
+                          ),
+                          const SizedBox(width: 10),
+                          const Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Trợ Lý AI Khách Hàng',
+                                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w900),
+                                ),
+                                Text(
+                                  'Tư vấn món ăn, đơn đang bay & thời gian đến nơi',
+                                  style: TextStyle(fontSize: 11, color: Colors.black54),
+                                ),
+                              ],
+                            ),
+                          ),
+                          IconButton(
+                            onPressed: () => Navigator.of(ctx).pop(),
+                            icon: const Icon(Icons.close),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const Divider(height: 1),
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                      child: Row(
+                        children: [
+                          'Đơn nào đang bay giao hàng?',
+                          'Gợi ý món ăn giao nhanh',
+                          'Ước tính thời gian bay tới Thủ Đức',
+                          'Quy định tải trọng Drone',
+                        ].map((s) {
+                          return Padding(
+                            padding: const EdgeInsets.only(right: 6),
+                            child: ActionChip(
+                              backgroundColor: const Color(0xFFECFDF5),
+                              side: const BorderSide(color: Color(0xFFA7F3D0)),
+                              label: Text(
+                                s,
+                                style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF065F46)),
+                              ),
+                              onPressed: () => askAi(s),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                    Expanded(
+                      child: ListView.builder(
+                        padding: const EdgeInsets.all(14),
+                        itemCount: messages.length,
+                        itemBuilder: (_, i) {
+                          final m = messages[i];
+                          final isUser = m['sender'] == 'user';
+                          return Align(
+                            alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
+                            child: Container(
+                              margin: const EdgeInsets.only(bottom: 10),
+                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                              constraints: const BoxConstraints(maxWidth: 320),
+                              decoration: BoxDecoration(
+                                color: isUser ? const Color(0xFF059669) : const Color(0xFFF6F8F7),
+                                borderRadius: BorderRadius.circular(16),
+                                border: isUser ? null : Border.all(color: const Color(0xFFD1FAE5)),
+                              ),
+                              child: Text(
+                                m['text'] ?? '',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: isUser ? Colors.white : const Color(0xFF0F172A),
+                                  height: 1.4,
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                    if (sending)
+                      const Padding(
+                        padding: EdgeInsets.only(bottom: 6),
+                        child: Text(
+                          'Trợ lý AI đang trả lời...',
+                          style: TextStyle(fontSize: 11, color: Color(0xFF059669), fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(14, 6, 14, 14),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: TextField(
+                              controller: inputCtrl,
+                              onSubmitted: askAi,
+                              decoration: InputDecoration(
+                                hintText: 'Hỏi Trợ lý AI...',
+                                isDense: true,
+                                filled: true,
+                                fillColor: const Color(0xFFF6F8F7),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(14),
+                                  borderSide: const BorderSide(color: Color(0xFFD1FAE5)),
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          ElevatedButton(
+                            onPressed: sending ? null : () => askAi(inputCtrl.text),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF059669),
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            ),
+                            child: const Icon(Icons.send_rounded, size: 18),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_loadingUser) {
@@ -791,6 +1053,11 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
           ],
         ),
         actions: [
+          IconButton(
+            onPressed: _openMobileAiAssistantSheet,
+            tooltip: 'Trợ Lý AI',
+            icon: const Icon(Icons.auto_awesome_rounded, color: Color(0xFF059669)),
+          ),
           Padding(
             padding: const EdgeInsets.only(right: 4),
             child: TextButton.icon(
@@ -1883,8 +2150,10 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
     final speedKmh = _droneProgress >= 1.0 ? '0' : '48.5';
 
     final isDelivered = status == 'DELIVERED';
+    final isCompletedOrder = _isCompletedStatus(status);
     final hasArrived = isDelivered || status == 'ARRIVED' || _droneProgress >= 0.98;
-    final isApproaching = !hasArrived && _droneProgress >= 0.70;
+    final isApproaching = !hasArrived && !isCompletedOrder && _droneProgress >= 0.70;
+    final otherActiveOrders = _orders.where((o) => !_isCompletedStatus(o['status']?.toString())).toList();
 
     // Filter orders by Shopee status tabs
     final filteredOrders = _orders.where((o) {
@@ -1947,6 +2216,7 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
                           onSelected: (_) {
                             setState(() => _activeTrackingOrder = o);
                             _fetchSyncedTelemetry();
+                            _fetchAiEtaPrediction();
                           },
                         );
                       },
@@ -2041,9 +2311,100 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
 
                 const SizedBox(height: 14),
 
-                // 4. LIVE DRONE MAP SYNCED 1:1 WITH WEB (Nổi bật khi đơn đang giao / gần giao tới!)
-                Container(
-                  padding: const EdgeInsets.all(16),
+                // 4. LIVE DRONE MAP SYNCED 1:1 WITH WEB (Chỉ hiển thị cho chuyến đang bay / mới đặt — ẩn map đối với đơn đã giao!)
+                if (isCompletedOrder)
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(18),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: const Color(0xFFD1FAE5)),
+                    ),
+                    child: Column(
+                      children: [
+                        Container(
+                          width: 52,
+                          height: 52,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFECFDF5),
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Icon(
+                            isDelivered ? Icons.check_circle_rounded : Icons.cancel_outlined,
+                            color: isDelivered ? const Color(0xFF059669) : Colors.redAccent,
+                            size: 30,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        Text(
+                          isDelivered
+                              ? 'Chuyến Bay Đã Giao Hoàn Tất — Đã Đóng Bản Đồ Theo Dõi'
+                              : 'Đơn Hàng Đã Kết Thúc ($status)',
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w900,
+                            color: Color(0xFF0F172A),
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          isDelivered
+                              ? 'Đơn hàng $trackingCode đã giao thành công tới $destLabel. Bản đồ theo dõi trực tuyến chỉ hiển thị các chuyến bay đang diễn ra.'
+                              : 'Đơn hàng $trackingCode không còn hoạt động trên bản đồ bay trực tuyến.',
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(fontSize: 12, color: Colors.black54),
+                        ),
+                        const SizedBox(height: 14),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          alignment: WrapAlignment.center,
+                          children: [
+                            if (otherActiveOrders.isNotEmpty)
+                              ElevatedButton.icon(
+                                onPressed: () {
+                                  setState(() {
+                                    _activeTrackingOrder = otherActiveOrders.first;
+                                    _orderStatusTab = 'SHIPPING';
+                                  });
+                                  _fetchSyncedTelemetry();
+                                  _fetchAiEtaPrediction();
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color(0xFF059669),
+                                  foregroundColor: Colors.white,
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                ),
+                                icon: const Icon(Icons.flight_takeoff_rounded, size: 17),
+                                label: Text(
+                                  'Theo dõi đơn đang bay (${otherActiveOrders.first['trackingNumber']})',
+                                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                                ),
+                              ),
+                            if (isDelivered)
+                              OutlinedButton.icon(
+                                onPressed: () => setState(() => _currentTab = 3),
+                                style: OutlinedButton.styleFrom(
+                                  foregroundColor: const Color(0xFF059669),
+                                  side: const BorderSide(color: Color(0xFF059669)),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                ),
+                                icon: const Icon(Icons.star_outline_rounded, size: 17),
+                                label: const Text(
+                                  'Đánh Giá Chuyến Giao Hàng',
+                                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  )
+                else
+                  Container(
+                    padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(20),
@@ -2117,6 +2478,33 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
                         'Tọa độ GPS đồng bộ Web: ($currentLat, $currentLng) • Cách điểm nhận ~$remainingDistKm km',
                         style: const TextStyle(fontSize: 11, color: Colors.black54, fontWeight: FontWeight.w600),
                       ),
+                      if (_aiEtaPrediction != null) ...[
+                        const SizedBox(height: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF0FDF4),
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(color: const Color(0xFFA7F3D0)),
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.auto_awesome_rounded, size: 15, color: Color(0xFF059669)),
+                              const SizedBox(width: 6),
+                              Expanded(
+                                child: Text(
+                                  'Thời gian dự kiến đến nơi (${_aiEtaPrediction!['source'] ?? 'AI'}): ~${_aiEtaPrediction!['estimatedMinutes'] ?? etaMinutes} phút (${_aiEtaPrediction!['distanceKm'] ?? totalDistKm} km) • ${_aiEtaPrediction!['note'] ?? ''}',
+                                  style: const TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w700,
+                                    color: Color(0xFF065F46),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
 
                       const SizedBox(height: 12),
 
@@ -2143,14 +2531,14 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
                         children: [
                           ActionChip(
                             backgroundColor: const Color(0xFFECFDF5),
-                            label: const Text('Vừa cất cánh (25%)', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF065F46))),
-                            onPressed: () => _setSyncedProgress(0.25),
+                            label: const Text('🛫 Bay lại từ trạm (2%)', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF065F46))),
+                            onPressed: () => _setSyncedProgress(0.02, paused: false),
                           ),
                           ActionChip(
                             backgroundColor: const Color(0xFFD1FAE5),
                             side: const BorderSide(color: Color(0xFF059669)),
                             label: const Text('🔔 Gần giao tới (82%)', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w900, color: Color(0xFF065F46))),
-                            onPressed: () => _setSyncedProgress(0.82),
+                            onPressed: () => _setSyncedProgress(0.82, paused: false),
                           ),
                           ActionChip(
                             backgroundColor: const Color(0xFFFEF3C7),

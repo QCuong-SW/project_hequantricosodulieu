@@ -46,9 +46,9 @@ export default function StationUtilizationTable({ stations = [] }) {
                   <div className="font-bold text-slate-900 text-sm">{s.stationName}</div>
                   <div className="font-mono text-[11px] text-emerald-700 font-bold">{s.stationCode}</div>
                 </td>
-                <td className="py-3.5 px-4">
-                  <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${stCfg.color}`}>
-                    <span className={`w-1.5 h-1.5 rounded-full ${stCfg.dot}`}></span>
+                <td className="py-3.5 px-4 whitespace-nowrap">
+                  <span className={`inline-flex items-center gap-1.5 whitespace-nowrap shrink-0 px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${stCfg.color}`}>
+                    <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${stCfg.dot}`}></span>
                     {stCfg.label}
                   </span>
                 </td>

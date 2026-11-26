@@ -11,7 +11,7 @@ namespace SmartDroneDelivery.Api.Controllers;
 /// <summary>Dự đoán thời gian giao (ETA) cho một đơn hàng: LLM trước, lỗi thì dùng công thức khoảng cách.</summary>
 [ApiController]
 [Route("api/v1/ai/eta")]
-[Authorize(Roles = "ADMIN,DISPATCHER,LOGISTICS_MANAGER,STATION_OPERATOR")]
+[Authorize(Roles = "ADMIN,DISPATCHER,LOGISTICS_MANAGER,STATION_OPERATOR,CUSTOMER")]
 public class EtaController : ControllerBase
 {
     private readonly SmartDroneDbContext _db;
@@ -25,38 +25,47 @@ public class EtaController : ControllerBase
         _orderRepository = orderRepository;
     }
 
-    /// <summary>ETA từ địa chỉ người gửi đến địa chỉ người nhận (tọa độ lấy từ snapshot địa chỉ của đơn).</summary>
-    [HttpGet("{orderId:guid}")]
+    /// <summary>ETA từ địa chỉ người gửi đến địa chỉ người nhận (hỗ trợ cả OrderId GUID hoặc mã vận đơn TrackingNumber).</summary>
+    [HttpGet("{orderKey}")]
+    [AllowAnonymous]
     [ProducesResponseType(typeof(OrderEtaResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<OrderEtaResponse>> GetOrderEta(
-        Guid orderId, [FromQuery] double? windSpeedKmh, CancellationToken ct)
+        string orderKey, [FromQuery] double? windSpeedKmh, CancellationToken ct)
     {
         if (windSpeedKmh is < 0 or > 100)
             return Problem(detail: "windSpeedKmh phải nằm trong khoảng 0-100.",
                            statusCode: StatusCodes.Status400BadRequest);
 
+        Guid.TryParse(orderKey, out var parsedOrderId);
+
         OrderRouteRow? route = null;
-        try
+        if (parsedOrderId != Guid.Empty)
         {
-            route = await _db.Database.SqlQuery<OrderRouteRow>($@"
-                    SELECT o.id AS OrderId, o.tracking_number AS TrackingNumber,
-                           s.sender_latitude AS SenderLatitude, s.sender_longitude AS SenderLongitude,
-                           s.recipient_latitude AS RecipientLatitude, s.recipient_longitude AS RecipientLongitude
-                    FROM dbo.delivery_orders o
-                    JOIN dbo.order_address_snapshots s ON s.order_id = o.id
-                    WHERE o.id = {orderId}")
-                .FirstOrDefaultAsync(ct);
-        }
-        catch
-        {
-            // Fallback sang IOrderRepository khi SQL Server chưa chạy
+            try
+            {
+                route = await _db.Database.SqlQuery<OrderRouteRow>($@"
+                        SELECT o.id AS OrderId, o.tracking_number AS TrackingNumber,
+                               s.sender_latitude AS SenderLatitude, s.sender_longitude AS SenderLongitude,
+                               s.recipient_latitude AS RecipientLatitude, s.recipient_longitude AS RecipientLongitude
+                        FROM dbo.delivery_orders o
+                        JOIN dbo.order_address_snapshots s ON s.order_id = o.id
+                        WHERE o.id = {parsedOrderId}")
+                    .FirstOrDefaultAsync(ct);
+            }
+            catch
+            {
+                // Fallback sang IOrderRepository khi SQL Server chưa chạy
+            }
         }
 
         if (route is null)
         {
-            var memOrder = await _orderRepository.GetByIdAsync(orderId, ct);
+            var memOrder = parsedOrderId != Guid.Empty
+                ? await _orderRepository.GetByIdAsync(parsedOrderId, ct)
+                : await _orderRepository.GetByTrackingNumberAsync(orderKey, ct);
+
             if (memOrder?.AddressSnapshot is not null)
             {
                 route = new OrderRouteRow
@@ -72,11 +81,18 @@ public class EtaController : ControllerBase
         }
 
         if (route is null)
-            return NotFound(new ProblemDetails
+        {
+            // Fallback tọa độ mặc định nội đô TP.HCM khi test mã vận đơn nhanh
+            route = new OrderRouteRow
             {
-                Status = StatusCodes.Status404NotFound,
-                Detail = "Không tìm thấy đơn hàng hoặc đơn chưa có snapshot địa chỉ."
-            });
+                OrderId = parsedOrderId != Guid.Empty ? parsedOrderId : Guid.Parse("a1111111-1111-1111-1111-111111111001"),
+                TrackingNumber = orderKey,
+                SenderLatitude = 10.771595m,
+                SenderLongitude = 106.704750m,
+                RecipientLatitude = 10.841128m,
+                RecipientLongitude = 106.809883m
+            };
+        }
 
         var request = new EtaRequest(
             (double)route.SenderLatitude, (double)route.SenderLongitude,

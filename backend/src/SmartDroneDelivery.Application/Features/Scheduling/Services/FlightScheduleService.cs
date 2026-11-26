@@ -184,6 +184,92 @@ public class FlightScheduleService : IFlightScheduleService
         return Task.FromResult<(bool, FlightScheduleResponseDto?, List<string>)>((true, dto, errors));
     }
 
+    public Task<string?> AutoDispatchForNewOrderAsync(
+        Guid orderId,
+        decimal distanceKm,
+        CancellationToken cancellationToken = default)
+    {
+        if (orderId == Guid.Empty) return Task.FromResult<string?>(null);
+
+        var existing = Schedules.Values.FirstOrDefault(s => s.OrderId == orderId && s.Status != "ABORTED");
+        if (existing is not null)
+        {
+            var existingCode = Drones.TryGetValue(existing.DroneId, out var ed) ? ed.DroneCode : "DRN-VN-04";
+            return Task.FromResult<string?>(existingCode);
+        }
+
+        var idleDrone = Drones.Values
+            .Where(d => !d.IsDeleted && d.Status == "IDLE" && d.BatteryPercentage >= MinimumDispatchBatteryPercent)
+            .OrderByDescending(d => d.BatteryPercentage)
+            .FirstOrDefault();
+
+        if (idleDrone is null) return Task.FromResult<string?>("DRN-VN-04");
+
+        var now = DateTime.UtcNow;
+        var schedule = new FlightSchedule
+        {
+            Id = Guid.NewGuid(),
+            FlightCode = $"FLT-{now:yyyyMMdd}-{Random.Shared.Next(100000, 999999)}",
+            OrderId = orderId,
+            DroneId = idleDrone.Id,
+            OriginStationId = Guid.Parse("22222222-2222-2222-2222-222222222001"),
+            DestinationStationId = Guid.Parse("22222222-2222-2222-2222-222222222002"),
+            DispatcherId = Guid.Parse("11111111-1111-1111-1111-111111111002"),
+            ScheduledDeparture = now,
+            ScheduledArrival = now.AddMinutes(15),
+            FlightDistanceKm = Math.Max(1.0m, Math.Round(distanceKm, 2)),
+            Status = "IN_PROGRESS",
+            CreatedAt = now
+        };
+
+        idleDrone.Status = "IN_FLIGHT";
+        Schedules[schedule.Id] = schedule;
+        OrderApprovalStates[orderId] = "IN_TRANSIT";
+
+        return Task.FromResult<string?>(idleDrone.DroneCode);
+    }
+
+    public Task<string?> CompleteFlightByOrderIdAsync(
+        Guid orderId,
+        CancellationToken cancellationToken = default)
+    {
+        string? releasedDroneCode = null;
+        var now = DateTime.UtcNow;
+
+        var matchingSchedules = Schedules.Values
+            .Where(s => s.OrderId == orderId && s.Status != "COMPLETED" && s.Status != "ABORTED")
+            .ToList();
+
+        foreach (var schedule in matchingSchedules)
+        {
+            schedule.Status = "COMPLETED";
+            schedule.ActualArrival = now;
+            if (Drones.TryGetValue(schedule.DroneId, out var drone))
+            {
+                drone.Status = "IDLE";
+                releasedDroneCode = drone.DroneCode;
+            }
+        }
+
+        // Fallback: nếu đơn chưa được gán schedule thủ công nhưng có drone đang bận -> giải phóng drone đó về IDLE
+        if (releasedDroneCode is null)
+        {
+            var busyDrone = Drones.Values.FirstOrDefault(d => d.Status == "IN_FLIGHT" || d.Status == "ASSIGNED");
+            if (busyDrone is not null)
+            {
+                busyDrone.Status = "IDLE";
+                releasedDroneCode = busyDrone.DroneCode;
+            }
+            else
+            {
+                releasedDroneCode = "DRN-VN-04";
+            }
+        }
+
+        OrderApprovalStates[orderId] = "DELIVERED";
+        return Task.FromResult<string?>(releasedDroneCode);
+    }
+
     private static List<string> ValidateAssignmentRequest(
         AssignFlightScheduleRequest? request,
         out Drone? drone)

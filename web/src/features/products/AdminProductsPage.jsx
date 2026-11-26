@@ -267,9 +267,9 @@ export default function AdminProductsPage() {
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse text-xs">
             <thead>
-              <tr className="border-b border-emerald-100 bg-emerald-50/40 text-[11px] font-bold text-emerald-950 uppercase tracking-wider">
+              <tr className="border-b border-emerald-100 bg-emerald-50/40 text-[11px] font-bold text-emerald-950 uppercase tracking-wider whitespace-nowrap">
                 <th className="py-3.5 px-4">Mã SKU</th>
-                <th className="py-3.5 px-4">Tên Sản Phẩm</th>
+                <th className="py-3.5 px-4 min-w-[260px]">Tên Sản Phẩm</th>
                 <th className="py-3.5 px-4">Danh Mục</th>
                 <th className="py-3.5 px-4">Giá Bán</th>
                 <th className="py-3.5 px-4">Khối Lượng</th>
@@ -288,8 +288,10 @@ export default function AdminProductsPage() {
               ) : (
                 filteredProducts.map((p) => (
                   <tr key={p.id} className="hover:bg-emerald-50/20 transition-colors">
-                    <td className="py-3.5 px-4 font-mono font-bold text-emerald-800">{p.sku}</td>
-                    <td className="py-3.5 px-4">
+                    <td className="py-3.5 px-4 font-mono font-bold text-emerald-800 whitespace-nowrap">
+                      {p.sku}
+                    </td>
+                    <td className="py-3.5 px-4 min-w-[260px]">
                       <div className="flex items-center gap-3">
                         {p.imageUrl && (
                           <img
@@ -298,7 +300,7 @@ export default function AdminProductsPage() {
                             className="w-11 h-11 rounded-xl object-cover border border-emerald-200 shrink-0"
                           />
                         )}
-                        <div>
+                        <div className="min-w-0">
                           <div className="font-bold text-slate-900">{p.name}</div>
                           <div className="text-[11px] text-slate-500 line-clamp-1 max-w-md mt-0.5">
                             {p.description}
@@ -306,28 +308,25 @@ export default function AdminProductsPage() {
                         </div>
                       </div>
                     </td>
-                    <td className="py-3.5 px-4">
-                      <span className="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 font-semibold text-[11px]">
+                    <td className="py-3.5 px-4 whitespace-nowrap">
+                      <span className="inline-flex items-center whitespace-nowrap px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 font-semibold text-[11px]">
                         {p.category}
                       </span>
                     </td>
-                    <td className="py-3.5 px-4 font-mono font-extrabold text-emerald-700">
+                    <td className="py-3.5 px-4 font-mono font-extrabold text-emerald-700 whitespace-nowrap">
                       {Number(p.price || 0).toLocaleString('vi-VN')} đ
                     </td>
-                    <td className="py-3.5 px-4 font-mono text-slate-700">
+                    <td className="py-3.5 px-4 font-mono text-slate-700 whitespace-nowrap">
                       {p.weightKg} kg
-                      {p.isFragile && (
-                        <span className="ml-1.5 px-1.5 py-0.5 rounded bg-amber-50 text-amber-800 border border-amber-200 text-[10px] font-sans font-bold">
-                          Dễ vỡ
-                        </span>
-                      )}
                     </td>
-                    <td className="py-3.5 px-4 font-mono font-bold text-slate-800">{p.stock}</td>
-                    <td className="py-3.5 px-4">
+                    <td className="py-3.5 px-4 font-mono font-bold text-slate-800 whitespace-nowrap">
+                      {p.stock}
+                    </td>
+                    <td className="py-3.5 px-4 whitespace-nowrap">
                       <button
                         type="button"
                         onClick={() => handleToggleActive(p)}
-                        className={`px-2.5 py-1 rounded-full text-[10px] font-bold border cursor-pointer transition ${
+                        className={`inline-flex items-center whitespace-nowrap px-2.5 py-1 rounded-full text-[10px] font-bold border cursor-pointer transition ${
                           p.isActive
                             ? 'bg-emerald-50 text-emerald-800 border-emerald-200 hover:bg-emerald-100'
                             : 'bg-slate-100 text-slate-500 border-slate-200 hover:bg-slate-200'

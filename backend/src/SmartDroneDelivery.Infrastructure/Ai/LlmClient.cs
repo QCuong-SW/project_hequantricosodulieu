@@ -38,15 +38,29 @@ public class LlmClient : ILlmEtaClient
         var userPrompt = FormattableString.Invariant(
             $"Quãng đường bay thẳng: {distanceKm:F2} km. Tốc độ gió ngược: {wind:F0} km/h. Drone bay tối đa 60 km/h, mất khoảng 4 phút cất cánh và hạ cánh. Ước tính tổng thời gian giao hàng (phút).");
 
-        var body = new
-        {
-            model = _options.Model,
-            messages = new[]
+        var isGemini = _options.BaseUrl.Contains("googleapis.com", StringComparison.OrdinalIgnoreCase);
+        object body = isGemini
+            ? new
             {
-                new { role = "system", content = SystemPrompt },
-                new { role = "user",   content = userPrompt }
+                model = _options.Model,
+                reasoning_effort = "low",
+                max_tokens = 32,
+                messages = new[]
+                {
+                    new { role = "system", content = SystemPrompt },
+                    new { role = "user",   content = userPrompt }
+                }
             }
-        };
+            : new
+            {
+                model = _options.Model,
+                max_tokens = 32,
+                messages = new[]
+                {
+                    new { role = "system", content = SystemPrompt },
+                    new { role = "user",   content = userPrompt }
+                }
+            };
 
         using var response = await _http.PostAsJsonAsync("chat/completions", body, ct);
         response.EnsureSuccessStatusCode();   // 4xx/5xx -> HttpRequestException -> fallback
@@ -69,5 +83,48 @@ public class LlmClient : ILlmEtaClient
             throw new LlmUnavailableException("LLM không trả về số phút hợp lệ.");
 
         return minutes;
+    }
+
+    public async Task<string> ChatAsync(string systemPrompt, string userPrompt, CancellationToken ct)
+    {
+        if (string.IsNullOrWhiteSpace(_options.ApiKey))
+            throw new LlmUnavailableException("Chưa cấu hình Ai:Llm:ApiKey.");
+
+        var isGemini = _options.BaseUrl.Contains("googleapis.com", StringComparison.OrdinalIgnoreCase);
+        object body = isGemini
+            ? new
+            {
+                model = _options.Model,
+                reasoning_effort = "low",
+                max_tokens = 250,
+                messages = new[]
+                {
+                    new { role = "system", content = systemPrompt },
+                    new { role = "user", content = userPrompt }
+                }
+            }
+            : new
+            {
+                model = _options.Model,
+                max_tokens = 250,
+                messages = new[]
+                {
+                    new { role = "system", content = systemPrompt },
+                    new { role = "user", content = userPrompt }
+                }
+            };
+
+        using var response = await _http.PostAsJsonAsync("chat/completions", body, ct);
+        response.EnsureSuccessStatusCode();
+
+        var json = await response.Content.ReadAsStringAsync(ct);
+        using var doc = JsonDocument.Parse(json);
+        var reply = doc.RootElement.GetProperty("choices")[0]
+            .GetProperty("message").GetProperty("content").GetString();
+
+        if (string.IsNullOrWhiteSpace(reply))
+            throw new LlmUnavailableException("LLM trả về nội dung trống.");
+
+        return reply.Trim();
     }
 }

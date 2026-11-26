@@ -16,10 +16,11 @@ public interface IEtaService
     Task<EtaResult> PredictAsync(EtaRequest request, CancellationToken ct = default);
 }
 
-/// <summary>Client gọi mô hình ngôn ngữ (LLM). Trả về số phút dự đoán.</summary>
+/// <summary>Client gọi mô hình ngôn ngữ (LLM). Trả về số phút dự đoán hoặc nội dung hội thoại.</summary>
 public interface ILlmEtaClient
 {
     Task<int> PredictMinutesAsync(EtaRequest request, CancellationToken ct);
+    Task<string> ChatAsync(string systemPrompt, string userPrompt, CancellationToken ct);
 }
 
 /// <summary>LLM không dùng được (thiếu API key, phản hồi sai định dạng...). Dịch vụ ETA sẽ chuyển sang fallback.</summary>

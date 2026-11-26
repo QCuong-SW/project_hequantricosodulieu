@@ -8,7 +8,7 @@ namespace SmartDroneDelivery.Infrastructure.Ai;
 /// <summary>Thử LLM trước; lỗi mạng / timeout / thiếu key / kết quả vô lý thì tự động dùng fallback.</summary>
 public class EtaPredictionService : IEtaService
 {
-    private static readonly TimeSpan LlmTimeout = TimeSpan.FromSeconds(5);
+    private static readonly TimeSpan LlmTimeout = TimeSpan.FromSeconds(12);
     private const int MaxReasonableMinutes = 240;
 
     private readonly ILlmEtaClient _llm;

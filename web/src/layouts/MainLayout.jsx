@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Drone } from 'lucide-react'
 import { ROLES, getNavigationByRole } from '../navigation/navigationConfig'
+import { API_V1_URL } from '../config/apiConfig'
 import { clearAuthSession } from '../features/dashboard/authBridge'
 import { showToast } from '../utils/toast'
 import './MainLayout.css'
@@ -26,6 +27,46 @@ export function MainLayout({
   const [currentPath, setCurrentPath] = useState(activePath)
   const [isSidebarOpen, setIsSidebarOpen] = useState(true)
   const [toasts, setToasts] = useState([])
+  const [deliveredEvents, setDeliveredEvents] = useState([])
+  const [showDeliveredDetail, setShowDeliveredDetail] = useState(false)
+  const seenCompletedIdsRef = useRef(null)
+
+  // Theo dõi thời gian thực các đơn hàng vừa được khách hàng bấm "Đã nhận hàng" trên App Mobile -> cộng dồn 1 đơn, 2 đơn, 3 đơn... & giải phóng Drone!
+  useEffect(() => {
+    let active = true
+
+    async function pollCompletedDeliveries() {
+      try {
+        const res = await fetch(`${API_V1_URL}/delivery-confirmations/completed-events`)
+        if (!res.ok) return
+        const json = await res.json().catch(() => null)
+        const list = Array.isArray(json?.data) ? json.data : []
+        if (!active) return
+
+        // Lần tải đầu tiên: ghi nhận các event cũ để không thông báo lại lịch sử trước đó
+        if (seenCompletedIdsRef.current === null) {
+          seenCompletedIdsRef.current = new Set(list.map((e) => e.eventId))
+          return
+        }
+
+        const fresh = list.filter((e) => !seenCompletedIdsRef.current.has(e.eventId))
+        if (fresh.length > 0) {
+          fresh.forEach((e) => seenCompletedIdsRef.current.add(e.eventId))
+          setDeliveredEvents((prev) => [...fresh, ...prev])
+          window.dispatchEvent(new CustomEvent('sdd-order-delivered', { detail: fresh }))
+        }
+      } catch {
+        // Bỏ qua lỗi mạng tạm thời
+      }
+    }
+
+    pollCompletedDeliveries()
+    const timer = setInterval(pollCompletedDeliveries, 2000)
+    return () => {
+      active = false
+      clearInterval(timer)
+    }
+  }, [])
 
   useEffect(() => {
     const handleToast = (e) => {
@@ -85,10 +126,10 @@ export function MainLayout({
   }
 
   return (
-    <div className="flex min-h-screen bg-[#F8FAF9] text-slate-900 font-sans">
-      {/* Sidebar */}
+    <div className="flex h-screen overflow-hidden bg-[#F8FAF9] text-slate-900 font-sans">
+      {/* Fixed Left Sidebar */}
       <aside
-        className={`flex flex-col bg-white text-slate-800 border-r border-emerald-100/90 shadow-2xs transition-all duration-200 shrink-0 select-none ${
+        className={`flex flex-col h-screen bg-white text-slate-800 border-r border-emerald-100/90 shadow-2xs transition-all duration-200 shrink-0 select-none ${
           isSidebarOpen ? 'w-68' : 'w-20'
         }`}
       >
@@ -146,17 +187,6 @@ export function MainLayout({
                         6 ĐƠN
                       </span>
                     )}
-                    {item.path === '/dispatch/drones' && (
-                      <span
-                        className={`px-1.5 py-0.5 rounded-full text-[9px] font-mono font-bold ${
-                          isActive
-                            ? 'bg-white/20 text-white'
-                            : 'bg-emerald-100 text-emerald-800'
-                        }`}
-                      >
-                        LIVE
-                      </span>
-                    )}
                     {item.path === '/stations' && (
                       <span
                         className={`px-1.5 py-0.5 rounded-full text-[9px] font-mono font-bold ${
@@ -177,29 +207,16 @@ export function MainLayout({
       </aside>
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0">
-        {/* Sticky Top Header */}
-        <header className="sticky top-0 z-30 flex flex-wrap items-center justify-between gap-4 px-7 py-3.5 bg-white/90 backdrop-blur-md border-b border-emerald-900/10 shadow-2xs">
+      <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
+        {/* Fixed Top Header */}
+        <header className="shrink-0 z-30 flex flex-wrap items-center justify-between gap-4 px-7 py-3.5 bg-white/95 backdrop-blur-md border-b border-emerald-900/10 shadow-2xs">
           <div className="flex items-center gap-3">
             <h1 className="text-lg font-bold tracking-tight text-slate-900 m-0">
               Smart Drone Delivery System
             </h1>
-            <span className="px-2.5 py-0.5 rounded-md bg-emerald-50 border border-emerald-200 text-emerald-800 font-mono text-xs font-semibold">
-              {currentPath}
-            </span>
           </div>
 
           <div className="flex items-center gap-3 flex-wrap">
-            {currentUser?.email && (
-              <div className="hidden sm:flex items-center gap-2.5 px-3 py-1.5 rounded-full bg-emerald-50/70 border border-emerald-200/80 text-xs">
-                <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                <span className="font-semibold text-slate-800">
-                  {currentUser.fullName || currentUser.email}
-                </span>
-                <span className="text-slate-500 font-mono text-[11px]">{currentUser.email}</span>
-              </div>
-            )}
-
             <button
               type="button"
               onClick={handleLogout}
@@ -250,10 +267,89 @@ export function MainLayout({
           ))}
         </div>
 
-        {/* Page Content */}
-        <main className="flex-1 p-6 md:p-8 max-w-7xl w-full mx-auto">
-          {children}
-        </main>
+        {/* Cumulative Delivered Orders Mini Notification (1 đơn, 2 đơn, 3 đơn...) */}
+        {deliveredEvents.length > 0 && (
+          <div className="fixed bottom-5 right-5 z-50 flex flex-col items-end gap-2 max-w-sm">
+            {showDeliveredDetail && (
+              <div className="w-80 bg-white rounded-2xl border border-emerald-200 shadow-2xl overflow-hidden text-xs">
+                <div className="px-4 py-2.5 bg-emerald-50 border-b border-emerald-100 flex items-center justify-between">
+                  <span className="font-extrabold text-emerald-900">
+                    Đơn Đã Giao Thành Công ({deliveredEvents.length})
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setDeliveredEvents([])
+                      setShowDeliveredDetail(false)
+                    }}
+                    className="text-[11px] font-bold text-emerald-700 hover:underline cursor-pointer"
+                  >
+                    Đánh dấu đã xem
+                  </button>
+                </div>
+                <div className="max-h-56 overflow-y-auto divide-y divide-slate-100">
+                  {deliveredEvents.map((ev) => (
+                    <div key={ev.eventId} className="px-4 py-2.5 flex items-center justify-between gap-2">
+                      <div>
+                        <div className="font-mono font-bold text-slate-900">{ev.trackingNumber}</div>
+                        <div className="text-[11px] text-emerald-700 font-semibold">
+                          Đã giải phóng Drone {ev.releasedDroneCode || 'DRN-VN-04'} (IDLE)
+                        </div>
+                      </div>
+                      <span className="text-[10px] font-mono text-slate-400 whitespace-nowrap">
+                        {ev.confirmedAt
+                          ? new Date(ev.confirmedAt).toLocaleTimeString('vi-VN', {
+                              hour: '2-digit',
+                              minute: '2-digit',
+                              second: '2-digit',
+                            })
+                          : 'Vừa xong'}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="bg-white border-2 border-emerald-500 rounded-2xl shadow-xl shadow-emerald-900/10 px-4 py-2.5 flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => setShowDeliveredDetail((prev) => !prev)}
+                className="flex items-center gap-2.5 text-left cursor-pointer"
+              >
+                <span className="w-7 h-7 rounded-full bg-emerald-600 text-white font-mono font-black text-xs flex items-center justify-center shrink-0 shadow-xs">
+                  {deliveredEvents.length}
+                </span>
+                <div>
+                  <div className="text-xs font-extrabold text-slate-900 whitespace-nowrap">
+                    {deliveredEvents.length} đơn hàng đã giao thành công
+                  </div>
+                  <div className="text-[11px] text-emerald-700 font-semibold whitespace-nowrap">
+                    Đã giải phóng Drone {deliveredEvents[0]?.releasedDroneCode || 'DRN-VN-04'} • Xem chi tiết
+                  </div>
+                </div>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setDeliveredEvents([])
+                  setShowDeliveredDetail(false)
+                }}
+                title="Đóng thông báo"
+                className="ml-1 px-2 py-1 rounded-lg text-[11px] font-bold text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Scrollable Page Content (Header & Sidebar remain fixed) */}
+        <div className="flex-1 overflow-y-auto">
+          <main className="p-6 md:p-8 max-w-7xl w-full mx-auto">
+            {children}
+          </main>
+        </div>
       </div>
     </div>
   )

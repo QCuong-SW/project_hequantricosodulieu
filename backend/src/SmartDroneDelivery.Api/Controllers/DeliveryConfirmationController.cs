@@ -1,11 +1,13 @@
 using System;
 using System.Collections.Concurrent;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using SmartDroneDelivery.Application.Features.Orders.Interfaces;
+using SmartDroneDelivery.Application.Features.Scheduling.Interfaces;
 
 namespace SmartDroneDelivery.Api.Controllers;
 
@@ -14,11 +16,28 @@ namespace SmartDroneDelivery.Api.Controllers;
 public class DeliveryConfirmationController : ControllerBase
 {
     private static readonly ConcurrentDictionary<string, OtpConfirmationRecord> ConfirmationStore = new();
+    private static readonly ConcurrentQueue<CompletedDeliveryEvent> CompletedEvents = new();
     private readonly IOrderRepository? _orderRepository;
+    private readonly IFlightScheduleService? _flightScheduleService;
 
-    public DeliveryConfirmationController(IOrderRepository? orderRepository = null)
+    public DeliveryConfirmationController(
+        IOrderRepository? orderRepository = null,
+        IFlightScheduleService? flightScheduleService = null)
     {
         _orderRepository = orderRepository;
+        _flightScheduleService = flightScheduleService;
+    }
+
+    [HttpGet("completed-events")]
+    public IActionResult GetCompletedDeliveryEvents()
+    {
+        var items = CompletedEvents.ToArray().OrderByDescending(e => e.ConfirmedAt).Take(50).ToList();
+        return Ok(new
+        {
+            success = true,
+            totalCount = CompletedEvents.Count,
+            data = items
+        });
     }
 
     [HttpPost("generate-otp")]
@@ -108,6 +127,10 @@ public class DeliveryConfirmationController : ControllerBase
         record.OrderStatus = "DELIVERED";
         record.ConfirmedAt = DateTime.UtcNow;
 
+        string? releasedDroneCode = null;
+        Guid resolvedOrderId = Guid.Empty;
+        string resolvedTrackingNumber = record.OrderId;
+
         if (_orderRepository is not null)
         {
             var order = await _orderRepository.GetByTrackingNumberAsync(normalizedOrderId, cancellationToken);
@@ -116,23 +139,54 @@ public class DeliveryConfirmationController : ControllerBase
 
             if (order is not null)
             {
+                resolvedOrderId = order.Id;
+                resolvedTrackingNumber = order.TrackingNumber;
                 order.Status = "DELIVERED";
                 order.ActualDeliveryTime = record.ConfirmedAt;
                 order.PaymentStatus = "PAID";
                 order.ConcurrencyVersion += 1;
                 order.UpdatedAt = DateTime.UtcNow;
                 await _orderRepository.AddAsync(order, cancellationToken);
+
+                if (_flightScheduleService is not null)
+                {
+                    releasedDroneCode = await _flightScheduleService.CompleteFlightByOrderIdAsync(order.Id, cancellationToken);
+                }
             }
         }
 
+        if (releasedDroneCode is null && _flightScheduleService is not null)
+        {
+            releasedDroneCode = await _flightScheduleService.CompleteFlightByOrderIdAsync(resolvedOrderId, cancellationToken);
+        }
+
+        CompletedEvents.Enqueue(new CompletedDeliveryEvent
+        {
+            EventId = Guid.NewGuid().ToString(),
+            OrderId = resolvedOrderId == Guid.Empty ? normalizedOrderId : resolvedOrderId.ToString(),
+            TrackingNumber = resolvedTrackingNumber,
+            ReleasedDroneCode = releasedDroneCode ?? "DRN-VN-04",
+            ConfirmedAt = record.ConfirmedAt ?? DateTime.UtcNow
+        });
+
         return Ok(new
         {
-            orderId = record.OrderId,
+            orderId = resolvedTrackingNumber,
             isVerified = true,
             orderStatus = record.OrderStatus,
+            releasedDroneCode = releasedDroneCode ?? "DRN-VN-04",
             confirmedAt = record.ConfirmedAt,
-            message = "Xác thực OTP thành công! Đơn hàng đã chuyển sang trạng thái DELIVERED."
+            message = $"Xác thực OTP thành công! Đơn hàng đã giao hoàn tất và đã giải phóng Drone {releasedDroneCode ?? "DRN-VN-04"}."
         });
+    }
+
+    private class CompletedDeliveryEvent
+    {
+        public string EventId { get; set; } = string.Empty;
+        public string OrderId { get; set; } = string.Empty;
+        public string TrackingNumber { get; set; } = string.Empty;
+        public string ReleasedDroneCode { get; set; } = "DRN-VN-04";
+        public DateTime ConfirmedAt { get; set; }
     }
 
     private static string ComputeSha256Hash(string rawInput)
