@@ -11,7 +11,7 @@ namespace SmartDroneDelivery.Api.Controllers;
 /// <summary>Dự đoán thời gian giao (ETA) cho một đơn hàng: LLM trước, lỗi thì dùng công thức khoảng cách.</summary>
 [ApiController]
 [Route("api/v1/ai/eta")]
-[AllowAnonymous]
+[Authorize(Roles = "ADMIN,DISPATCHER,LOGISTICS_MANAGER,STATION_OPERATOR")]
 public class EtaController : ControllerBase
 {
     private readonly SmartDroneDbContext _db;

@@ -1,8 +1,8 @@
 // web/src/features/dashboard/authBridge.js
-import { AUTH_API_URL, ROLE_ACCOUNTS } from '../../config/apiConfig.js';
+import { ACCESS_TOKEN_STORAGE_KEY, AUTH_API_URL, ROLE_ACCOUNTS } from '../../config/apiConfig.js';
 
 export function getAccessToken() {
-  return window.__accessToken || localStorage.getItem('accessToken') || null;
+  return window.__accessToken || localStorage.getItem(ACCESS_TOKEN_STORAGE_KEY) || null;
 }
 
 export function getCurrentUser() {
@@ -17,7 +17,7 @@ export function getCurrentUser() {
 export function setAuthSession(authData) {
   if (!authData?.accessToken) return;
   window.__accessToken = authData.accessToken;
-  localStorage.setItem('accessToken', authData.accessToken);
+  localStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, authData.accessToken);
   if (authData.refreshToken) {
     localStorage.setItem('refreshToken', authData.refreshToken);
   }
@@ -30,7 +30,7 @@ export function setAuthSession(authData) {
   }
 }
 
-export async function loginWithCredentials(email, password = 'Password123!') {
+export async function loginWithCredentials(email, password = 'P@ssword123!') {
   try {
     const res = await fetch(`${AUTH_API_URL}/login`, {
       method: 'POST',
@@ -81,13 +81,13 @@ export async function registerAccount({ fullName, email, password, phone = '' })
 
 export async function loginAsRole(role) {
   const account = ROLE_ACCOUNTS[role] || ROLE_ACCOUNTS.CUSTOMER;
-  const res = await loginWithCredentials(account.email, 'Password123!');
+  const res = await loginWithCredentials(account.email, 'P@ssword123!');
   return res.success ? res.data : null;
 }
 
 export function clearAuthSession() {
   window.__accessToken = null;
-  localStorage.removeItem('accessToken');
+  localStorage.removeItem(ACCESS_TOKEN_STORAGE_KEY);
   localStorage.removeItem('refreshToken');
   localStorage.removeItem('currentUser');
   localStorage.removeItem('customerId');

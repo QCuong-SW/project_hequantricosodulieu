@@ -6,6 +6,9 @@ export const API_ORIGIN = rawEnvUrl.replace(/\/api(\/v1)?$/i, '');
 export const API_V1_URL = `${API_ORIGIN}/api/v1`;
 export const AUTH_API_URL = `${API_ORIGIN}/api/auth`;
 
+// Shared by LoginPage/apiClient (M1) and dashboard auth bridge (M5).
+export const ACCESS_TOKEN_STORAGE_KEY = 'accessToken';
+
 export const DEFAULT_CUSTOMER_ID = '11111111-1111-1111-1111-111111111005';
 export const DEFAULT_DISPATCHER_ID = '11111111-1111-1111-1111-111111111002';
 export const DEFAULT_OPERATOR_ID = '11111111-1111-1111-1111-111111111003';

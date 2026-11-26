@@ -18,7 +18,7 @@ namespace SmartDroneDelivery.Api.Controllers;
 [ApiController]
 [Route("api/analytics")]
 [Route("api/v1/analytics")]
-[AllowAnonymous]
+[Authorize(Roles = "LOGISTICS_MANAGER,ADMIN")]
 public class AnalyticsController : ControllerBase
 {
     private const int DefaultRangeDays = 30;
@@ -309,6 +309,7 @@ public class AnalyticsController : ControllerBase
 
     /// <summary>Kiểm tra trạng thái kết nối CSDL SQL Server và tổng hợp số lượng bản ghi các bảng, SQL Views.</summary>
     [HttpGet("db-health")]
+    [AllowAnonymous]
     public async Task<IActionResult> GetDatabaseHealth(CancellationToken ct)
     {
         var checkedAt = DateTime.UtcNow;
